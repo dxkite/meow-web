@@ -19,20 +19,26 @@ func main() {
 	if err := cfg.LoadFromFile("./conf/config.yml"); err != nil {
 		log.Error(err)
 	}
-	if cfg.HotLoad > 0 {
-		cfg.SetLoadTime(cfg.HotLoad)
-		cfg.OnChange(func(c interface{}) {
-			cfg.SetLoadTime(c.(*config.Config).HotLoad)
-		})
-		cfg.HotLoadIfModify(p)
-	}
+
 	log.Println("load config success")
 	r := route.NewRoute()
 	r.Load(cfg.Routes)
 	cfg.OnChange(func(cfg interface{}) {
 		r.Load(cfg.(*config.Config).Routes)
 	})
+
 	s := server.NewServer(cfg, r)
+
+	if cfg.HotLoad > 0 {
+		cfg.SetLoadTime(cfg.HotLoad)
+		cfg.OnChange(func(c interface{}) {
+			cfg.SetLoadTime(c.(*config.Config).HotLoad)
+			s.ApplyHeaderFilter(c.(*config.Config).HttpAllowHeader)
+		})
+		cfg.HotLoadIfModify(p)
+	}
+	cfg.NotifyModify()
+
 	if err := s.Serve(l); err != nil {
 		log.Error(err)
 	}

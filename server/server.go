@@ -13,15 +13,21 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/textproto"
 	"strconv"
 	"time"
 )
+
+var DefaultAllowHeader = []string{
+	"Content-Type", "Content-Length",
+}
 
 type Server struct {
 	tp  TicketProvider
 	cfg *config.Config
 	r   *route.Route
 	sm  session.SessionManager
+	hf  map[string]bool
 }
 
 func NewServer(cfg *config.Config, r *route.Route) *Server {
@@ -29,6 +35,20 @@ func NewServer(cfg *config.Config, r *route.Route) *Server {
 		tp:  NewAESTicketProvider(),
 		cfg: cfg,
 		r:   r,
+	}
+}
+
+func (s *Server) ApplyHeaderFilter(allows []string) {
+	s.hf = map[string]bool{}
+	for _, h := range DefaultAllowHeader {
+		h = textproto.CanonicalMIMEHeaderKey(h)
+		s.hf[h] = true
+		log.Println("allow header", h)
+	}
+	for _, h := range allows {
+		h = textproto.CanonicalMIMEHeaderKey(h)
+		s.hf[h] = true
+		log.Println("allow header", h)
 	}
 }
 
@@ -130,7 +150,7 @@ func (s *Server) procHttp(uin uint64, info *route.RouteInfo, b *route.Backend, w
 		log.Error(err)
 		return
 	}
-	req.Header = r.Header.Clone()
+	s.copyReqHeader(req, r)
 	req.Header.Set(s.cfg.UinHeaderName, strconv.Itoa(int(uin)))
 	resp, err := client.Do(req)
 	if err != nil {
@@ -140,7 +160,7 @@ func (s *Server) procHttp(uin uint64, info *route.RouteInfo, b *route.Backend, w
 	}
 	s.procHttpSession(info, w, resp)
 	resp.Header.Del(s.cfg.UinHeaderName)
-	s.procHttpHeader(w, resp)
+	s.copyRespHttpHeader(w, resp)
 	w.WriteHeader(resp.StatusCode)
 	if _, err := io.Copy(w, resp.Body); err != nil {
 		log.Error("copy error", err)
@@ -204,10 +224,26 @@ func (s *Server) procHttpSession(info *route.RouteInfo, w http.ResponseWriter, r
 	}
 }
 
-func (s *Server) procHttpHeader(w http.ResponseWriter, resp *http.Response) {
+func (s *Server) copyRespHttpHeader(w http.ResponseWriter, resp *http.Response) {
 	for k, v := range resp.Header {
+		_, ok := s.hf[textproto.CanonicalMIMEHeaderKey(k)]
+		if !ok {
+			continue
+		}
 		for _, vv := range v {
 			w.Header().Set(k, vv)
+		}
+	}
+}
+
+func (s *Server) copyReqHeader(dst, src *http.Request) {
+	for k, v := range src.Header {
+		_, ok := s.hf[textproto.CanonicalMIMEHeaderKey(k)]
+		if !ok {
+			continue
+		}
+		for _, vv := range v {
+			dst.Header.Set(k, vv)
 		}
 	}
 }

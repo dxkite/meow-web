@@ -27,6 +27,8 @@ type Config struct {
 	CookieName      string  `yaml:"cookie_name"`
 	UinHeaderName   string  `yaml:"uin_header_name"`
 	Routes          []Route `yaml:"routes"`
+	// HTTP请求头白名单
+	HttpAllowHeader []string `yaml:"http_header_allow"`
 	// 热更新时间（秒）
 	HotLoad int `yaml:"hot_load"`
 	HotLoadConfig
@@ -35,6 +37,7 @@ type Config struct {
 func NewConfig() *Config {
 	cfg := &Config{}
 	cfg.LoadConfig = cfg.LoadFromFile
+	cfg.cfg = cfg
 	return cfg
 }
 

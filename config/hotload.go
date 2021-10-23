@@ -16,6 +16,7 @@ type HotLoadConfig struct {
 	LoadConfig func(p string) error
 	changCb    []ConfigChangeCallback
 	loadTime   int
+	cfg        interface{}
 }
 
 func (cfg *HotLoadConfig) OnChange(cb ConfigChangeCallback) {
@@ -27,7 +28,7 @@ func (cfg *HotLoadConfig) OnChange(cb ConfigChangeCallback) {
 
 func (cfg *HotLoadConfig) applyConfig() {
 	for _, cb := range cfg.changCb {
-		cb(cfg)
+		cb(cfg.cfg)
 	}
 }
 
@@ -35,7 +36,7 @@ func (cfg *HotLoadConfig) SetLoadTime(t int) {
 	cfg.loadTime = t
 }
 
-func (cfg *HotLoadConfig) notifyModify() {
+func (cfg *HotLoadConfig) NotifyModify() {
 	go cfg.applyConfig()
 }
 
@@ -52,7 +53,7 @@ func (cfg *HotLoadConfig) LoadIfModify(p string) (bool, error) {
 	}
 	err := cfg.LoadConfig(p)
 	if err != nil {
-		cfg.notifyModify()
+		cfg.NotifyModify()
 	}
 	return true, err
 }
