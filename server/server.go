@@ -22,9 +22,7 @@ type Server struct {
 	sm  SessionManager
 }
 
-func NewServer(cfg *config.Config) *Server {
-	r := route.NewRoute()
-	r.Load(cfg.Routes)
+func NewServer(cfg *config.Config, r *route.Route) *Server {
 	return &Server{
 		tp:  NewAESTicketProvider(),
 		cfg: cfg,

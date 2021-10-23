@@ -27,6 +27,15 @@ type Config struct {
 	CookieName      string  `yaml:"cookie_name"`
 	UinHeaderName   string  `yaml:"uin_header_name"`
 	Routes          []Route `yaml:"routes"`
+	// 热更新时间（秒）
+	HotLoad int `yaml:"hot_load"`
+	HotLoadConfig
+}
+
+func NewConfig() *Config {
+	cfg := &Config{}
+	cfg.LoadConfig = cfg.LoadFromFile
+	return cfg
 }
 
 func (cfg *Config) LoadFrom(in []byte) error {
