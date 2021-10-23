@@ -5,18 +5,22 @@ import (
 	"dxkite.cn/gateway/route"
 	"dxkite.cn/gateway/server"
 	"dxkite.cn/log"
+	"flag"
 	"net"
+	"os"
 )
 
 func main() {
-	l, err := net.Listen("tcp", ":2333")
-	if err != nil {
-		log.Error(err)
+	conf := flag.String("conf", "./config.yml", "the config file")
+	flag.Parse()
+
+	if len(os.Args) == 1 {
+		flag.Usage()
+		return
 	}
-	log.Println("server start at", l.Addr())
+
 	cfg := config.NewConfig()
-	p := "./conf/config.yml"
-	if err := cfg.LoadFromFile("./conf/config.yml"); err != nil {
+	if err := cfg.LoadFromFile(*conf); err != nil {
 		log.Error(err)
 	}
 
@@ -34,10 +38,15 @@ func main() {
 			s.ApplyHeaderFilter(c.(*config.Config).HttpAllowHeader)
 			s.ApplyCorsConfig(c.(*config.Config).Cors)
 		})
-		cfg.HotLoadIfModify(p)
+		cfg.HotLoadIfModify(*conf)
 	}
 	cfg.NotifyModify()
 
+	l, err := net.Listen("tcp", cfg.Address)
+	if err != nil {
+		log.Error(err)
+	}
+	log.Println("server start at", l.Addr())
 	if err := s.Serve(l); err != nil {
 		log.Error(err)
 	}

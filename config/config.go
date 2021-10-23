@@ -30,6 +30,7 @@ type SignConfig struct {
 
 type Config struct {
 	EnableVerify    bool   `yaml:"enable_verify"`
+	Address         string `yaml:"address"`
 	CAPath          string `yaml:"ca_path"`
 	ModuleCertPath  string `yaml:"module_cert_pem"`
 	ModuleKeyPath   string `yaml:"module_key_pem"`
