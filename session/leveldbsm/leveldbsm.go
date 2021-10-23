@@ -1,22 +1,17 @@
-package server
+package leveldbsm
 
 import (
 	"dxkite.cn/gateway/config"
+	"dxkite.cn/gateway/session"
 	"encoding/binary"
 	"github.com/syndtr/goleveldb/leveldb"
 )
-
-type SessionManager interface {
-	CreateSession(uin uint64) error
-	CheckSession(uin uint64) bool
-	RemoveSession(uin uint64) error
-}
 
 type LevelDbSM struct {
 	db *leveldb.DB
 }
 
-func NewLevelDbSM(cfg *config.Config) (SessionManager, error) {
+func NewLevelDbSM(cfg *config.Config) (session.SessionManager, error) {
 	db, err := leveldb.OpenFile(cfg.SessionPath, nil)
 	if err != nil {
 		return nil, err

@@ -6,6 +6,8 @@ import (
 	"crypto/x509"
 	"dxkite.cn/gateway/config"
 	"dxkite.cn/gateway/route"
+	"dxkite.cn/gateway/session"
+	"dxkite.cn/gateway/session/memsm"
 	"dxkite.cn/log"
 	"io"
 	"io/ioutil"
@@ -19,7 +21,7 @@ type Server struct {
 	tp  TicketProvider
 	cfg *config.Config
 	r   *route.Route
-	sm  SessionManager
+	sm  session.SessionManager
 }
 
 func NewServer(cfg *config.Config, r *route.Route) *Server {
@@ -49,7 +51,9 @@ func (s *Server) Serve(l net.Listener) error {
 		}
 		l = tls.NewListener(l, c)
 	}
-	sm, err := NewLevelDbSM(s.cfg)
+
+	// 当前情况下为了安全session在程序down掉之后就失效了，所以不需要持久化
+	sm, err := memsm.NewMemSM(s.cfg)
 	if err != nil {
 		log.Error("session manager create error")
 		return err
@@ -135,6 +139,7 @@ func (s *Server) procHttp(uin uint64, info *route.RouteInfo, b *route.Backend, w
 		return
 	}
 	s.procHttpSession(info, w, resp)
+	resp.Header.Del(s.cfg.UinHeaderName)
 	s.procHttpHeader(w, resp)
 	w.WriteHeader(resp.StatusCode)
 	if _, err := io.Copy(w, resp.Body); err != nil {
