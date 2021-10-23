@@ -1,3 +1,60 @@
 # 鉴权网关
 
-- 根据登录接口返回UIN判断是否登录/退出成功
+- [x] 根据登录接口返回UIN判断是否登录/退出成功
+- [x] 自动添加跨域处理
+- [x] 会话重启即失效
+- [x] TLS鉴权
+- [x] 负载均衡
+    - [x] 随机
+
+## Config
+
+```yaml
+# 开启验证
+enable_verify: false
+# 验证证书
+ca_path: "./conf/ca.pem"
+module_cert_pem: "./conf/server.pem"
+module_key_pem: "./conf/server.key"
+# 请求将会通过UIN传输到后端
+uin_header_name: "uin"
+# 会话Cookie名称
+cookie_name: "session"
+# 登录SESSION位置 (leveldb) 废弃
+session_path: "./conf/session"
+# 会话过期时间（秒）
+session_expire_in: 3600
+# 配置热加载（秒）
+hot_load: 60
+# 登录页面
+sign_page: "https://dxkite.cn"
+# 跨域配置
+cors_config:
+  allow_origin:
+    - "http://127.0.0.1:2333"
+  allow_method:
+    - GET
+    - POST
+sign_info:
+  redirect_name: "redirect_uri"
+  redirect_url: "https://dxkite.cn"
+# 路由配置
+routes:
+  - pattern: "/signin.php"
+    signin: true # 登录接口
+    backend:
+      - http://127.0.0.1:8088
+  - pattern: "/signout.php"
+    sign: true
+    signout: true # 登出接口
+    backend:
+      - http://127.0.0.1:8088
+  - pattern: "/user"
+    sign: true #需要登录才能访问
+    backend:
+      - http://127.0.0.1:8088
+  - pattern: "/" # 普通接口
+    backend:
+      - http://127.0.0.1:8088
+
+```
