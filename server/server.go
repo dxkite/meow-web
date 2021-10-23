@@ -26,7 +26,7 @@ var DefaultAllowHeader = []string{
 }
 
 type Server struct {
-	tp            TicketProvider
+	tp            session.TicketProvider
 	cfg           *config.Config
 	r             *route.Route
 	sm            session.SessionManager
@@ -37,7 +37,7 @@ type Server struct {
 
 func NewServer(cfg *config.Config, r *route.Route) *Server {
 	return &Server{
-		tp:  NewAESTicketProvider(),
+		tp:  session.NewAESTicketProvider(),
 		cfg: cfg,
 		r:   r,
 	}
@@ -130,7 +130,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) ReadTicket(r *http.Request) *Ticket {
+func (s *Server) ReadTicket(r *http.Request) *session.Ticket {
 	if c, err := r.Cookie(s.cfg.CookieName); err != nil {
 		log.Debug("read cookie failed", s.cfg.CookieName)
 		return nil
