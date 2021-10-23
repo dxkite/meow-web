@@ -17,6 +17,12 @@ type Route struct {
 	Backend []string `yaml:"backend"`
 }
 
+type CORSConfig struct {
+	AllowHeader []string `yaml:"allow_header"`
+	AllowOrigin []string `yaml:"allow_origin"`
+	AllowMethod []string `yaml:"allow_method"`
+}
+
 type Config struct {
 	EnableVerify    bool    `yaml:"enable_verify"`
 	CAPath          string  `yaml:"ca_path"`
@@ -29,6 +35,8 @@ type Config struct {
 	Routes          []Route `yaml:"routes"`
 	// HTTP请求头白名单
 	HttpAllowHeader []string `yaml:"http_header_allow"`
+	// 跨域配置
+	Cors *CORSConfig `yaml:"cors_config"`
 	// 热更新时间（秒）
 	HotLoad int `yaml:"hot_load"`
 	HotLoadConfig
@@ -38,6 +46,7 @@ func NewConfig() *Config {
 	cfg := &Config{}
 	cfg.LoadConfig = cfg.LoadFromFile
 	cfg.cfg = cfg
+	cfg.Cors = &CORSConfig{}
 	return cfg
 }
 

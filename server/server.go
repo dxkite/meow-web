@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/textproto"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -23,11 +24,13 @@ var DefaultAllowHeader = []string{
 }
 
 type Server struct {
-	tp  TicketProvider
-	cfg *config.Config
-	r   *route.Route
-	sm  session.SessionManager
-	hf  map[string]bool
+	tp            TicketProvider
+	cfg           *config.Config
+	r             *route.Route
+	sm            session.SessionManager
+	hf            map[string]bool
+	corsOrigin    map[string]bool
+	corsOriginAny bool
 }
 
 func NewServer(cfg *config.Config, r *route.Route) *Server {
@@ -49,6 +52,17 @@ func (s *Server) ApplyHeaderFilter(allows []string) {
 		h = textproto.CanonicalMIMEHeaderKey(h)
 		s.hf[h] = true
 		log.Println("allow header", h)
+	}
+}
+
+func (s *Server) ApplyCorsConfig(cfg *config.CORSConfig) {
+	s.corsOrigin = map[string]bool{}
+	for _, h := range cfg.AllowOrigin {
+		if h == "*" {
+			s.corsOriginAny = true
+			break
+		}
+		s.corsOrigin[h] = true
 	}
 }
 
@@ -97,6 +111,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if t != nil {
 			uin = t.Uin
 		}
+		// 配置CORS请求头
+		s.writeCorsConfig(w, r)
+		// 发起后端请求
 		b := rr.Group.Get()
 		switch b.Type {
 		case "http", "https":
@@ -244,6 +261,26 @@ func (s *Server) copyReqHeader(dst, src *http.Request) {
 		}
 		for _, vv := range v {
 			dst.Header.Set(k, vv)
+		}
+	}
+}
+
+func (s *Server) writeCorsConfig(w http.ResponseWriter, r *http.Request) {
+	origin := r.Header.Get("Origin")
+	_, ok := s.corsOrigin[origin]
+	if len(origin) == 0 {
+		origin = "*"
+	}
+	if ok || s.corsOriginAny {
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+	}
+	if r.Method == http.MethodOptions {
+		if len(s.cfg.Cors.AllowMethod) > 0 {
+			methods := strings.ToUpper(strings.Join(s.cfg.Cors.AllowMethod, ","))
+			w.Header().Set("Access-Control-Allow-Methods", methods)
+		}
+		if len(s.cfg.Cors.AllowHeader) > 0 {
+			w.Header().Set("Access-Control-Allow-Headers", strings.Join(s.cfg.Cors.AllowHeader, ","))
 		}
 	}
 }

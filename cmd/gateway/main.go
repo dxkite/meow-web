@@ -23,17 +23,15 @@ func main() {
 	log.Println("load config success")
 	r := route.NewRoute()
 	r.Load(cfg.Routes)
-	cfg.OnChange(func(cfg interface{}) {
-		r.Load(cfg.(*config.Config).Routes)
-	})
 
 	s := server.NewServer(cfg, r)
-
 	if cfg.HotLoad > 0 {
 		cfg.SetLoadTime(cfg.HotLoad)
 		cfg.OnChange(func(c interface{}) {
 			cfg.SetLoadTime(c.(*config.Config).HotLoad)
+			r.Load(c.(*config.Config).Routes)
 			s.ApplyHeaderFilter(c.(*config.Config).HttpAllowHeader)
+			s.ApplyCorsConfig(c.(*config.Config).Cors)
 		})
 		cfg.HotLoadIfModify(p)
 	}
