@@ -99,65 +99,66 @@ func (s *Server) Serve(l net.Listener) error {
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Info("request", r.Host, r.URL, r.RemoteAddr, r.Referer())
+	log.Info("do", r.Method, r.Host, r.URL, r.RemoteAddr, r.Referer())
 	var uin uint64
-	if m, rr := s.r.Match(r.RequestURI); rr != nil {
-		log.Debug("match", m)
-		// 读取登录票据
-		t := s.ReadTicket(r)
-		// 需要登陆才能访问的接口
-		if t == nil && rr.Config.Sign {
-			s.procUnauthorized(w, r)
-			return
-		}
-		if t != nil {
-			uin = t.Uin
-		}
-		// 配置CORS请求头
-		s.writeCorsConfig(w, r)
-		w.Header().Set("Via", "gw")
-		// 发起后端请求
-		b := rr.Group.Get()
-		switch b.Type {
-		case "http", "https":
-			s.procHttp(uin, rr, b, w, r)
-		default:
-			http.Error(w, "unsupported backend", http.StatusBadRequest)
-		}
-	} else {
-		log.Debug("request", r.Host, r.URL, "not found")
+
+	m, rr := s.r.Match(r.RequestURI)
+	if rr == nil {
+		log.Debug(r.Method, r.Host, r.URL, "not found")
 		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
+	log.Debug("match", m)
+	// 读取登录票据
+	t := s.ReadTicket(r)
+	// 需要登陆才能访问的接口
+	if t == nil && rr.Config.Sign {
+		s.procUnauthorized(w, r)
+		return
+	}
+	if t != nil {
+		uin = t.Uin
+	}
+	// 配置CORS请求头
+	s.writeCorsConfig(w, r)
+	w.Header().Set("Via", "gw")
+	// 发起后端请求
+	b := rr.Group.Get()
+	switch b.Type {
+	case "http", "https":
+		s.procHttp(uin, rr, b, w, r)
+	default:
+		http.Error(w, "unsupported backend", http.StatusBadRequest)
 	}
 }
 
 func (s *Server) ReadTicket(r *http.Request) *session.Ticket {
-	if c, err := r.Cookie(s.cfg.CookieName); err != nil {
-		log.Debug("read cookie failed", s.cfg.CookieName)
+	c, err := r.Cookie(s.cfg.CookieName)
+	if err != nil {
 		return nil
-	} else {
-		if t, err := s.tp.DecodeTicket(c.Value); err != nil {
-			log.Debug("decode ticket error", err)
-			return nil
-		} else {
-			log.Debug("request uin", t.Uin, t.CreateTime)
-			expireAt := time.Unix(int64(t.CreateTime), 0).
-				Add(time.Second * time.Duration(s.cfg.SessionExpireIn))
-			if time.Now().After(expireAt) {
-				log.Error("session expired", t.Uin)
-				return nil
-			}
-			if !s.sm.CheckSession(t.Uin) {
-				log.Error("session not in db", t.Uin)
-				return nil
-			}
-			return t
-		}
 	}
+	t, err := s.tp.DecodeTicket(c.Value)
+	if err != nil {
+		log.Debug("decode ticket error", err)
+		return nil
+	}
+	log.Debug("uin", t.Uin, "create_time", t.CreateTime)
+	expireAt := time.Unix(int64(t.CreateTime), 0).Add(time.Second * time.Duration(s.cfg.SessionExpireIn))
+	if time.Now().After(expireAt) {
+		log.Error("session expired", t.Uin)
+		return nil
+	}
+	if !s.sm.CheckSession(t.Uin) {
+		log.Error("session not in db", t.Uin)
+		return nil
+	}
+	return t
 }
 
 func (s *Server) procHttp(uin uint64, info *route.RouteInfo, b *route.Backend, w http.ResponseWriter, r *http.Request) {
 	u := b.Type + "://" + net.JoinHostPort(b.Host, b.Port) + r.RequestURI
-	log.Println("proxy request", u)
+	log.Println("do request", r.Method, u)
 	client, err := createClient(s.cfg, b)
 	if err != nil {
 		http.Error(w, "unavailable", http.StatusServiceUnavailable)
@@ -180,7 +181,7 @@ func (s *Server) procHttp(uin uint64, info *route.RouteInfo, b *route.Backend, w
 	}
 	s.procHttpSession(info, w, resp)
 	resp.Header.Del(s.cfg.UinHeaderName)
-	s.copyRespHttpHeader(w, resp)
+	s.copyRespHeader(w, resp)
 	w.WriteHeader(resp.StatusCode)
 	if _, err := io.Copy(w, resp.Body); err != nil {
 		log.Error("copy error", err)
@@ -214,38 +215,47 @@ func createClient(cfg *config.Config, b *route.Backend) (*http.Client, error) {
 }
 
 func (s *Server) procHttpSession(info *route.RouteInfo, w http.ResponseWriter, resp *http.Response) {
-	if resp.StatusCode == http.StatusOK {
-		respUin, _ := strconv.Atoi(resp.Header.Get(s.cfg.UinHeaderName))
-		if info.Config.SignIn && respUin > 0 {
-			log.Info("signin", respUin)
-			ticket, _ := s.tp.EncodeTicket(uint64(respUin))
-			http.SetCookie(w, &http.Cookie{
-				Name:    s.cfg.CookieName,
-				Value:   ticket,
-				Expires: time.Now().Add(time.Second * time.Duration(s.cfg.SessionExpireIn)),
-				Secure:  true,
-			})
-			if err := s.sm.CreateSession(uint64(respUin)); err != nil {
-				log.Println("save session error", err)
-			}
-			return
-		}
-		if info.Config.SignOut && respUin > 0 {
-			log.Info("signout", respUin)
-			http.SetCookie(w, &http.Cookie{
-				Name:   s.cfg.CookieName,
-				Value:  "",
-				MaxAge: 0,
-				Secure: true,
-			})
-			if err := s.sm.RemoveSession(uint64(respUin)); err != nil {
-				log.Println("remove session error", err)
-			}
-		}
+	if resp.StatusCode != http.StatusOK {
+		return
+	}
+	uin, _ := strconv.Atoi(resp.Header.Get(s.cfg.UinHeaderName))
+	if info.Config.SignIn && uin > 0 {
+		s.SignIn(w, uint64(uin))
+		return
+	}
+	if info.Config.SignOut && uin > 0 {
+		s.SignOut(w, uint64(uin))
 	}
 }
 
-func (s *Server) copyRespHttpHeader(w http.ResponseWriter, resp *http.Response) {
+func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
+	log.Info("signin", uin)
+	ticket, _ := s.tp.EncodeTicket(uin)
+	http.SetCookie(w, &http.Cookie{
+		Name:    s.cfg.CookieName,
+		Value:   ticket,
+		Expires: time.Now().Add(time.Second * time.Duration(s.cfg.SessionExpireIn)),
+		Secure:  true,
+	})
+	if err := s.sm.CreateSession(uin); err != nil {
+		log.Println("save session error", err)
+	}
+}
+
+func (s *Server) SignOut(w http.ResponseWriter, uin uint64) {
+	log.Info("signout", uin)
+	http.SetCookie(w, &http.Cookie{
+		Name:   s.cfg.CookieName,
+		Value:  "",
+		MaxAge: 0,
+		Secure: true,
+	})
+	if err := s.sm.RemoveSession(uin); err != nil {
+		log.Println("remove session error", err)
+	}
+}
+
+func (s *Server) copyRespHeader(w http.ResponseWriter, resp *http.Response) {
 	for k, v := range resp.Header {
 		_, ok := s.hf[textproto.CanonicalMIMEHeaderKey(k)]
 		if !ok {
