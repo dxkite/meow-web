@@ -57,7 +57,11 @@ func NewBackendGroup(backends []string) *BackendGroup {
 		if u, err := url.Parse(b); err != nil {
 			log.Error("parse backend error", b)
 		} else {
-			host, port, _ := net.SplitHostPort(u.Host)
+			host := u.Host
+			port := ""
+			if strings.LastIndex(host, ":") > 0 {
+				host, port, _ = net.SplitHostPort(u.Host)
+			}
 			if len(port) == 0 {
 				switch u.Scheme {
 				case "http":

@@ -29,6 +29,7 @@ func main() {
 		cfg.SetLoadTime(cfg.HotLoad)
 		cfg.OnChange(func(c interface{}) {
 			cfg.SetLoadTime(c.(*config.Config).HotLoad)
+			r.ClearAll()
 			r.Load(c.(*config.Config).Routes)
 			s.ApplyHeaderFilter(c.(*config.Config).HttpAllowHeader)
 			s.ApplyCorsConfig(c.(*config.Config).Cors)

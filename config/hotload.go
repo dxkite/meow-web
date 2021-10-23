@@ -52,7 +52,7 @@ func (cfg *HotLoadConfig) LoadIfModify(p string) (bool, error) {
 		return false, nil
 	}
 	err := cfg.LoadConfig(p)
-	if err != nil {
+	if err == nil {
 		cfg.NotifyModify()
 	}
 	return true, err

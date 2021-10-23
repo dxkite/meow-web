@@ -52,9 +52,19 @@ routes:
   - pattern: "/user"
     sign: true #需要登录才能访问
     backend:
-      - http://127.0.0.1:8088
-  - pattern: "/" # 普通接口
+      - https://114.132.243.178?server_name=nginx
+  - pattern: "/" # 普通非鉴权接口
     backend:
-      - http://127.0.0.1:8088
+      - https://114.132.243.178?server_name=nginx
+```
 
+## Nginx 开启双向认证
+```
+# 服务器证书
+ssl_certificate /cert/fullchain.pem;
+ssl_certificate_key /cert/privkey.pem;
+# Client验证CA
+ssl_client_certificate /cert/ca.pem;
+# 验证Client
+ssl_verify_client on;
 ```

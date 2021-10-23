@@ -189,6 +189,7 @@ func (s *Server) procHttp(uin uint64, info *route.RouteInfo, b *route.Backend, w
 
 func createClient(cfg *config.Config, b *route.Backend) (*http.Client, error) {
 	c := &http.Client{}
+	c.Timeout = 10 * time.Second
 	if b.Type == "https" {
 		cert, err := tls.LoadX509KeyPair(cfg.ModuleCertPath, cfg.ModuleKeyPath)
 		if err != nil {
