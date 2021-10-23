@@ -1,0 +1,24 @@
+# 开启验证
+enable_verify: true
+# 验证证书
+ca_path: "./conf/ca.pem"
+module_cert_pem: "./conf/gateway.pem"
+module_key_pem: "./conf/gateway.key"
+# 请求将会通过UIN传输到后端
+http_header_uin: "uin"
+# 路由配置
+routes:
+  - pattern: "/user/signin"
+    signin: true
+    backend:
+      - https://127.0.0.1:2333
+  - pattern: "/user/signout"
+    signout: true
+    backend:
+      - https://127.0.0.1:2333
+  - pattern: "/user"
+    backend:
+      - https://127.0.0.1:2333
+  - pattern: "/"
+    backend:
+      - https://atd.jingwenxing.top
