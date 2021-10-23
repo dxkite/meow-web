@@ -23,16 +23,24 @@ type CORSConfig struct {
 	AllowMethod []string `yaml:"allow_method"`
 }
 
+type SignConfig struct {
+	RedirectUrl  string `yaml:"redirect_url"`
+	RedirectName string `yaml:"redirect_name"`
+}
+
 type Config struct {
-	EnableVerify    bool    `yaml:"enable_verify"`
-	CAPath          string  `yaml:"ca_path"`
-	ModuleCertPath  string  `yaml:"module_cert_pem"`
-	ModuleKeyPath   string  `yaml:"module_key_pem"`
-	SessionExpireIn int     `yaml:"session_expire_in"`
-	SessionPath     string  `yaml:"session_path"`
-	CookieName      string  `yaml:"cookie_name"`
-	UinHeaderName   string  `yaml:"uin_header_name"`
-	Routes          []Route `yaml:"routes"`
+	EnableVerify    bool   `yaml:"enable_verify"`
+	CAPath          string `yaml:"ca_path"`
+	ModuleCertPath  string `yaml:"module_cert_pem"`
+	ModuleKeyPath   string `yaml:"module_key_pem"`
+	SessionExpireIn int    `yaml:"session_expire_in"`
+	SessionPath     string `yaml:"session_path"`
+	CookieName      string `yaml:"cookie_name"`
+	UinHeaderName   string `yaml:"uin_header_name"`
+	// 登录配置
+	Sign *SignConfig `yaml:"sign_info"`
+	// 路由配置
+	Routes []Route `yaml:"routes"`
 	// HTTP请求头白名单
 	HttpAllowHeader []string `yaml:"http_header_allow"`
 	// 跨域配置
@@ -47,6 +55,7 @@ func NewConfig() *Config {
 	cfg.LoadConfig = cfg.LoadFromFile
 	cfg.cfg = cfg
 	cfg.Cors = &CORSConfig{}
+	cfg.Sign = &SignConfig{}
 	return cfg
 }
 

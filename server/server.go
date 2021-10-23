@@ -9,11 +9,13 @@ import (
 	"dxkite.cn/gateway/session"
 	"dxkite.cn/gateway/session/memsm"
 	"dxkite.cn/log"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"net/textproto"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -105,7 +107,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		t := s.ReadTicket(r)
 		// 需要登陆才能访问的接口
 		if t == nil && rr.Config.Sign {
-			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			s.procUnauthorized(w, r)
 			return
 		}
 		if t != nil {
@@ -113,6 +115,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		// 配置CORS请求头
 		s.writeCorsConfig(w, r)
+		w.Header().Set("Via", "gw")
 		// 发起后端请求
 		b := rr.Group.Get()
 		switch b.Type {
@@ -153,15 +156,15 @@ func (s *Server) ReadTicket(r *http.Request) *Ticket {
 }
 
 func (s *Server) procHttp(uin uint64, info *route.RouteInfo, b *route.Backend, w http.ResponseWriter, r *http.Request) {
-	url := b.Type + "://" + net.JoinHostPort(b.Host, b.Port) + r.RequestURI
-	log.Println("proxy request", url)
+	u := b.Type + "://" + net.JoinHostPort(b.Host, b.Port) + r.RequestURI
+	log.Println("proxy request", u)
 	client, err := createClient(s.cfg, b)
 	if err != nil {
 		http.Error(w, "unavailable", http.StatusServiceUnavailable)
 		log.Error(err)
 		return
 	}
-	req, err := http.NewRequest(r.Method, url, r.Body)
+	req, err := http.NewRequest(r.Method, u, r.Body)
 	if err != nil {
 		http.Error(w, "unavailable", http.StatusServiceUnavailable)
 		log.Error(err)
@@ -283,4 +286,26 @@ func (s *Server) writeCorsConfig(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Access-Control-Allow-Headers", strings.Join(s.cfg.Cors.AllowHeader, ","))
 		}
 	}
+}
+
+func (s *Server) procUnauthorized(w http.ResponseWriter, r *http.Request) {
+	if s.cfg.Sign == nil || len(s.cfg.Sign.RedirectUrl) == 0 {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	u := s.cfg.Sign.RedirectUrl
+	name := s.cfg.Sign.RedirectName
+	if len(name) == 0 {
+		name = "redirect_url"
+	}
+	// 自动判断协议
+	uu := fmt.Sprintf("//%s%s", r.Host, r.RequestURI)
+	t := url.QueryEscape(uu)
+	if strings.Contains(u, "?") {
+		u += "&" + name + "=" + t
+	} else {
+		u += "?" + name + "=" + t
+	}
+	w.Header().Set("Location", u)
+	w.WriteHeader(http.StatusFound)
 }
