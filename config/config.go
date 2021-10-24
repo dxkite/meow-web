@@ -1,6 +1,7 @@
 package config
 
 import (
+	"dxkite.cn/log"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"time"
@@ -59,6 +60,7 @@ type Config struct {
 	ModuleKeyPath  string         `yaml:"module_key_pem"`
 	SessionConfig  *SessionConfig `yaml:"session"`
 	UinHeaderName  string         `yaml:"uin_header_name"`
+	LogConfig      *LogConfig     `yaml:"log"`
 	// 登录配置
 	Sign *SignConfig `yaml:"sign_info"`
 	// 路由配置
@@ -72,12 +74,18 @@ type Config struct {
 	HotLoadConfig
 }
 
+type LogConfig struct {
+	Path  string       `yaml:"path"`
+	Level log.LogLevel `yaml:"level"`
+}
+
 func NewConfig() *Config {
 	cfg := &Config{}
 	cfg.LoadConfig = cfg.LoadFromFile
 	cfg.cfg = cfg
 	cfg.Cors = &CORSConfig{}
 	cfg.Sign = &SignConfig{}
+	cfg.LogConfig = &LogConfig{}
 	return cfg
 }
 

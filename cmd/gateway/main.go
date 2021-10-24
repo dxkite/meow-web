@@ -1,16 +1,26 @@
 package main
 
 import (
+	"context"
 	"dxkite.cn/gateway/config"
 	"dxkite.cn/gateway/route"
 	"dxkite.cn/gateway/server"
+	"dxkite.cn/gateway/util"
 	"dxkite.cn/log"
 	"flag"
 	"net"
 	"os"
 )
 
+func init() {
+	log.SetOutput(log.NewColorWriter())
+	log.SetLogCaller(true)
+	log.SetAsync(false)
+	log.SetLevel(log.LMaxLevel)
+}
+
 func main() {
+	ctx, _ := context.WithCancel(context.Background())
 	conf := flag.String("conf", "./config.yml", "the config file")
 	flag.Parse()
 
@@ -24,6 +34,7 @@ func main() {
 		log.Error(err)
 	}
 
+	util.SetLogConfig(ctx, cfg.LogConfig.Level, cfg.LogConfig.Path)
 	log.Println("load config success")
 	r := route.NewRoute()
 	r.Load(cfg.Routes)
@@ -38,6 +49,7 @@ func main() {
 			r.Load(cc.Routes)
 			s.ApplyHeaderFilter(cc.HttpAllowHeader)
 			s.ApplyCorsConfig(cc.Cors)
+			//util.SetLogConfig(ctx, cc.LogConfig.Level, cc.LogConfig.Path)
 		})
 		cfg.HotLoadIfModify(*conf)
 	}

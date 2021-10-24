@@ -60,7 +60,7 @@ func (cfg *HotLoadConfig) LoadIfModify(p string) (bool, error) {
 
 func (cfg *HotLoadConfig) HotLoadIfModify(p string) {
 	go func() {
-		log.Info("enable hot load config", p)
+		log.Info("enable hot load config", p, cfg.loadTime)
 		ticker := time.NewTicker(time.Duration(cfg.loadTime) * time.Second)
 		for range ticker.C {
 			if ok, err := cfg.LoadIfModify(p); err != nil {

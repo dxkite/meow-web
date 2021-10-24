@@ -86,6 +86,7 @@ func (s *Server) Serve(l net.Listener) error {
 			ClientCAs:    pool,
 		}
 		l = tls.NewListener(l, c)
+		log.Info("enable ssl config")
 	}
 
 	// 当前情况下为了安全session在程序down掉之后就失效了，所以不需要持久化
