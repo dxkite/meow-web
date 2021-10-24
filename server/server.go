@@ -235,7 +235,7 @@ func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
 		Value:   ticket,
 		Domain:  s.cfg.Session().Domain,
 		Expires: time.Now().Add(s.cfg.Session().GetExpiresIn()),
-		Secure:  true,
+		Secure:  s.cfg.Session().Secure,
 	})
 	if err := s.sm.CreateSession(uin); err != nil {
 		log.Println("save session error", err)

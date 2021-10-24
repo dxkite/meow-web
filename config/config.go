@@ -31,8 +31,9 @@ type SignConfig struct {
 
 type SessionConfig struct {
 	Name      string `yaml:"name"`
-	ExpiresIn int    `yaml:"expire_in"`
+	ExpiresIn int    `yaml:"expires_in"`
 	Domain    string `yaml:"domain"`
+	Secure    bool   `yaml:"secure"`
 }
 
 func (s *SessionConfig) GetName() string {
