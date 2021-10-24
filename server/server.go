@@ -134,7 +134,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) ReadTicket(r *http.Request) *session.Ticket {
-	c, err := r.Cookie(s.cfg.CookieName)
+	c, err := r.Cookie(s.cfg.Session().GetName())
 	if err != nil || len(c.Value) == 0 {
 		return nil
 	}
@@ -144,7 +144,7 @@ func (s *Server) ReadTicket(r *http.Request) *session.Ticket {
 		return nil
 	}
 	log.Debug("uin", t.Uin, "create_time", t.CreateTime)
-	expiresAt := time.Unix(int64(t.CreateTime), 0).Add(s.cfg.GetSessionExpiresIn())
+	expiresAt := time.Unix(int64(t.CreateTime), 0).Add(s.cfg.Session().GetExpiresIn())
 	if time.Now().After(expiresAt) {
 		log.Error("session expired", t.Uin)
 		return nil
@@ -231,9 +231,10 @@ func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
 	log.Info("signin", uin)
 	ticket, _ := s.tp.EncodeTicket(uin)
 	http.SetCookie(w, &http.Cookie{
-		Name:    s.cfg.CookieName,
+		Name:    s.cfg.Session().GetName(),
 		Value:   ticket,
-		Expires: time.Now().Add(s.cfg.GetSessionExpiresIn()),
+		Domain:  s.cfg.Session().Domain,
+		Expires: time.Now().Add(s.cfg.Session().GetExpiresIn()),
 		Secure:  true,
 	})
 	if err := s.sm.CreateSession(uin); err != nil {
@@ -244,10 +245,9 @@ func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
 func (s *Server) SignOut(w http.ResponseWriter, uin uint64) {
 	log.Info("signout", uin)
 	http.SetCookie(w, &http.Cookie{
-		Name:   s.cfg.CookieName,
+		Name:   s.cfg.Session().GetName(),
 		Value:  "",
-		MaxAge: 0,
-		Secure: true,
+		Domain: s.cfg.Session().Domain,
 	})
 	if err := s.sm.RemoveSession(uin); err != nil {
 		log.Println("remove session error", err)

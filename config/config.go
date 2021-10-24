@@ -29,16 +29,35 @@ type SignConfig struct {
 	RedirectName string `yaml:"redirect_name"`
 }
 
+type SessionConfig struct {
+	Name      string `yaml:"name"`
+	ExpiresIn int    `yaml:"expire_in"`
+	Domain    string `yaml:"domain"`
+}
+
+func (s *SessionConfig) GetName() string {
+	if len(s.Name) == 0 {
+		return "session"
+	}
+	return s.Name
+}
+
+func (s *SessionConfig) GetExpiresIn() time.Duration {
+	expireIn := 24 * time.Hour
+	if s.ExpiresIn > 0 {
+		expireIn = time.Second * time.Duration(s.ExpiresIn)
+	}
+	return expireIn
+}
+
 type Config struct {
-	EnableVerify     bool   `yaml:"enable_verify"`
-	Address          string `yaml:"address"`
-	CAPath           string `yaml:"ca_path"`
-	ModuleCertPath   string `yaml:"module_cert_pem"`
-	ModuleKeyPath    string `yaml:"module_key_pem"`
-	SessionExpiresIn int    `yaml:"session_expire_in"`
-	SessionPath      string `yaml:"session_path"`
-	CookieName       string `yaml:"cookie_name"`
-	UinHeaderName    string `yaml:"uin_header_name"`
+	EnableVerify   bool           `yaml:"enable_verify"`
+	Address        string         `yaml:"address"`
+	CAPath         string         `yaml:"ca_path"`
+	ModuleCertPath string         `yaml:"module_cert_pem"`
+	ModuleKeyPath  string         `yaml:"module_key_pem"`
+	SessionConfig  *SessionConfig `yaml:"session"`
+	UinHeaderName  string         `yaml:"uin_header_name"`
 	// 登录配置
 	Sign *SignConfig `yaml:"sign_info"`
 	// 路由配置
@@ -61,6 +80,13 @@ func NewConfig() *Config {
 	return cfg
 }
 
+func (cfg *Config) Session() *SessionConfig {
+	if cfg.SessionConfig == nil {
+		cfg.SessionConfig = &SessionConfig{}
+	}
+	return cfg.SessionConfig
+}
+
 func (cfg *Config) LoadFrom(in []byte) error {
 	if err := yaml.Unmarshal(in, cfg); err != nil {
 		return err
@@ -74,12 +100,4 @@ func (cfg *Config) LoadFromFile(p string) error {
 	} else {
 		return err
 	}
-}
-
-func (cfg *Config) GetSessionExpiresIn() time.Duration {
-	expireIn := 24 * time.Hour
-	if cfg.SessionExpiresIn > 0 {
-		expireIn = time.Second * time.Duration(cfg.SessionExpiresIn)
-	}
-	return expireIn
 }
