@@ -32,15 +32,15 @@ func main() {
 	if cfg.HotLoad > 0 {
 		cfg.SetLoadTime(cfg.HotLoad)
 		cfg.OnChange(func(c interface{}) {
-			cfg.SetLoadTime(c.(*config.Config).HotLoad)
+			cc := c.(*config.Config)
+			cfg.SetLoadTime(cc.HotLoad)
 			r.ClearAll()
-			r.Load(c.(*config.Config).Routes)
-			s.ApplyHeaderFilter(c.(*config.Config).HttpAllowHeader)
-			s.ApplyCorsConfig(c.(*config.Config).Cors)
+			r.Load(cc.Routes)
+			s.ApplyHeaderFilter(cc.HttpAllowHeader)
+			s.ApplyCorsConfig(cc.Cors)
 		})
 		cfg.HotLoadIfModify(*conf)
 	}
-	cfg.NotifyModify()
 
 	l, err := net.Listen("tcp", cfg.Address)
 	if err != nil {
