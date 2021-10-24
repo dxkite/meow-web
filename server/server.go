@@ -171,7 +171,7 @@ func (s *Server) procHttp(uin uint64, info *route.RouteInfo, b *route.Backend, w
 		log.Error(err)
 		return
 	}
-	s.copyReqHeader(req, r)
+	s.createReqHeader(req, r)
 	req.Header.Set(s.cfg.UinHeaderName, strconv.Itoa(int(uin)))
 	resp, err := client.Do(req)
 	if err != nil {
@@ -180,8 +180,7 @@ func (s *Server) procHttp(uin uint64, info *route.RouteInfo, b *route.Backend, w
 		return
 	}
 	s.procHttpSession(info, w, resp)
-	resp.Header.Del(s.cfg.UinHeaderName)
-	s.copyRespHeader(w, resp)
+	s.createRespHeader(w, resp)
 	w.WriteHeader(resp.StatusCode)
 	if _, err := io.Copy(w, resp.Body); err != nil {
 		log.Error("copy error", err)
@@ -255,7 +254,7 @@ func (s *Server) SignOut(w http.ResponseWriter, uin uint64) {
 	}
 }
 
-func (s *Server) copyRespHeader(w http.ResponseWriter, resp *http.Response) {
+func (s *Server) createRespHeader(w http.ResponseWriter, resp *http.Response) {
 	for k, v := range resp.Header {
 		_, ok := s.hf[textproto.CanonicalMIMEHeaderKey(k)]
 		if !ok {
@@ -265,9 +264,11 @@ func (s *Server) copyRespHeader(w http.ResponseWriter, resp *http.Response) {
 			w.Header().Set(k, vv)
 		}
 	}
+	// 删除UIN返回
+	w.Header().Del(s.cfg.UinHeaderName)
 }
 
-func (s *Server) copyReqHeader(dst, src *http.Request) {
+func (s *Server) createReqHeader(dst, src *http.Request) {
 	for k, v := range src.Header {
 		_, ok := s.hf[textproto.CanonicalMIMEHeaderKey(k)]
 		if !ok {
@@ -277,6 +278,14 @@ func (s *Server) copyReqHeader(dst, src *http.Request) {
 			dst.Header.Set(k, vv)
 		}
 	}
+	// 设置UA
+	dst.Header.Set("User-Agent", "gateway")
+	// 设置 ClientIP
+	clientIp := src.Header.Get("Client-Ip")
+	if len(clientIp) == 0 {
+		clientIp, _, _ = net.SplitHostPort(src.RemoteAddr)
+	}
+	dst.Header.Set("Client-Ip", clientIp)
 }
 
 func (s *Server) writeCorsConfig(w http.ResponseWriter, r *http.Request) {
