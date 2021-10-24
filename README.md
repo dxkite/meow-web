@@ -59,6 +59,7 @@ routes:
 ```
 
 ## Nginx 开启双向认证
+
 ```
 # 服务器证书
 ssl_certificate /cert/fullchain.pem;
@@ -67,4 +68,18 @@ ssl_certificate_key /cert/privkey.pem;
 ssl_client_certificate /cert/ca.pem;
 # 验证Client
 ssl_verify_client on;
+```
+
+## Nginx 反向代理
+
+```
+location / {
+  proxy_pass https://127.0.0.1:2333;
+  proxy_ssl_name gateway;
+  proxy_ssl_certificate /gateway/nginx.pem;
+  proxy_ssl_certificate_key /gateway/nginx.key;
+  proxy_ssl_trusted_certificate /gateway/conf/ca.pem;
+  proxy_ssl_server_name on;
+  proxy_ssl_verify on;
+}
 ```
