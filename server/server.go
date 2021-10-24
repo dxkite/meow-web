@@ -135,7 +135,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) ReadTicket(r *http.Request) *session.Ticket {
 	c, err := r.Cookie(s.cfg.CookieName)
-	if err != nil {
+	if err != nil || len(c.Value) == 0 {
 		return nil
 	}
 	t, err := s.tp.DecodeTicket(c.Value)
@@ -144,13 +144,13 @@ func (s *Server) ReadTicket(r *http.Request) *session.Ticket {
 		return nil
 	}
 	log.Debug("uin", t.Uin, "create_time", t.CreateTime)
-	expireAt := time.Unix(int64(t.CreateTime), 0).Add(time.Second * time.Duration(s.cfg.SessionExpireIn))
-	if time.Now().After(expireAt) {
+	expiresAt := time.Unix(int64(t.CreateTime), 0).Add(s.cfg.GetSessionExpiresIn())
+	if time.Now().After(expiresAt) {
 		log.Error("session expired", t.Uin)
 		return nil
 	}
 	if !s.sm.CheckSession(t.Uin) {
-		log.Error("session not in db", t.Uin)
+		log.Error("session not exist", t.Uin)
 		return nil
 	}
 	return t
@@ -234,7 +234,7 @@ func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
 	http.SetCookie(w, &http.Cookie{
 		Name:    s.cfg.CookieName,
 		Value:   ticket,
-		Expires: time.Now().Add(time.Second * time.Duration(s.cfg.SessionExpireIn)),
+		Expires: time.Now().Add(s.cfg.GetSessionExpiresIn()),
 		Secure:  true,
 	})
 	if err := s.sm.CreateSession(uin); err != nil {

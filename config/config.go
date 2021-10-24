@@ -3,6 +3,7 @@ package config
 import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"time"
 )
 
 type Route struct {
@@ -29,15 +30,15 @@ type SignConfig struct {
 }
 
 type Config struct {
-	EnableVerify    bool   `yaml:"enable_verify"`
-	Address         string `yaml:"address"`
-	CAPath          string `yaml:"ca_path"`
-	ModuleCertPath  string `yaml:"module_cert_pem"`
-	ModuleKeyPath   string `yaml:"module_key_pem"`
-	SessionExpireIn int    `yaml:"session_expire_in"`
-	SessionPath     string `yaml:"session_path"`
-	CookieName      string `yaml:"cookie_name"`
-	UinHeaderName   string `yaml:"uin_header_name"`
+	EnableVerify     bool   `yaml:"enable_verify"`
+	Address          string `yaml:"address"`
+	CAPath           string `yaml:"ca_path"`
+	ModuleCertPath   string `yaml:"module_cert_pem"`
+	ModuleKeyPath    string `yaml:"module_key_pem"`
+	SessionExpiresIn int    `yaml:"session_expire_in"`
+	SessionPath      string `yaml:"session_path"`
+	CookieName       string `yaml:"cookie_name"`
+	UinHeaderName    string `yaml:"uin_header_name"`
 	// 登录配置
 	Sign *SignConfig `yaml:"sign_info"`
 	// 路由配置
@@ -73,4 +74,12 @@ func (cfg *Config) LoadFromFile(p string) error {
 	} else {
 		return err
 	}
+}
+
+func (cfg *Config) GetSessionExpiresIn() time.Duration {
+	expireIn := 24 * time.Hour
+	if cfg.SessionExpiresIn > 0 {
+		expireIn = time.Second * time.Duration(cfg.SessionExpiresIn)
+	}
+	return expireIn
 }
