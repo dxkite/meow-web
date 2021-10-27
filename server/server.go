@@ -122,8 +122,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		uin = t.Uin
 	}
 	// 配置CORS请求头
-	s.writeCorsConfig(w, r)
 	w.Header().Set("Via", "gw")
+	if s.writeCorsConfig(w, r) {
+		return
+	}
 	// 发起后端请求
 	b := rr.Group.Get()
 	switch b.Type {
@@ -157,8 +159,21 @@ func (s *Server) ReadTicket(r *http.Request) *session.Ticket {
 	return t
 }
 
+func buildHttpBackend(b *route.Backend, r *http.Request) string {
+	baseUrl := b.Type + "://" + net.JoinHostPort(b.Host, b.Port)
+	uri := r.RequestURI
+	prefix := b.URI.Query().Get("trim_prefix")
+	if len(prefix) > 0 {
+		uri = strings.TrimPrefix(uri, prefix)
+	}
+	if len(b.URI.Path) > 0 {
+		uri = b.URI.Path + uri
+	}
+	return baseUrl + uri
+}
+
 func (s *Server) procHttp(uin uint64, info *route.RouteInfo, b *route.Backend, w http.ResponseWriter, r *http.Request) {
-	u := b.Type + "://" + net.JoinHostPort(b.Host, b.Port) + r.RequestURI
+	u := buildHttpBackend(b, r)
 	log.Println("do request", r.Method, u)
 	client, err := createClient(s.cfg, b)
 	if err != nil {
@@ -289,7 +304,7 @@ func (s *Server) createReqHeader(dst, src *http.Request) {
 	dst.Header.Set("Client-Ip", clientIp)
 }
 
-func (s *Server) writeCorsConfig(w http.ResponseWriter, r *http.Request) {
+func (s *Server) writeCorsConfig(w http.ResponseWriter, r *http.Request) bool {
 	origin := r.Header.Get("Origin")
 	_, ok := s.corsOrigin[origin]
 	if len(origin) == 0 {
@@ -306,7 +321,9 @@ func (s *Server) writeCorsConfig(w http.ResponseWriter, r *http.Request) {
 		if len(s.cfg.Cors.AllowHeader) > 0 {
 			w.Header().Set("Access-Control-Allow-Headers", strings.Join(s.cfg.Cors.AllowHeader, ","))
 		}
+		return true
 	}
+	return false
 }
 
 func (s *Server) procUnauthorized(w http.ResponseWriter, r *http.Request) {
