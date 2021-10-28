@@ -247,11 +247,13 @@ func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
 	log.Info("signin", uin)
 	ticket, _ := s.tp.EncodeTicket(uin)
 	http.SetCookie(w, &http.Cookie{
-		Name:    s.cfg.Session().GetName(),
-		Value:   ticket,
-		Domain:  s.cfg.Session().Domain,
-		Expires: time.Now().Add(s.cfg.Session().GetExpiresIn()),
-		Secure:  s.cfg.Session().Secure,
+		Name:     s.cfg.Session().GetName(),
+		Value:    ticket,
+		Domain:   s.cfg.Session().Domain,
+		Expires:  time.Now().Add(s.cfg.Session().GetExpiresIn()),
+		Secure:   s.cfg.Session().Secure,
+		Path:     s.cfg.Session().Path,
+		HttpOnly: s.cfg.Session().HttpOnly,
 	})
 	if err := s.sm.CreateSession(uin); err != nil {
 		log.Println("save session error", err)
@@ -312,6 +314,9 @@ func (s *Server) writeCorsConfig(w http.ResponseWriter, r *http.Request) bool {
 	}
 	if ok || s.corsOriginAny {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
+	}
+	if s.cfg.Cors.AllowCredentials {
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 	}
 	if r.Method == http.MethodOptions {
 		if len(s.cfg.Cors.AllowMethod) > 0 {

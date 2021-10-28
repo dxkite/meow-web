@@ -20,9 +20,10 @@ type Route struct {
 }
 
 type CORSConfig struct {
-	AllowHeader []string `yaml:"allow_header"`
-	AllowOrigin []string `yaml:"allow_origin"`
-	AllowMethod []string `yaml:"allow_method"`
+	AllowHeader      []string `yaml:"allow_header"`
+	AllowOrigin      []string `yaml:"allow_origin"`
+	AllowMethod      []string `yaml:"allow_method"`
+	AllowCredentials bool     `yaml:"allow_credentials"`
 }
 
 type SignConfig struct {
@@ -35,6 +36,8 @@ type SessionConfig struct {
 	ExpiresIn int    `yaml:"expires_in"`
 	Domain    string `yaml:"domain"`
 	Secure    bool   `yaml:"secure"`
+	HttpOnly  bool   `yaml:"http_only"`
+	Path      string `yaml:"path"`
 }
 
 func (s *SessionConfig) GetName() string {
