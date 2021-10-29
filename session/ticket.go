@@ -43,9 +43,11 @@ type AESTicketProvider struct {
 	Key []byte
 }
 
-func NewAESTicketProvider() *AESTicketProvider {
-	key := make([]byte, 32)
-	_, _ = io.ReadFull(rand.Reader, key)
+func NewAESTicketProvider(key []byte) *AESTicketProvider {
+	if len(key) == 0 {
+		key = make([]byte, 32)
+		_, _ = io.ReadFull(rand.Reader, key)
+	}
 	return &AESTicketProvider{Key: key}
 }
 

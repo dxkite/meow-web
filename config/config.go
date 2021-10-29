@@ -31,13 +31,16 @@ type SignConfig struct {
 	RedirectName string `yaml:"redirect_name"`
 }
 
+const AESKeySize = 32
+
 type SessionConfig struct {
-	Name      string `yaml:"name"`
-	ExpiresIn int    `yaml:"expires_in"`
-	Domain    string `yaml:"domain"`
-	Secure    bool   `yaml:"secure"`
-	HttpOnly  bool   `yaml:"http_only"`
-	Path      string `yaml:"path"`
+	Name         string `yaml:"name"`
+	ExpiresIn    int    `yaml:"expires_in"`
+	Domain       string `yaml:"domain"`
+	Secure       bool   `yaml:"secure"`
+	HttpOnly     bool   `yaml:"http_only"`
+	Path         string `yaml:"path"`
+	AESTicketKey string `yaml:"aes_ticket_key"`
 }
 
 func (s *SessionConfig) GetName() string {
@@ -45,6 +48,13 @@ func (s *SessionConfig) GetName() string {
 		return "session"
 	}
 	return s.Name
+}
+
+func (s *SessionConfig) AesTicketKey() []byte {
+	if len(s.AESTicketKey) != AESKeySize {
+		return nil
+	}
+	return []byte(s.AESTicketKey)
 }
 
 func (s *SessionConfig) GetExpiresIn() time.Duration {

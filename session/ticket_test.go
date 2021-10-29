@@ -6,7 +6,7 @@ import (
 )
 
 func TestAESTicketProvider_DecodeTicket(t *testing.T) {
-	p := NewAESTicketProvider()
+	p := NewAESTicketProvider(nil)
 	var uin uint64 = 1008611
 	ticket, err := p.EncodeTicket(uin)
 	if err != nil {

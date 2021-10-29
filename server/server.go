@@ -37,7 +37,7 @@ type Server struct {
 
 func NewServer(cfg *config.Config, r *route.Route) *Server {
 	return &Server{
-		tp:  session.NewAESTicketProvider(),
+		tp:  session.NewAESTicketProvider(cfg.Session().AesTicketKey()),
 		cfg: cfg,
 		r:   r,
 	}
