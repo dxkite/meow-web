@@ -3,6 +3,7 @@ package route
 import (
 	"dxkite.cn/gateway/config"
 	"dxkite.cn/log"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net"
@@ -35,15 +36,43 @@ func (r routeEntry) String() string {
 	return fmt.Sprintf("{%s:%d}", r.pattern, r.index)
 }
 
-type Backend struct {
-	Type       string
-	Host       string
-	Port       string
-	ServerName string
-	URI        *url.URL
+type Backend interface {
+	BackendType() string
 }
 
-type BackendGroup []*Backend
+type UrlBackend struct {
+	Url *url.URL
+}
+
+func (u *UrlBackend) BackendType() string {
+	return u.Url.Scheme
+}
+
+func NewUrlBackend(rawurl string) (Backend, error) {
+	if u, err := url.Parse(rawurl); err != nil {
+		log.Error("parse backend error", rawurl)
+		return nil, err
+	} else {
+		host := u.Host
+		port := ""
+		if strings.LastIndex(host, ":") > 0 {
+			host, port, _ = net.SplitHostPort(u.Host)
+		}
+		if len(port) == 0 {
+			switch u.Scheme {
+			case "http":
+				port = "80"
+			case "https":
+				port = "443"
+			default:
+				return nil, errors.New("missing port")
+			}
+		}
+		return &UrlBackend{Url: u}, nil
+	}
+}
+
+type BackendGroup []Backend
 type RouteInfo struct {
 	Config config.Route
 	Group  *BackendGroup
@@ -51,43 +80,20 @@ type RouteInfo struct {
 
 // 支持 http/https
 // https会验证客户端
-func NewBackendGroup(backends []string) *BackendGroup {
+func NewBackendGroupFromUrl(backends []string) *BackendGroup {
 	bg := BackendGroup{}
 	for _, b := range backends {
-		if u, err := url.Parse(b); err != nil {
-			log.Error("parse backend error", b)
+		if bb, err := NewUrlBackend(b); err != nil {
+			log.Error("create url backend error", b)
 		} else {
-			host := u.Host
-			port := ""
-			if strings.LastIndex(host, ":") > 0 {
-				host, port, _ = net.SplitHostPort(u.Host)
-			}
-			if len(port) == 0 {
-				switch u.Scheme {
-				case "http":
-					port = "80"
-				case "https":
-					port = "443"
-				default:
-					log.Error("parse backend error", b, "missing port")
-					continue
-				}
-			}
-			name := u.Query().Get("server_name")
-			bg = append(bg, &Backend{
-				Type:       u.Scheme,
-				Host:       host,
-				Port:       port,
-				ServerName: name,
-				URI:        u,
-			})
+			bg = append(bg, bb)
 		}
 	}
 	return &bg
 }
 
 // 随机获取一个后端
-func (b BackendGroup) Get() *Backend {
+func (b BackendGroup) Get() Backend {
 	n := len(b)
 	if n == 1 {
 		return b[0]
@@ -106,7 +112,7 @@ func (r *Route) Load(routes []config.Route) {
 			index:   idx,
 		})
 		r.bg = append(r.bg, &RouteInfo{
-			Group:  NewBackendGroup(route.Backend),
+			Group:  NewBackendGroupFromUrl(route.Backend),
 			Config: routes[i],
 		})
 		r.r[route.Pattern] = idx

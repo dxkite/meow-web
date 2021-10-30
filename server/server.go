@@ -5,9 +5,11 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"dxkite.cn/gateway/config"
+	"dxkite.cn/gateway/proto"
 	"dxkite.cn/gateway/route"
 	"dxkite.cn/gateway/session"
 	"dxkite.cn/gateway/session/memsm"
+	"dxkite.cn/gateway/ticket"
 	"dxkite.cn/log"
 	"fmt"
 	"io"
@@ -16,7 +18,6 @@ import (
 	"net/http"
 	"net/textproto"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -26,7 +27,7 @@ var DefaultAllowHeader = []string{
 }
 
 type Server struct {
-	tp            session.TicketProvider
+	tp            ticket.TicketEnDecoder
 	cfg           *config.Config
 	r             *route.Route
 	sm            session.SessionManager
@@ -37,7 +38,7 @@ type Server struct {
 
 func NewServer(cfg *config.Config, r *route.Route) *Server {
 	return &Server{
-		tp:  session.NewAESTicketProvider(cfg.Session().AesTicketKey()),
+		tp:  ticket.NewAESTicket(cfg.Session().AesTicketKey()),
 		cfg: cfg,
 		r:   r,
 	}
@@ -111,144 +112,110 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Debug("match", m)
-	// 读取登录票据
-	t := s.ReadTicket(r)
+
+	// 读取会话
+	tks, sess := s.readSession(r)
 	// 需要登陆才能访问的接口
-	if t == nil && rr.Config.Sign {
+	if sess == nil && rr.Config.Sign {
 		s.procUnauthorized(w, r)
 		return
 	}
-	if t != nil {
-		uin = t.Uin
+
+	if sess != nil {
+		uin = sess.Uin
 	}
+
 	// 配置CORS请求头
 	w.Header().Set("Via", "gw")
-	if s.writeCorsConfig(w, r) {
+	s.writeCorsConfig(w, r)
+	if r.Method == http.MethodOptions {
 		return
 	}
+
 	// 发起后端请求
 	b := rr.Group.Get()
-	switch b.Type {
+	// 剔除多余请求头
+	s.normalizeRequest(r)
+	var processor proto.Processor
+	switch b.BackendType() {
 	case "http", "https":
-		s.procHttp(uin, rr, b, w, r)
+		processor = proto.NewHttpProcessor(&proto.BackendContext{
+			s.cfg,
+			r,
+			w,
+			rr,
+			b,
+		}, s.hf)
 	default:
 		http.Error(w, "unsupported backend", http.StatusBadRequest)
-	}
-}
-
-func (s *Server) ReadTicket(r *http.Request) *session.Ticket {
-	c, err := r.Cookie(s.cfg.Session().GetName())
-	if err != nil || len(c.Value) == 0 {
-		return nil
-	}
-	t, err := s.tp.DecodeTicket(c.Value)
-	if err != nil {
-		log.Debug("decode ticket error", err)
-		return nil
-	}
-	log.Debug("uin", t.Uin, "create_time", t.CreateTime)
-	expiresAt := time.Unix(int64(t.CreateTime), 0).Add(s.cfg.Session().GetExpiresIn())
-	if time.Now().After(expiresAt) {
-		log.Error("session expired", t.Uin)
-		return nil
-	}
-	if !s.sm.CheckSession(t.Uin) {
-		log.Error("session not exist", t.Uin)
-		return nil
-	}
-	return t
-}
-
-func buildHttpBackend(b *route.Backend, r *http.Request) string {
-	baseUrl := b.Type + "://" + net.JoinHostPort(b.Host, b.Port)
-	uri := r.RequestURI
-	prefix := b.URI.Query().Get("trim_prefix")
-	if len(prefix) > 0 {
-		uri = strings.TrimPrefix(uri, prefix)
-	}
-	if len(b.URI.Path) > 0 {
-		uri = b.URI.Path + uri
-	}
-	return baseUrl + uri
-}
-
-func (s *Server) procHttp(uin uint64, info *route.RouteInfo, b *route.Backend, w http.ResponseWriter, r *http.Request) {
-	u := buildHttpBackend(b, r)
-	log.Println("do request", r.Method, u)
-	client, err := createClient(s.cfg, b)
-	if err != nil {
-		http.Error(w, "unavailable", http.StatusServiceUnavailable)
-		log.Error(err)
 		return
 	}
-	req, err := http.NewRequest(r.Method, u, r.Body)
+
+	user, status, header, reader, err := processor.Do(uin, tks)
 	if err != nil {
-		http.Error(w, "unavailable", http.StatusServiceUnavailable)
-		log.Error(err)
-		return
+		http.Error(w, "backend unavailable", http.StatusInternalServerError)
 	}
-	s.createReqHeader(req, r)
-	req.Header.Set(s.cfg.UinHeaderName, strconv.Itoa(int(uin)))
-	resp, err := client.Do(req)
-	if err != nil {
-		http.Error(w, "unavailable", http.StatusServiceUnavailable)
-		log.Error(err)
-		return
+
+	if user > 0 {
+		if rr.Config.SignIn {
+			s.SignIn(w, user)
+		}
+		if rr.Config.SignOut {
+			s.SignOut(w, user)
+		}
 	}
-	s.procHttpSession(info, w, resp)
-	s.createRespHeader(w, resp)
-	w.WriteHeader(resp.StatusCode)
-	if _, err := io.Copy(w, resp.Body); err != nil {
+
+	s.createRespHeader(w, header)
+	w.WriteHeader(status)
+
+	if _, err := io.Copy(w, reader); err != nil {
 		log.Error("copy error", err)
 	}
 }
 
-func createClient(cfg *config.Config, b *route.Backend) (*http.Client, error) {
-	c := &http.Client{}
-	c.Timeout = 10 * time.Second
-	if b.Type == "https" {
-		cert, err := tls.LoadX509KeyPair(cfg.ModuleCertPath, cfg.ModuleKeyPath)
-		if err != nil {
-			return nil, err
-		}
-		pool := x509.NewCertPool()
-		rootCa, err := ioutil.ReadFile(cfg.CAPath)
-		if err != nil {
-			return nil, err
-		}
-		pool.AppendCertsFromPEM(rootCa)
-		cfg := &tls.Config{
-			Certificates: []tls.Certificate{cert},
-			RootCAs:      pool,
-		}
-		if len(b.ServerName) != 0 {
-			cfg.ServerName = b.ServerName
-		}
-		c.Transport = &http.Transport{TLSClientConfig: cfg}
+func (s *Server) readTicket(r *http.Request) string {
+	c, err := r.Cookie(s.cfg.Session().GetName())
+	if err != nil {
+		return ""
 	}
-	return c, nil
+	t := c.Value
+	if len(c.Value) == 0 {
+		t = r.Header.Get("Authorization")
+	}
+	return ticket.DecodeBase64WebString(t)
 }
 
-func (s *Server) procHttpSession(info *route.RouteInfo, w http.ResponseWriter, resp *http.Response) {
-	if resp.StatusCode != http.StatusOK {
-		return
+func (s *Server) readSession(r *http.Request) (string, *ticket.SessionData) {
+	tk := s.readTicket(r)
+
+	t, err := s.tp.Decode(tk)
+	if err != nil {
+		log.Debug("decode ticket error", err)
+		return tk, nil
 	}
-	uin, _ := strconv.Atoi(resp.Header.Get(s.cfg.UinHeaderName))
-	if info.Config.SignIn && uin > 0 {
-		s.SignIn(w, uint64(uin))
-		return
+
+	log.Debug("uin", t.Uin, "create_time", t.CreateTime)
+	expiresAt := time.Unix(int64(t.CreateTime), 0).Add(s.cfg.Session().GetExpiresIn())
+	if time.Now().After(expiresAt) {
+		log.Error("session expired", t.Uin)
+		return tk, nil
 	}
-	if info.Config.SignOut && uin > 0 {
-		s.SignOut(w, uint64(uin))
+
+	if !s.sm.CheckSession(t.Uin) {
+		log.Error("session not exist", t.Uin)
+		return tk, nil
 	}
+	return tk, t
 }
 
 func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
 	log.Info("signin", uin)
-	ticket, _ := s.tp.EncodeTicket(uin)
+	t, _ := s.tp.Encode(&ticket.SessionData{
+		Uin: uin,
+	})
 	http.SetCookie(w, &http.Cookie{
 		Name:     s.cfg.Session().GetName(),
-		Value:    ticket,
+		Value:    ticket.EncodeBase64WebString(t),
 		Domain:   s.cfg.Session().Domain,
 		Expires:  time.Now().Add(s.cfg.Session().GetExpiresIn()),
 		Secure:   s.cfg.Session().Secure,
@@ -272,8 +239,8 @@ func (s *Server) SignOut(w http.ResponseWriter, uin uint64) {
 	}
 }
 
-func (s *Server) createRespHeader(w http.ResponseWriter, resp *http.Response) {
-	for k, v := range resp.Header {
+func (s *Server) createRespHeader(w http.ResponseWriter, header http.Header) {
+	for k, v := range header {
 		_, ok := s.hf[textproto.CanonicalMIMEHeaderKey(k)]
 		if !ok {
 			continue
@@ -286,49 +253,46 @@ func (s *Server) createRespHeader(w http.ResponseWriter, resp *http.Response) {
 	w.Header().Del(s.cfg.UinHeaderName)
 }
 
-func (s *Server) createReqHeader(dst, src *http.Request) {
-	for k, v := range src.Header {
+func (s *Server) normalizeRequest(req *http.Request) {
+	for k, _ := range req.Header {
 		_, ok := s.hf[textproto.CanonicalMIMEHeaderKey(k)]
 		if !ok {
-			continue
-		}
-		for _, vv := range v {
-			dst.Header.Set(k, vv)
+			req.Header.Del(k)
 		}
 	}
 	// 设置UA
-	dst.Header.Set("User-Agent", "gateway")
+	req.Header.Set("User-Agent", "gateway")
 	// 设置 ClientIP
-	clientIp := src.Header.Get("Client-Ip")
+	clientIp := req.Header.Get("Client-Ip")
 	if len(clientIp) == 0 {
-		clientIp, _, _ = net.SplitHostPort(src.RemoteAddr)
+		clientIp, _, _ = net.SplitHostPort(req.RemoteAddr)
 	}
-	dst.Header.Set("Client-Ip", clientIp)
+	req.Header.Set("Client-Ip", clientIp)
 }
 
-func (s *Server) writeCorsConfig(w http.ResponseWriter, r *http.Request) bool {
+func (s *Server) writeCorsConfig(w http.ResponseWriter, r *http.Request) {
 	origin := r.Header.Get("Origin")
 	_, ok := s.corsOrigin[origin]
 	if len(origin) == 0 {
 		origin = "*"
 	}
+
 	if ok || s.corsOriginAny {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
 	}
+
 	if s.cfg.Cors.AllowCredentials {
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 	}
-	if r.Method == http.MethodOptions {
-		if len(s.cfg.Cors.AllowMethod) > 0 {
-			methods := strings.ToUpper(strings.Join(s.cfg.Cors.AllowMethod, ","))
-			w.Header().Set("Access-Control-Allow-Methods", methods)
-		}
-		if len(s.cfg.Cors.AllowHeader) > 0 {
-			w.Header().Set("Access-Control-Allow-Headers", strings.Join(s.cfg.Cors.AllowHeader, ","))
-		}
-		return true
+
+	if len(s.cfg.Cors.AllowHeader) > 0 {
+		w.Header().Set("Access-Control-Allow-Headers", strings.Join(s.cfg.Cors.AllowHeader, ","))
 	}
-	return false
+
+	if len(s.cfg.Cors.AllowMethod) > 0 {
+		methods := strings.ToUpper(strings.Join(s.cfg.Cors.AllowMethod, ","))
+		w.Header().Set("Access-Control-Allow-Methods", methods)
+	}
 }
 
 func (s *Server) procUnauthorized(w http.ResponseWriter, r *http.Request) {
