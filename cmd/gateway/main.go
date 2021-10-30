@@ -29,18 +29,27 @@ func NewGateway(ctx context.Context, p string) {
 	r := route.NewRoute()
 	r.Load(cfg.Routes)
 	s := server.NewServer(cfg, r)
+
+	cfg.OnChange(func(c interface{}) {
+		cc := c.(*config.Config)
+		cfg.SetLoadTime(cc.HotLoad)
+		r.ClearAll()
+		r.Load(cc.Routes)
+		s.ApplyHeaderFilter(cc.HttpAllowHeader)
+		s.ApplyCorsConfig(cc.Cors)
+		err := s.InitTicketMode(cc.Session().Mode)
+		if err != nil {
+			log.Error("load ticket mode error", err)
+		}
+	})
+
 	if cfg.HotLoad > 0 {
 		cfg.SetLoadTime(cfg.HotLoad)
-		cfg.OnChange(func(c interface{}) {
-			cc := c.(*config.Config)
-			cfg.SetLoadTime(cc.HotLoad)
-			r.ClearAll()
-			r.Load(cc.Routes)
-			s.ApplyHeaderFilter(cc.HttpAllowHeader)
-			s.ApplyCorsConfig(cc.Cors)
-		})
 		cfg.HotLoadIfModify(p)
 	}
+
+	// 触发配置刷新
+	cfg.NotifyModify()
 	l, err := net.Listen("tcp", cfg.Address)
 	if err != nil {
 		log.Error(err)

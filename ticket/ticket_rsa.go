@@ -102,13 +102,19 @@ func (r *RsaTicket) check(message []byte, sign []byte) error {
 	return rsa.VerifyPKCS1v15(r.pub, crypto.SHA256, d, sign)
 }
 
-func NewRsaTicket(pri, cert string) TicketEnDecoder {
+func NewRsaTicket(pri, cert string) (TicketEnDecoder, error) {
 	certPEMBlock, _ := os.ReadFile(pri)
-	keyPEMBlock, _ := os.ReadFile(cert)
+	keyPEMBlock, err := os.ReadFile(cert)
+	if err != nil {
+		return nil, err
+	}
 	priKey, _ := util.ParsePrivateKey(certPEMBlock)
-	pubKey, _ := util.ParsePublicKeyFromCertificate(keyPEMBlock)
+	pubKey, err := util.ParsePublicKeyFromCertificate(keyPEMBlock)
+	if err != nil {
+		return nil, err
+	}
 	return &RsaTicket{
 		pri: priKey,
 		pub: pubKey,
-	}
+	}, nil
 }

@@ -34,13 +34,16 @@ type SignConfig struct {
 const AESKeySize = 32
 
 type SessionConfig struct {
-	Name         string `yaml:"name"`
-	ExpiresIn    int    `yaml:"expires_in"`
-	Domain       string `yaml:"domain"`
-	Secure       bool   `yaml:"secure"`
-	HttpOnly     bool   `yaml:"http_only"`
-	Path         string `yaml:"path"`
-	AESTicketKey string `yaml:"aes_ticket_key"`
+	Name      string `yaml:"name"`
+	ExpiresIn int    `yaml:"expires_in"`
+	Domain    string `yaml:"domain"`
+	Secure    bool   `yaml:"secure"`
+	HttpOnly  bool   `yaml:"http_only"`
+	Path      string `yaml:"path"`
+	Mode      string `yaml:"mode"`
+	AesKey    string `yaml:"aes_key"`
+	RsaKey    string `yaml:"rsa_key"`
+	RsaCert   string `yaml:"rsa_cert"`
 }
 
 func (s *SessionConfig) GetName() string {
@@ -51,10 +54,10 @@ func (s *SessionConfig) GetName() string {
 }
 
 func (s *SessionConfig) AesTicketKey() []byte {
-	if len(s.AESTicketKey) != AESKeySize {
+	if len(s.AesKey) != AESKeySize {
 		return nil
 	}
-	return []byte(s.AESTicketKey)
+	return []byte(s.AesKey)
 }
 
 func (s *SessionConfig) GetExpiresIn() time.Duration {

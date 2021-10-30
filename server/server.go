@@ -44,6 +44,25 @@ func NewServer(cfg *config.Config, r *route.Route) *Server {
 	}
 }
 
+func (s *Server) InitTicketMode(mode string) error {
+	mode = strings.ToLower(mode)
+	switch mode {
+	case "rsa":
+		// 允许不设置私钥
+		tp, err := ticket.NewRsaTicket(s.cfg.Session().RsaKey, s.cfg.Session().RsaCert)
+		if err != nil {
+			return err
+		}
+		s.tp = tp
+		return nil
+	case "aes":
+		s.tp = ticket.NewAESTicket(s.cfg.Session().AesTicketKey())
+		return nil
+	default:
+		return fmt.Errorf("unsupported key mode %s", mode)
+	}
+}
+
 func (s *Server) ApplyHeaderFilter(allows []string) {
 	s.hf = map[string]bool{}
 	for _, h := range DefaultAllowHeader {

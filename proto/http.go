@@ -50,7 +50,7 @@ func (s *httpProcessor) Do(uin uint64, ticket string) (user uint64, status int, 
 	}
 	u := buildHttpBackend(rt.Url, s.ctx.Req)
 
-	log.Println("do Req", s.ctx.Req.Method, u)
+	log.Println("do req", s.ctx.Req.Method, u)
 
 	req, err := http.NewRequest(s.ctx.Req.Method, u, s.ctx.Req.Body)
 	if err != nil {
