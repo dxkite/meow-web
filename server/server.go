@@ -182,12 +182,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) readTicket(r *http.Request) string {
-	c, err := r.Cookie(s.cfg.Session().GetName())
-	if err != nil {
-		return ""
+	c, _ := r.Cookie(s.cfg.Session().GetName())
+	var t string
+	if c != nil {
+		t = c.Value
 	}
-	t := c.Value
-	if len(c.Value) == 0 {
+	if len(t) == 0 {
 		t = r.Header.Get("Authorization")
 	}
 	return ticket.DecodeBase64WebString(t)
