@@ -12,7 +12,6 @@ import (
 	"dxkite.cn/gateway/ticket"
 	"dxkite.cn/log"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -132,6 +131,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	log.Debug("match", m)
 
+	// 配置CORS请求头
+	w.Header().Set("Via", "gw")
+	s.writeCorsConfig(w, r)
+	if r.Method == http.MethodOptions {
+		return
+	}
+
 	// 读取会话
 	tks, sess := s.readSession(r)
 	// 需要登陆才能访问的接口
@@ -144,13 +150,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		uin = sess.Uin
 	}
 
-	// 配置CORS请求头
-	w.Header().Set("Via", "gw")
-	s.writeCorsConfig(w, r)
-	if r.Method == http.MethodOptions {
-		return
-	}
-
 	// 发起后端请求
 	b := rr.Backend.Get()
 	// 剔除多余请求头
@@ -158,37 +157,27 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var processor proto.Processor
 	switch b.BackendType() {
 	case "http", "https":
-		processor = proto.NewHttpProcessor(&proto.BackendContext{
-			Cfg:     s.cfg,
-			Req:     r,
-			Writer:  w,
-			Route:   rr,
-			Backend: b,
-		})
+		processor = proto.NewHttpProcessor()
 	default:
-		http.Error(w, "unsupported backend", http.StatusBadRequest)
-		return
+		if builder, ok := b.(Builder); ok {
+			processor = builder.Build()
+		} else {
+			http.Error(w, "unsupported backend", http.StatusBadRequest)
+			return
+		}
 	}
 
-	user, status, header, reader, err := processor.Do(uin, tks)
+	w = NewAutoResponse(s, rr.Config, w)
+	err := processor.Do(&proto.BackendContext{
+		Cfg:     s.cfg,
+		Uin:     uin,
+		Ticket:  tks,
+		Route:   rr,
+		Backend: b,
+	}, w, r)
+
 	if err != nil {
 		http.Error(w, "backend unavailable", http.StatusInternalServerError)
-	}
-
-	if user > 0 {
-		if rr.Config.SignIn {
-			s.SignIn(w, user)
-		}
-		if rr.Config.SignOut {
-			s.SignOut(w, user)
-		}
-	}
-
-	s.createRespHeader(w, header)
-	w.WriteHeader(status)
-
-	if _, err := io.Copy(w, reader); err != nil {
-		log.Error("copy error", err)
 	}
 }
 
@@ -256,20 +245,6 @@ func (s *Server) SignOut(w http.ResponseWriter, uin uint64) {
 	if err := s.sm.RemoveSession(uin); err != nil {
 		log.Println("remove session error", err)
 	}
-}
-
-func (s *Server) createRespHeader(w http.ResponseWriter, header http.Header) {
-	for k, v := range header {
-		_, ok := s.hf[textproto.CanonicalMIMEHeaderKey(k)]
-		if !ok {
-			continue
-		}
-		for _, vv := range v {
-			w.Header().Set(k, vv)
-		}
-	}
-	// 删除UIN返回
-	w.Header().Del(s.cfg.UinHeaderName)
 }
 
 func (s *Server) normalizeRequest(req *http.Request) {

@@ -32,6 +32,7 @@ func NewPortable(ctx context.Context, cfg *config.Config) *Portable {
 		cfg.SetLastLoadTime(cc.HotLoad)
 		r.ClearAll()
 		r.Load(cc.Routes)
+		r.ApplyDynamic()
 		s.ApplyHeaderFilter(cc.HttpAllowHeader)
 		s.ApplyCorsConfig(cc.Cors)
 		err := s.InitTicketMode(cc.Session().Mode)

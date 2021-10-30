@@ -17,10 +17,10 @@ type Route struct {
 	r  map[string]int
 	re []*routeEntry
 	bg []*RouteInfo
+	d  map[string]RouteItem
 }
 
 type RouteConfig struct {
-	Pattern string
 	Sign    bool
 	SignIn  bool
 	SignOut bool
@@ -29,6 +29,7 @@ type RouteConfig struct {
 func NewRoute() *Route {
 	return &Route{
 		r:  map[string]int{},
+		d:  map[string]RouteItem{},
 		re: nil,
 		bg: nil,
 	}
@@ -83,9 +84,14 @@ type RouteBackend interface {
 	Get() Backend
 }
 
+type RouteItem interface {
+	Config() *RouteConfig
+	Backend() RouteBackend
+}
+
 type BackendGroup []Backend
 type RouteInfo struct {
-	Config  RouteConfig
+	Config  *RouteConfig
 	Backend RouteBackend
 }
 
@@ -119,8 +125,7 @@ func (r *Route) Load(routes []config.Route) {
 	for i, route := range routes {
 		r.AddRoute(route.Pattern, &RouteInfo{
 			Backend: NewBackendGroupFromUrl(route.Backend),
-			Config: RouteConfig{
-				Pattern: routes[i].Pattern,
+			Config: &RouteConfig{
 				Sign:    routes[i].Sign,
 				SignIn:  routes[i].SignIn,
 				SignOut: routes[i].SignOut,
@@ -144,11 +149,23 @@ func (r *Route) AddRoute(pattern string, info *RouteInfo) {
 	}
 }
 
-func (r *Route) AddRouteBackend(pattern string, config RouteConfig, backend RouteBackend) {
+func (r *Route) AddRouteBackend(pattern string, config *RouteConfig, backend RouteBackend) {
 	r.AddRoute(pattern, &RouteInfo{
 		Backend: backend,
 		Config:  config,
 	})
+}
+
+func (r *Route) AddRouteItem(pattern string, item RouteItem) {
+	r.AddRoute(pattern, &RouteInfo{
+		Backend: item.Backend(),
+		Config:  item.Config(),
+	})
+}
+
+func (r *Route) AddDynamicRoute(pattern string, item RouteItem) {
+	r.d[pattern] = item
+	r.AddRouteItem(pattern, item)
 }
 
 func (r *Route) ApplyAll() {
@@ -158,9 +175,18 @@ func (r *Route) ApplyAll() {
 	})
 }
 
+func (r *Route) ApplyDynamic() {
+	for p, i := range r.d {
+		r.AddRouteItem(p, i)
+	}
+	r.ApplyAll()
+}
+
 // 清空路由
 func (r *Route) ClearAll() {
-	*r = *NewRoute()
+	r.r = map[string]int{}
+	r.re = nil
+	r.bg = nil
 }
 
 // 匹配路由

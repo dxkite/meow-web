@@ -17,13 +17,10 @@ import (
 )
 
 type httpProcessor struct {
-	ctx *BackendContext
 }
 
-func NewHttpProcessor(ctx *BackendContext) Processor {
-	return &httpProcessor{
-		ctx: ctx,
-	}
+func NewHttpProcessor() Processor {
+	return &httpProcessor{}
 }
 
 func buildHttpBackend(u *url.URL, r *http.Request) string {
@@ -39,36 +36,42 @@ func buildHttpBackend(u *url.URL, r *http.Request) string {
 	return baseUrl + uri
 }
 
-func (s *httpProcessor) Do(uin uint64, ticket string) (user uint64, status int, header http.Header, body io.ReadCloser, err error) {
-	rt, ok := s.ctx.Backend.(*route.UrlBackend)
+func (s *httpProcessor) Do(ctx *BackendContext, w http.ResponseWriter, r *http.Request) (err error) {
+	rt, ok := ctx.Backend.(*route.UrlBackend)
 	if !ok {
-		return 0, 0, nil, nil, fmt.Errorf("unsupported endpoint %T", s.ctx.Backend)
+		return fmt.Errorf("unsupported endpoint %T", ctx.Backend)
 	}
-	u := buildHttpBackend(rt.Url, s.ctx.Req)
+	u := buildHttpBackend(rt.Url, r)
 
-	log.Println("do req", s.ctx.Req.Method, u)
+	log.Println("do req", r.Method, u)
 
-	req, err := http.NewRequest(s.ctx.Req.Method, u, s.ctx.Req.Body)
+	req, err := http.NewRequest(r.Method, u, r.Body)
 	if err != nil {
-		return uin, 0, nil, nil, err
+		return err
 	}
 
-	req.Header = s.ctx.Req.Header.Clone()
-	req.Header.Set(s.ctx.Cfg.UinHeaderName, strconv.Itoa(int(uin)))
-	req.Header.Set("Authorization", ticket)
+	req.Header = r.Header.Clone()
+	req.Header.Set(ctx.Cfg.UinHeaderName, strconv.Itoa(int(ctx.Uin)))
+	req.Header.Set("Authorization", ctx.Ticket)
 
-	client, err := createClient(s.ctx.Cfg, rt.Url)
+	client, err := createClient(ctx.Cfg, rt.Url)
 	if err != nil {
-		return uin, 0, nil, nil, err
+		return err
 	}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return uin, 0, nil, nil, err
+		return err
 	}
 
-	user = s.getUin(resp)
-	return user, resp.StatusCode, resp.Header, resp.Body, nil
+	user := s.getUin(ctx.Cfg.UinHeaderName, resp)
+	w.Header().Set(ctx.Cfg.UinHeaderName, strconv.Itoa(user))
+	w.WriteHeader(resp.StatusCode)
+
+	if _, err := io.Copy(w, resp.Body); err != nil {
+		log.Error("copy error", err)
+	}
+	return nil
 }
 
 func createClient(cfg *config.Config, u *url.URL) (*http.Client, error) {
@@ -98,10 +101,10 @@ func createClient(cfg *config.Config, u *url.URL) (*http.Client, error) {
 	return c, nil
 }
 
-func (s *httpProcessor) getUin(resp *http.Response) uint64 {
+func (s *httpProcessor) getUin(name string, resp *http.Response) int {
 	if resp.StatusCode != http.StatusOK {
 		return 0
 	}
-	uin, _ := strconv.Atoi(resp.Header.Get(s.ctx.Cfg.UinHeaderName))
-	return uint64(uin)
+	uin, _ := strconv.Atoi(resp.Header.Get(name))
+	return uin
 }
