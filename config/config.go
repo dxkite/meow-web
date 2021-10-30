@@ -87,7 +87,7 @@ type Config struct {
 	Cors *CORSConfig `yaml:"cors_config"`
 	// 热更新时间（秒）
 	HotLoad int `yaml:"hot_load"`
-	HotLoadConfig
+	*HotLoadConfig
 }
 
 type LogConfig struct {
@@ -97,7 +97,7 @@ type LogConfig struct {
 
 func NewConfig() *Config {
 	cfg := &Config{}
-	cfg.LoadConfig = cfg.LoadFromFile
+	cfg.HotLoadConfig = NewHotLoad(cfg.LoadFromFile)
 	cfg.cfg = cfg
 	cfg.Cors = &CORSConfig{}
 	cfg.Sign = &SignConfig{}
@@ -121,6 +121,7 @@ func (cfg *Config) LoadFrom(in []byte) error {
 
 func (cfg *Config) LoadFromFile(p string) error {
 	if b, err := ioutil.ReadFile(p); err == nil {
+		cfg.SetLastLoadFile(p)
 		return cfg.LoadFrom(b)
 	} else {
 		return err

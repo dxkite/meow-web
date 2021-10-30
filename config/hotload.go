@@ -8,15 +8,24 @@ import (
 )
 
 type ConfigChangeCallback func(cfg interface{})
+type ConfigLoadCallback func(p string) error
 
 type HotLoadConfig struct {
 	// 更新时间
 	modifyTime time.Time
 	mtx        sync.Mutex
-	LoadConfig func(p string) error
+	LoadConfig ConfigLoadCallback
 	changCb    []ConfigChangeCallback
 	loadTime   int
+	cur        string
 	cfg        interface{}
+}
+
+func NewHotLoad(cb ConfigLoadCallback) *HotLoadConfig {
+	return &HotLoadConfig{
+		mtx:        sync.Mutex{},
+		LoadConfig: cb,
+	}
 }
 
 func (cfg *HotLoadConfig) OnChange(cb ConfigChangeCallback) {
@@ -32,8 +41,12 @@ func (cfg *HotLoadConfig) applyConfig() {
 	}
 }
 
-func (cfg *HotLoadConfig) SetLoadTime(t int) {
+func (cfg *HotLoadConfig) SetLastLoadTime(t int) {
 	cfg.loadTime = t
+}
+
+func (cfg *HotLoadConfig) SetLastLoadFile(p string) {
+	cfg.cur = p
 }
 
 func (cfg *HotLoadConfig) NotifyModify() {
@@ -58,12 +71,12 @@ func (cfg *HotLoadConfig) LoadIfModify(p string) (bool, error) {
 	return true, err
 }
 
-func (cfg *HotLoadConfig) HotLoadIfModify(p string) {
+func (cfg *HotLoadConfig) HotLoadIfModify() {
 	go func() {
-		log.Info("enable hot load config", p, cfg.loadTime)
+		log.Info("enable hot load config", cfg.cur, cfg.loadTime)
 		ticker := time.NewTicker(time.Duration(cfg.loadTime) * time.Second)
 		for range ticker.C {
-			if ok, err := cfg.LoadIfModify(p); err != nil {
+			if ok, err := cfg.LoadIfModify(cfg.cur); err != nil {
 				log.Error("load config error", err)
 			} else if ok {
 				log.Println("config hot load success")

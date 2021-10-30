@@ -32,7 +32,7 @@ func NewGateway(ctx context.Context, p string) {
 
 	cfg.OnChange(func(c interface{}) {
 		cc := c.(*config.Config)
-		cfg.SetLoadTime(cc.HotLoad)
+		cfg.SetLastLoadTime(cc.HotLoad)
 		r.ClearAll()
 		r.Load(cc.Routes)
 		s.ApplyHeaderFilter(cc.HttpAllowHeader)
@@ -44,8 +44,8 @@ func NewGateway(ctx context.Context, p string) {
 	})
 
 	if cfg.HotLoad > 0 {
-		cfg.SetLoadTime(cfg.HotLoad)
-		cfg.HotLoadIfModify(p)
+		cfg.SetLastLoadTime(cfg.HotLoad)
+		cfg.HotLoadIfModify()
 	}
 
 	// 触发配置刷新
@@ -70,5 +70,20 @@ func main() {
 		return
 	}
 
-	NewGateway(ctx, *conf)
+	cfg := config.NewConfig()
+	if err := cfg.LoadFromFile(*conf); err != nil {
+		log.Error(err)
+	}
+
+	s := server.NewPortable(ctx, cfg)
+
+	l, err := net.Listen("tcp", cfg.Address)
+	if err != nil {
+		log.Error(err)
+	}
+
+	log.Println("gateway start at", l.Addr())
+	if err := s.Serve(l); err != nil {
+		log.Error(err)
+	}
 }
