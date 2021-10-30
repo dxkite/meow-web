@@ -20,7 +20,7 @@ type AutoResponse struct {
 	status int
 }
 
-func NewAutoResponse(s *Server, r *route.RouteConfig, w http.ResponseWriter) http.ResponseWriter {
+func NewAutoResponse(s *Server, r *route.RouteConfig, w http.ResponseWriter) *AutoResponse {
 	return &AutoResponse{
 		status: http.StatusOK,
 		h:      http.Header{},
@@ -31,7 +31,11 @@ func NewAutoResponse(s *Server, r *route.RouteConfig, w http.ResponseWriter) htt
 	}
 }
 
-func (br *AutoResponse) Write(p []byte) (int, error) {
+func (br *AutoResponse) WroteHeader() bool {
+	return br.wh
+}
+
+func (br *AutoResponse) WriteHttpHeader() {
 	if br.wh == false {
 		br.normalizeResp()
 		// 自动写入UIN
@@ -47,6 +51,10 @@ func (br *AutoResponse) Write(p []byte) (int, error) {
 		}
 		br.wh = true
 	}
+}
+
+func (br *AutoResponse) Write(p []byte) (int, error) {
+	br.WriteHttpHeader()
 	return br.w.Write(p)
 }
 
