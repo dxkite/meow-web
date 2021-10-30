@@ -18,47 +18,56 @@ module_cert_pem: "./conf/server.pem"
 module_key_pem: "./conf/server.key"
 # 请求将会通过UIN传输到后端
 uin_header_name: "uin"
-# 会话Cookie名称
-cookie_name: "session"
-# 登录SESSION位置 (leveldb) 废弃
-session_path: "./conf/session"
-# 会话过期时间（秒）
-session_expire_in: 3600
-# 配置热加载（秒）
-hot_load: 60
 # 登录页面
-sign_page: "https://dxkite.cn"
+sign_page: "https://account.dxkite.cn/signin"
 # 跨域配置
 cors_config:
   allow_origin:
-    - "http://127.0.0.1:2333"
+    - https://account.dxkite.cn
   allow_method:
     - GET
     - POST
+  allow_header:
+    - Content-Type
+  allow_credentials: true
 sign_info:
   redirect_name: "redirect_uri"
   redirect_url: "https://dxkite.cn"
+# 会话数据
+session:
+  name: "session"
+  domain: "dxkite.cn"
+  expires_in: 86400
+  secure: true
+  http_only: true
+  path: "/"
 # 路由配置
 routes:
-  - pattern: "/signin.php"
+  - pattern: "/user/signin"
     signin: true # 登录接口
     backend:
-      - http://127.0.0.1:8088
-  - pattern: "/signout.php"
-    sign: true
+      - http://127.0.0.1:2334?trim_prefix=/user
+  - pattern: "/user/signout"
     signout: true # 登出接口
     backend:
-      - http://127.0.0.1:8088
+      - http://127.0.0.1:2334?trim_prefix=/user
+  - pattern: "/user/captcha"
+    sign: false #不需要登录
+    backend:
+      - http://127.0.0.1:2334?trim_prefix=/user
+  - pattern: "/user/verify_captcha"
+    sign: false #不需要登录
+    backend:
+      - http://127.0.0.1:2334?trim_prefix=/user
   - pattern: "/user"
     sign: true #需要登录才能访问
     backend:
-      - https://114.132.243.178?server_name=nginx
-  - pattern: "/" # 普通非鉴权接口
-    backend:
-      - https://114.132.243.178?server_name=nginx
+      - http://127.0.0.1:2334?trim_prefix=/user
 ```
 
 ## Nginx 开启双向认证
+
+将nginx作为一个模块服务，可用gateway连接作为一个模块
 
 ```
 # 服务器证书
@@ -71,6 +80,16 @@ ssl_verify_client on;
 ```
 
 ## Nginx 反向代理
+
+走http
+
+```
+location / {
+  proxy_pass http://127.0.0.1:2333;
+}
+```
+
+走 tls 带证书验证模块（需要Nginx提供模块证书，只允许加载了证书的nginx访问gateway）
 
 ```
 location / {
