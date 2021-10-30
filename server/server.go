@@ -159,11 +159,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch b.BackendType() {
 	case "http", "https":
 		processor = proto.NewHttpProcessor(&proto.BackendContext{
-			s.cfg,
-			r,
-			w,
-			rr,
-			b,
+			Cfg:     s.cfg,
+			Req:     r,
+			Writer:  w,
+			Route:   rr,
+			Backend: b,
 		}, s.hf)
 	default:
 		http.Error(w, "unsupported backend", http.StatusBadRequest)
@@ -273,7 +273,7 @@ func (s *Server) createRespHeader(w http.ResponseWriter, header http.Header) {
 }
 
 func (s *Server) normalizeRequest(req *http.Request) {
-	for k, _ := range req.Header {
+	for k := range req.Header {
 		_, ok := s.hf[textproto.CanonicalMIMEHeaderKey(k)]
 		if !ok {
 			req.Header.Del(k)
