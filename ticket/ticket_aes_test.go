@@ -1,21 +1,26 @@
-package session
+package ticket
 
 import (
 	"fmt"
 	"testing"
 )
 
-func TestAESTicketProvider_DecodeTicket(t *testing.T) {
-	p := NewAESTicketProvider(nil)
+func TestAESTicket_Decode(t *testing.T) {
+	p := NewAESTicket(nil)
 	var uin uint64 = 1008611
-	ticket, err := p.EncodeTicket(uin)
+	ticket, err := p.Encode(&SessionData{
+		Uin:        uin,
+		CreateTime: 0,
+	})
 	if err != nil {
 		t.Error(err)
+		return
 	}
 	fmt.Println("ticket", ticket)
-	tt, err := p.DecodeTicket(ticket)
+	tt, err := p.Decode(ticket)
 	if err != nil {
 		t.Error(err)
+		return
 	}
 	if tt.Uin != uin {
 		t.Error("uin error", uin, tt.Uin)
