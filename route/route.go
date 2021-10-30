@@ -19,6 +19,13 @@ type Route struct {
 	bg []*RouteInfo
 }
 
+type RouteConfig struct {
+	Pattern string
+	Sign    bool
+	SignIn  bool
+	SignOut bool
+}
+
 func NewRoute() *Route {
 	return &Route{
 		r:  map[string]int{},
@@ -72,10 +79,14 @@ func NewUrlBackend(rawurl string) (Backend, error) {
 	}
 }
 
+type RouteBackend interface {
+	Get() Backend
+}
+
 type BackendGroup []Backend
 type RouteInfo struct {
-	Config config.Route
-	Group  *BackendGroup
+	Config  RouteConfig
+	Backend RouteBackend
 }
 
 // 支持 http/https
@@ -106,17 +117,41 @@ func (b BackendGroup) Get() Backend {
 // 载入路由
 func (r *Route) Load(routes []config.Route) {
 	for i, route := range routes {
-		idx := len(r.bg)
+		r.AddRoute(route.Pattern, &RouteInfo{
+			Backend: NewBackendGroupFromUrl(route.Backend),
+			Config: RouteConfig{
+				Pattern: routes[i].Pattern,
+				Sign:    routes[i].Sign,
+				SignIn:  routes[i].SignIn,
+				SignOut: routes[i].SignOut,
+			},
+		})
+	}
+	r.ApplyAll()
+}
+
+func (r *Route) AddRoute(pattern string, info *RouteInfo) {
+	if idx, ok := r.r[pattern]; ok {
+		r.bg[idx] = info
+	} else {
+		idx = len(r.bg)
 		r.re = append(r.re, &routeEntry{
-			pattern: route.Pattern,
+			pattern: pattern,
 			index:   idx,
 		})
-		r.bg = append(r.bg, &RouteInfo{
-			Group:  NewBackendGroupFromUrl(route.Backend),
-			Config: routes[i],
-		})
-		r.r[route.Pattern] = idx
+		r.bg = append(r.bg, info)
+		r.r[pattern] = idx
 	}
+}
+
+func (r *Route) AddRouteBackend(pattern string, config RouteConfig, backend RouteBackend) {
+	r.AddRoute(pattern, &RouteInfo{
+		Backend: backend,
+		Config:  config,
+	})
+}
+
+func (r *Route) ApplyAll() {
 	// 优先处理长前缀
 	sort.Slice(r.re, func(i, j int) bool {
 		return len(r.re[i].pattern) > len(r.re[j].pattern)

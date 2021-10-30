@@ -9,9 +9,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
-	"net/textproto"
 	"net/url"
 	"strconv"
 	"strings"
@@ -20,13 +18,11 @@ import (
 
 type httpProcessor struct {
 	ctx *BackendContext
-	hf  map[string]bool
 }
 
-func NewHttpProcessor(ctx *BackendContext, headFilter map[string]bool) Processor {
+func NewHttpProcessor(ctx *BackendContext) Processor {
 	return &httpProcessor{
 		ctx: ctx,
-		hf:  headFilter,
 	}
 }
 
@@ -57,7 +53,7 @@ func (s *httpProcessor) Do(uin uint64, ticket string) (user uint64, status int, 
 		return uin, 0, nil, nil, err
 	}
 
-	s.createReqHeader(req, s.ctx.Req)
+	req.Header = s.ctx.Req.Header.Clone()
 	req.Header.Set(s.ctx.Cfg.UinHeaderName, strconv.Itoa(int(uin)))
 	req.Header.Set("Authorization", ticket)
 
@@ -100,26 +96,6 @@ func createClient(cfg *config.Config, u *url.URL) (*http.Client, error) {
 		c.Transport = &http.Transport{TLSClientConfig: cfg}
 	}
 	return c, nil
-}
-
-func (s *httpProcessor) createReqHeader(dst, src *http.Request) {
-	for k, v := range src.Header {
-		_, ok := s.hf[textproto.CanonicalMIMEHeaderKey(k)]
-		if !ok {
-			continue
-		}
-		for _, vv := range v {
-			dst.Header.Set(k, vv)
-		}
-	}
-	// 设置UA
-	dst.Header.Set("User-Agent", "gateway")
-	// 设置 ClientIP
-	clientIp := src.Header.Get("Client-Ip")
-	if len(clientIp) == 0 {
-		clientIp, _, _ = net.SplitHostPort(src.RemoteAddr)
-	}
-	dst.Header.Set("Client-Ip", clientIp)
 }
 
 func (s *httpProcessor) getUin(resp *http.Response) uint64 {

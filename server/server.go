@@ -152,7 +152,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 发起后端请求
-	b := rr.Group.Get()
+	b := rr.Backend.Get()
 	// 剔除多余请求头
 	s.normalizeRequest(r)
 	var processor proto.Processor
@@ -164,7 +164,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Writer:  w,
 			Route:   rr,
 			Backend: b,
-		}, s.hf)
+		})
 	default:
 		http.Error(w, "unsupported backend", http.StatusBadRequest)
 		return
