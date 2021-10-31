@@ -167,21 +167,22 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	aw := NewAutoResponse(s, rr.Config, w)
+	resp := NewResponse(s, rr.Config, w)
 	err := processor.Do(&proto.BackendContext{
 		Cfg:     s.cfg,
 		Uin:     uin,
 		Ticket:  tks,
 		Route:   rr,
 		Backend: b,
-	}, aw, r)
+	}, resp, r)
 
 	// 检查是否写入了请求头
-	if !aw.WroteHeader() {
-		aw.WriteHttpHeader()
+	if !resp.WroteHeader() {
+		resp.WriteHttpHeader()
 	}
 
 	if err != nil {
+		log.Error(err)
 		http.Error(w, "backend unavailable", http.StatusInternalServerError)
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-type AutoResponse struct {
+type Response struct {
 	w http.ResponseWriter
 	s *Server
 	r *route.RouteConfig
@@ -20,8 +20,8 @@ type AutoResponse struct {
 	status int
 }
 
-func NewAutoResponse(s *Server, r *route.RouteConfig, w http.ResponseWriter) *AutoResponse {
-	return &AutoResponse{
+func NewResponse(s *Server, r *route.RouteConfig, w http.ResponseWriter) *Response {
+	return &Response{
 		status: http.StatusOK,
 		h:      http.Header{},
 		w:      w,
@@ -31,11 +31,11 @@ func NewAutoResponse(s *Server, r *route.RouteConfig, w http.ResponseWriter) *Au
 	}
 }
 
-func (br *AutoResponse) WroteHeader() bool {
+func (br *Response) WroteHeader() bool {
 	return br.wh
 }
 
-func (br *AutoResponse) WriteHttpHeader() {
+func (br *Response) WriteHttpHeader() {
 	if br.wh == false {
 		br.normalizeResp()
 		// 自动写入UIN
@@ -53,20 +53,20 @@ func (br *AutoResponse) WriteHttpHeader() {
 	}
 }
 
-func (br *AutoResponse) Write(p []byte) (int, error) {
+func (br *Response) Write(p []byte) (int, error) {
 	br.WriteHttpHeader()
 	return br.w.Write(p)
 }
 
-func (br *AutoResponse) WriteHeader(statusCode int) {
+func (br *Response) WriteHeader(statusCode int) {
 	br.status = statusCode
 }
 
-func (br *AutoResponse) Header() http.Header {
+func (br *Response) Header() http.Header {
 	return br.h
 }
 
-func (br *AutoResponse) getUin() uint64 {
+func (br *Response) getUin() uint64 {
 	if br.status != http.StatusOK {
 		return 0
 	}
@@ -74,7 +74,7 @@ func (br *AutoResponse) getUin() uint64 {
 	return uint64(uin)
 }
 
-func (br *AutoResponse) normalizeResp() {
+func (br *Response) normalizeResp() {
 	for k, v := range br.h {
 		_, ok := br.s.hf[textproto.CanonicalMIMEHeaderKey(k)]
 		if !ok {
