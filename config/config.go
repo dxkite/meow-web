@@ -41,9 +41,11 @@ type SessionConfig struct {
 	HttpOnly  bool   `yaml:"http_only"`
 	Path      string `yaml:"path"`
 	Mode      string `yaml:"mode"`
-	AesKey    string `yaml:"aes_key"`
-	RsaKey    string `yaml:"rsa_key"`
-	RsaCert   string `yaml:"rsa_cert"`
+	// 严格模式，会话必须在内存中存在
+	Strict  bool   `yaml:"strict"`
+	AesKey  string `yaml:"aes_key"`
+	RsaKey  string `yaml:"rsa_key"`
+	RsaCert string `yaml:"rsa_cert"`
 }
 
 func (s *SessionConfig) GetName() string {

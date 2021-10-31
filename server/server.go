@@ -214,8 +214,13 @@ func (s *Server) readSession(r *http.Request) (string, *ticket.SessionData) {
 		return tk, nil
 	}
 
+	// 非严格模式直接返回
+	if !s.cfg.Session().Strict {
+		return tk, t
+	}
+
 	if !s.sm.CheckSession(t.Uin) {
-		log.Error("session not exist", t.Uin)
+		log.Error("[strict] session not exist", t.Uin)
 		return tk, nil
 	}
 	return tk, t
