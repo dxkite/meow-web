@@ -270,9 +270,13 @@ func (s *Server) checkSlo(tk string) bool {
 
 func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
 	log.Info("signin", uin)
-	t, _ := s.tp.Encode(&ticket.SessionData{
+	t, err := s.tp.Encode(&ticket.SessionData{
 		Uin: uin,
 	})
+	if err != nil {
+		log.Error("create session", err)
+		return
+	}
 	expires := time.Now().Add(s.cfg.Session().GetExpiresIn())
 	http.SetCookie(w, &http.Cookie{
 		Name:     s.cfg.Session().GetName(),
