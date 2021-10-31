@@ -64,6 +64,13 @@ func (s *SessionConfig) GetName() string {
 	return s.Name
 }
 
+func (s *SessionConfig) GetPath() string {
+	if len(s.Path) != 0 {
+		return s.Path
+	}
+	return "/"
+}
+
 func (s *SessionConfig) AesTicketKey() []byte {
 	if len(s.AesKey) != AESKeySize {
 		return nil
@@ -96,14 +103,19 @@ func (s *SessionConfig) GetSloTimeout() time.Duration {
 }
 
 type Config struct {
-	EnableVerify   bool           `yaml:"enable_verify"`
-	Address        string         `yaml:"address"`
-	CAPath         string         `yaml:"ca_path"`
-	ModuleCertPath string         `yaml:"module_cert_pem"`
-	ModuleKeyPath  string         `yaml:"module_key_pem"`
-	SessionConfig  *SessionConfig `yaml:"session"`
-	UinHeaderName  string         `yaml:"uin_header_name"`
-	LogConfig      *LogConfig     `yaml:"log"`
+	// TLS配置
+	EnableTls bool   `yaml:"enable_tls"`
+	TlsCa     string `yaml:"tls_ca"`
+	TlsCert   string `yaml:"tls_cert"`
+	TlsKey    string `yaml:"tls_key"`
+	// 监听地址
+	Address string `yaml:"address"`
+	// 会话配置
+	SessionConfig *SessionConfig `yaml:"session"`
+	// UIN字段
+	UinHeaderName string `yaml:"uin_header_name"`
+	// 日志配置
+	LogConfig *LogConfig `yaml:"log"`
 	// 登录配置
 	Sign *SignConfig `yaml:"sign_info"`
 	// 路由配置

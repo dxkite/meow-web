@@ -88,14 +88,14 @@ func (s *Server) ApplyCorsConfig(cfg *config.CORSConfig) {
 }
 
 func (s *Server) Serve(l net.Listener) error {
-	if s.cfg.EnableVerify {
+	if s.cfg.EnableTls {
 		pool := x509.NewCertPool()
-		rootCa, err := ioutil.ReadFile(s.cfg.CAPath)
+		rootCa, err := ioutil.ReadFile(s.cfg.TlsCa)
 		if err != nil {
 			return err
 		}
 		pool.AppendCertsFromPEM(rootCa)
-		cert, err := tls.LoadX509KeyPair(s.cfg.ModuleCertPath, s.cfg.ModuleKeyPath)
+		cert, err := tls.LoadX509KeyPair(s.cfg.TlsCert, s.cfg.TlsKey)
 		if err != nil {
 			return err
 		}
@@ -235,7 +235,11 @@ func (s *Server) readSession(r *http.Request) (string, *ticket.SessionData) {
 	if !sessionInMem {
 		sloExpires := time.Unix(int64(t.CreateTime), 0).Add(s.cfg.Session().GetSloExpiresIn())
 		err := s.sm.CreateSession(t.Uin, sloExpires)
-		log.Debug("[strict] sso session", t.Uin, sloExpires, err)
+		if err != nil {
+			log.Error(err)
+		} else {
+			log.Debug("[strict] sso session", t.Uin, "will expires", sloExpires)
+		}
 	}
 	return tk, t
 }
@@ -285,7 +289,7 @@ func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
 		Domain:   s.cfg.Session().Domain,
 		Expires:  expires,
 		Secure:   s.cfg.Session().Secure,
-		Path:     s.cfg.Session().Path,
+		Path:     s.cfg.Session().GetPath(),
 		HttpOnly: s.cfg.Session().HttpOnly,
 	})
 	if err := s.sm.CreateSession(uin, expires); err != nil {
@@ -324,23 +328,24 @@ func (s *Server) normalizeRequest(req *http.Request) {
 
 func (s *Server) writeCorsConfig(w http.ResponseWriter, r *http.Request) {
 	origin := r.Header.Get("Origin")
-	_, ok := s.corsOrigin[origin]
 	if len(origin) == 0 {
-		origin = "*"
+		log.Debug("empty origin")
+		return
 	}
 
-	if ok || s.corsOriginAny {
-		w.Header().Set("Access-Control-Allow-Origin", origin)
+	_, ok := s.corsOrigin[origin]
+	if !(ok || s.corsOriginAny) {
+		log.Error("not allow origin", origin)
+		return
 	}
 
+	w.Header().Set("Access-Control-Allow-Origin", origin)
 	if s.cfg.Cors.AllowCredentials {
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 	}
-
 	if len(s.cfg.Cors.AllowHeader) > 0 {
 		w.Header().Set("Access-Control-Allow-Headers", strings.Join(s.cfg.Cors.AllowHeader, ","))
 	}
-
 	if len(s.cfg.Cors.AllowMethod) > 0 {
 		methods := strings.ToUpper(strings.Join(s.cfg.Cors.AllowMethod, ","))
 		w.Header().Set("Access-Control-Allow-Methods", methods)

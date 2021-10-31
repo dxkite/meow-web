@@ -78,12 +78,12 @@ func createClient(cfg *config.Config, u *url.URL) (*http.Client, error) {
 	c := &http.Client{}
 	c.Timeout = 10 * time.Second
 	if u.Scheme == "https" {
-		cert, err := tls.LoadX509KeyPair(cfg.ModuleCertPath, cfg.ModuleKeyPath)
+		cert, err := tls.LoadX509KeyPair(cfg.TlsCert, cfg.TlsKey)
 		if err != nil {
 			return nil, err
 		}
 		pool := x509.NewCertPool()
-		rootCa, err := ioutil.ReadFile(cfg.CAPath)
+		rootCa, err := ioutil.ReadFile(cfg.TlsCa)
 		if err != nil {
 			return nil, err
 		}
