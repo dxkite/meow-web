@@ -40,12 +40,21 @@ type SessionConfig struct {
 	Secure    bool   `yaml:"secure"`
 	HttpOnly  bool   `yaml:"http_only"`
 	Path      string `yaml:"path"`
-	Mode      string `yaml:"mode"`
-	// 严格模式，会话必须在内存中存在
-	Strict  bool   `yaml:"strict"`
+
+	// 会话加密
+	Mode    string `yaml:"mode"`
 	AesKey  string `yaml:"aes_key"`
 	RsaKey  string `yaml:"rsa_key"`
 	RsaCert string `yaml:"rsa_cert"`
+
+	// 严格模式，会话必须在内存中存在
+	Strict bool `yaml:"strict"`
+	// SLO 单点登出检擦
+	SloUrl string `yaml:"slo_url"`
+	// SLO 检查超时
+	SloTimeout int `yaml:"slo_timeout"`
+	// SLO 会话超时
+	SloExpiresIn int `yaml:"slo_expires_in"`
 }
 
 func (s *SessionConfig) GetName() string {
@@ -66,6 +75,22 @@ func (s *SessionConfig) GetExpiresIn() time.Duration {
 	expireIn := 24 * time.Hour
 	if s.ExpiresIn > 0 {
 		expireIn = time.Second * time.Duration(s.ExpiresIn)
+	}
+	return expireIn
+}
+
+func (s *SessionConfig) GetSloExpiresIn() time.Duration {
+	expireIn := 1 * time.Hour
+	if s.SloExpiresIn > 0 {
+		expireIn = time.Second * time.Duration(s.SloExpiresIn)
+	}
+	return expireIn
+}
+
+func (s *SessionConfig) GetSloTimeout() time.Duration {
+	expireIn := 100 * time.Millisecond
+	if s.SloTimeout > 0 {
+		expireIn = time.Millisecond * time.Duration(s.SloTimeout)
 	}
 	return expireIn
 }

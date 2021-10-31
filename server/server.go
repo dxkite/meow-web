@@ -201,6 +201,10 @@ func (s *Server) readTicket(r *http.Request) string {
 func (s *Server) readSession(r *http.Request) (string, *ticket.SessionData) {
 	tk := s.readTicket(r)
 
+	if len(tk) == 0 {
+		return "", nil
+	}
+
 	t, err := s.tp.Decode(tk)
 	if err != nil {
 		log.Debug("decode ticket error", err)
@@ -208,8 +212,8 @@ func (s *Server) readSession(r *http.Request) (string, *ticket.SessionData) {
 	}
 
 	log.Debug("uin", t.Uin, "create_time", t.CreateTime)
-	expiresAt := time.Unix(int64(t.CreateTime), 0).Add(s.cfg.Session().GetExpiresIn())
-	if time.Now().After(expiresAt) {
+	expires := time.Unix(int64(t.CreateTime), 0).Add(s.cfg.Session().GetExpiresIn())
+	if time.Now().After(expires) {
 		log.Error("session expired", t.Uin)
 		return tk, nil
 	}
@@ -219,11 +223,49 @@ func (s *Server) readSession(r *http.Request) (string, *ticket.SessionData) {
 		return tk, t
 	}
 
-	if !s.sm.CheckSession(t.Uin) {
+	// 检查是否在内存中
+	sessionInMem := s.sm.CheckSession(t.Uin)
+	strictCheck := sessionInMem || s.checkSlo(tk)
+	if !strictCheck {
 		log.Error("[strict] session not exist", t.Uin)
 		return tk, nil
 	}
+
+	if !sessionInMem {
+		sloExpires := time.Unix(int64(t.CreateTime), 0).Add(s.cfg.Session().GetSloExpiresIn())
+		err := s.sm.CreateSession(t.Uin, sloExpires)
+		log.Debug("[strict] sso session", t.Uin, sloExpires, err)
+	}
 	return tk, t
+}
+
+func (s *Server) checkSlo(tk string) bool {
+	u := s.cfg.Session().SloUrl
+	if len(u) == 0 {
+		return false
+	}
+
+	// 准备请求
+	client := &http.Client{}
+	// 设置超时
+	client.Timeout = s.cfg.Session().GetSloTimeout()
+	// 设置强制检查
+	client.Transport = &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	req, err := http.NewRequest("GET", u, nil)
+	if err != nil {
+		log.Error("create request", err)
+		return false
+	}
+
+	// 将检测链接发送
+	req.Header.Set("Authorization", tk)
+	if resp, err := client.Do(req); err != nil {
+		return false
+	} else if resp.StatusCode == http.StatusOK {
+		return true
+	}
+
+	return false
 }
 
 func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
@@ -231,16 +273,17 @@ func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
 	t, _ := s.tp.Encode(&ticket.SessionData{
 		Uin: uin,
 	})
+	expires := time.Now().Add(s.cfg.Session().GetExpiresIn())
 	http.SetCookie(w, &http.Cookie{
 		Name:     s.cfg.Session().GetName(),
 		Value:    ticket.EncodeBase64WebString(t),
 		Domain:   s.cfg.Session().Domain,
-		Expires:  time.Now().Add(s.cfg.Session().GetExpiresIn()),
+		Expires:  expires,
 		Secure:   s.cfg.Session().Secure,
 		Path:     s.cfg.Session().Path,
 		HttpOnly: s.cfg.Session().HttpOnly,
 	})
-	if err := s.sm.CreateSession(uin); err != nil {
+	if err := s.sm.CreateSession(uin, expires); err != nil {
 		log.Println("save session error", err)
 	}
 }
