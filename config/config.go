@@ -104,10 +104,12 @@ func (s *SessionConfig) GetSloTimeout() time.Duration {
 
 type Config struct {
 	// TLS配置
-	EnableTls bool   `yaml:"enable_tls"`
-	TlsCa     string `yaml:"tls_ca"`
-	TlsCert   string `yaml:"tls_cert"`
-	TlsKey    string `yaml:"tls_key"`
+	EnableTls       bool   `yaml:"enable_tls"`
+	TlsCa           string `yaml:"tls_ca"`
+	TlsCert         string `yaml:"tls_cert"`
+	TlsKey          string `yaml:"tls_key"`
+	TlsVerifyClient bool   `yaml:"tls_verify_client"`
+
 	// 监听地址
 	Address string `yaml:"address"`
 	// 会话配置

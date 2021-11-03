@@ -89,21 +89,27 @@ func (s *Server) ApplyCorsConfig(cfg *config.CORSConfig) {
 
 func (s *Server) Serve(l net.Listener) error {
 	if s.cfg.EnableTls {
-		pool := x509.NewCertPool()
-		rootCa, err := ioutil.ReadFile(s.cfg.TlsCa)
-		if err != nil {
-			return err
-		}
-		pool.AppendCertsFromPEM(rootCa)
+		// 开启TLS
 		cert, err := tls.LoadX509KeyPair(s.cfg.TlsCert, s.cfg.TlsKey)
 		if err != nil {
 			return err
 		}
 		c := &tls.Config{
 			Certificates: []tls.Certificate{cert},
-			ClientAuth:   tls.RequireAndVerifyClientCert,
-			ClientCAs:    pool,
 		}
+
+		// 是否校验客户端
+		if s.cfg.TlsVerifyClient {
+			pool := x509.NewCertPool()
+			rootCa, err := ioutil.ReadFile(s.cfg.TlsCa)
+			if err != nil {
+				return err
+			}
+			pool.AppendCertsFromPEM(rootCa)
+			c.ClientCAs = pool
+			c.ClientAuth = tls.RequireAndVerifyClientCert
+		}
+
 		l = tls.NewListener(l, c)
 		log.Info("enable ssl config")
 	}
