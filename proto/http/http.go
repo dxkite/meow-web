@@ -1,9 +1,10 @@
-package proto
+package http
 
 import (
 	"crypto/tls"
 	"crypto/x509"
 	"dxkite.cn/gateway/config"
+	"dxkite.cn/gateway/proto"
 	"dxkite.cn/gateway/route"
 	"dxkite.cn/log"
 	"fmt"
@@ -19,7 +20,7 @@ import (
 type httpProcessor struct {
 }
 
-func NewHttpProcessor() Processor {
+func NewHttpProcessor() proto.Processor {
 	return &httpProcessor{}
 }
 
@@ -36,7 +37,7 @@ func buildHttpBackend(u *url.URL, r *http.Request) string {
 	return baseUrl + uri
 }
 
-func (s *httpProcessor) Do(ctx *BackendContext, w http.ResponseWriter, r *http.Request) (err error) {
+func (s *httpProcessor) Do(ctx *proto.BackendContext, w http.ResponseWriter, r *http.Request) (err error) {
 	rt, ok := ctx.Backend.(*route.UrlBackend)
 	if !ok {
 		return fmt.Errorf("unsupported endpoint %T", ctx.Backend)

@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"dxkite.cn/gateway/config"
 	"dxkite.cn/gateway/proto"
+	httpProto "dxkite.cn/gateway/proto/http"
 	"dxkite.cn/gateway/route"
 	"dxkite.cn/gateway/session"
 	"dxkite.cn/gateway/session/memsm"
@@ -163,7 +164,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var processor proto.Processor
 	switch b.BackendType() {
 	case "http", "https":
-		processor = proto.NewHttpProcessor()
+		processor = httpProto.NewHttpProcessor()
 	default:
 		if builder, ok := b.(Builder); ok {
 			processor = builder.Build()
