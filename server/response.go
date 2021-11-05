@@ -37,7 +37,7 @@ func (br *Response) WroteHeader() bool {
 
 func (br *Response) WriteHttpHeader() {
 	if br.wh == false {
-		br.normalizeResp()
+		br.filterRespHeader()
 		// 自动写入UIN
 		uin := br.getUin()
 		if uin > 0 {
@@ -74,14 +74,14 @@ func (br *Response) getUin() uint64 {
 	return uint64(uin)
 }
 
-func (br *Response) normalizeResp() {
+func (br *Response) filterRespHeader() {
 	for k, v := range br.h {
 		_, ok := br.s.hf[textproto.CanonicalMIMEHeaderKey(k)]
 		if !ok {
 			continue
 		}
 		for _, vv := range v {
-			br.w.Header().Set(k, vv)
+			br.w.Header().Add(k, vv)
 		}
 	}
 }

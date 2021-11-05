@@ -66,6 +66,8 @@ func (s *httpProcessor) Do(ctx *proto.BackendContext, w http.ResponseWriter, r *
 	}
 
 	user := s.getUin(ctx.Cfg.UinHeaderName, resp)
+
+	s.copyHeader(w, resp.Header)
 	w.Header().Set(ctx.Cfg.UinHeaderName, strconv.Itoa(user))
 	w.WriteHeader(resp.StatusCode)
 
@@ -108,4 +110,12 @@ func (s *httpProcessor) getUin(name string, resp *http.Response) int {
 	}
 	uin, _ := strconv.Atoi(resp.Header.Get(name))
 	return uin
+}
+
+func (s *httpProcessor) copyHeader(w http.ResponseWriter, h http.Header) {
+	for k, v := range h {
+		for _, vv := range v {
+			w.Header().Add(k, vv)
+		}
+	}
 }
