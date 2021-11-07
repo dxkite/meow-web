@@ -34,12 +34,12 @@ type SignConfig struct {
 const AESKeySize = 32
 
 type SessionConfig struct {
-	Name      string `yaml:"name"`
-	ExpiresIn int    `yaml:"expires_in"`
-	Domain    string `yaml:"domain"`
-	Secure    bool   `yaml:"secure"`
-	HttpOnly  bool   `yaml:"http_only"`
-	Path      string `yaml:"path"`
+	Name      string   `yaml:"name"`
+	ExpiresIn int      `yaml:"expires_in"`
+	Domain    []string `yaml:"domain"`
+	Secure    bool     `yaml:"secure"`
+	HttpOnly  bool     `yaml:"http_only"`
+	Path      string   `yaml:"path"`
 
 	// 会话加密
 	Mode    string `yaml:"mode"`

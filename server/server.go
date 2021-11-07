@@ -174,7 +174,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	resp := NewResponse(s, uin, rr.Config, w)
+	resp := NewResponse(s, uin, rr.Config, r, w)
 	err := processor.Do(&proto.BackendContext{
 		Cfg:     s.cfg,
 		Uin:     uin,
@@ -280,8 +280,29 @@ func (s *Server) checkSlo(tk string) bool {
 	return false
 }
 
-func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
-	log.Info("signin", uin)
+func getDomain(host string) string {
+	i := strings.LastIndexByte(host, ':')
+	if i > 0 {
+		host, _, _ = net.SplitHostPort(host)
+	}
+	return host
+}
+
+func getCookieDomain(host string, prefer []string) string {
+	domain := getDomain(host)
+	for _, p := range prefer {
+		if strings.HasSuffix(domain, p) {
+			return p
+		}
+	}
+	return ""
+}
+
+func (s *Server) SignIn(req *http.Request, w http.ResponseWriter, uin uint64) {
+	domain := getCookieDomain(req.Host, s.cfg.Session().Domain)
+	expires := time.Now().Add(s.cfg.Session().GetExpiresIn())
+	log.Info("signin", uin, domain, expires)
+
 	t, err := s.tp.Encode(&ticket.SessionData{
 		Uin: uin,
 	})
@@ -289,11 +310,11 @@ func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
 		log.Error("create session", err)
 		return
 	}
-	expires := time.Now().Add(s.cfg.Session().GetExpiresIn())
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     s.cfg.Session().GetName(),
 		Value:    ticket.EncodeBase64WebString(t),
-		Domain:   s.cfg.Session().Domain,
+		Domain:   domain,
 		Expires:  expires,
 		Secure:   s.cfg.Session().Secure,
 		Path:     s.cfg.Session().GetPath(),
@@ -304,12 +325,13 @@ func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
 	}
 }
 
-func (s *Server) SignOut(w http.ResponseWriter, uin uint64) {
-	log.Info("signout", uin)
+func (s *Server) SignOut(req *http.Request, w http.ResponseWriter, uin uint64) {
+	domain := getCookieDomain(req.Host, s.cfg.Session().Domain)
+	log.Info("signout", uin, domain)
 	http.SetCookie(w, &http.Cookie{
 		Name:     s.cfg.Session().GetName(),
 		Value:    "",
-		Domain:   s.cfg.Session().Domain,
+		Domain:   domain,
 		Expires:  time.Now(),
 		Secure:   s.cfg.Session().Secure,
 		Path:     s.cfg.Session().GetPath(),

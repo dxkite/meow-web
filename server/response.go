@@ -9,9 +9,10 @@ import (
 )
 
 type Response struct {
-	w http.ResponseWriter
-	s *Server
-	r *route.RouteConfig
+	w    http.ResponseWriter
+	s    *Server
+	rCfg *route.RouteConfig
+	req  *http.Request
 	// Uin
 	uin uint64
 	// 头部
@@ -22,13 +23,14 @@ type Response struct {
 	status int
 }
 
-func NewResponse(s *Server, uin uint64, r *route.RouteConfig, w http.ResponseWriter) *Response {
+func NewResponse(s *Server, uin uint64, r *route.RouteConfig, req *http.Request, w http.ResponseWriter) *Response {
 	return &Response{
 		status: http.StatusOK,
 		h:      http.Header{},
 		w:      w,
+		req:    req,
 		s:      s,
-		r:      r,
+		rCfg:   r,
 		wh:     false,
 		uin:    uin,
 	}
@@ -46,12 +48,12 @@ func (r *Response) WriteHttpHeader() {
 		// 过滤不需要的请求头
 		r.filterRespHeader()
 		// 处理登录状态
-		if ok && uin > 0 && r.r.SignIn {
-			r.s.SignIn(r.w, uin)
+		if ok && uin > 0 && r.rCfg.SignIn {
+			r.s.SignIn(r.req, r.w, uin)
 			log.Debug("signin", uin)
 		}
-		if ok && r.r.SignOut {
-			r.s.SignOut(r.w, r.uin)
+		if ok && r.rCfg.SignOut {
+			r.s.SignOut(r.req, r.w, r.uin)
 			log.Debug("signout", r.uin)
 		}
 		r.wh = true
