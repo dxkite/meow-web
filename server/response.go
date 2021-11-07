@@ -12,6 +12,8 @@ type Response struct {
 	w http.ResponseWriter
 	s *Server
 	r *route.RouteConfig
+	// Uin
+	uin uint64
 	// 头部
 	h http.Header
 	// 是否处理了头部
@@ -20,7 +22,7 @@ type Response struct {
 	status int
 }
 
-func NewResponse(s *Server, r *route.RouteConfig, w http.ResponseWriter) *Response {
+func NewResponse(s *Server, uin uint64, r *route.RouteConfig, w http.ResponseWriter) *Response {
 	return &Response{
 		status: http.StatusOK,
 		h:      http.Header{},
@@ -28,60 +30,66 @@ func NewResponse(s *Server, r *route.RouteConfig, w http.ResponseWriter) *Respon
 		s:      s,
 		r:      r,
 		wh:     false,
+		uin:    uin,
 	}
 }
 
-func (br *Response) WroteHeader() bool {
-	return br.wh
+func (r *Response) WroteHeader() bool {
+	return r.wh
 }
 
-func (br *Response) WriteHttpHeader() {
-	if br.wh == false {
-		br.filterRespHeader()
-		// 自动写入UIN
-		uin := br.getUin()
-		if uin > 0 {
-			if br.r.SignIn {
-				br.s.SignIn(br.w, uin)
-			}
-			if br.r.SignOut {
-				br.s.SignOut(br.w, uin)
-			}
-			log.Debug("uin write", uin)
+func (r *Response) WriteHttpHeader() {
+	if r.wh == false {
+		log.Debug("resp", r.h)
+		// 获取响应的uin
+		uin, ok := r.getUin()
+		// 过滤不需要的请求头
+		r.filterRespHeader()
+		// 处理登录状态
+		if ok && uin > 0 && r.r.SignIn {
+			r.s.SignIn(r.w, uin)
+			log.Debug("signin", uin)
 		}
-		br.wh = true
+		if ok && r.r.SignOut {
+			r.s.SignOut(r.w, r.uin)
+			log.Debug("signout", r.uin)
+		}
+		r.wh = true
 	}
 }
 
-func (br *Response) Write(p []byte) (int, error) {
-	br.WriteHttpHeader()
-	return br.w.Write(p)
+func (r *Response) Write(p []byte) (int, error) {
+	r.WriteHttpHeader()
+	return r.w.Write(p)
 }
 
-func (br *Response) WriteHeader(statusCode int) {
-	br.status = statusCode
+func (r *Response) WriteHeader(statusCode int) {
+	r.status = statusCode
+	r.WriteHttpHeader()
+	r.w.WriteHeader(statusCode)
 }
 
-func (br *Response) Header() http.Header {
-	return br.h
+func (r *Response) Header() http.Header {
+	return r.h
 }
 
-func (br *Response) getUin() uint64 {
-	if br.status != http.StatusOK {
-		return 0
+func (r *Response) getUin() (uint64, bool) {
+	if r.status != http.StatusOK {
+		return 0, false
 	}
-	uin, _ := strconv.Atoi(br.h.Get(br.s.cfg.UinHeaderName))
-	return uint64(uin)
+	u := r.h.Get(r.s.cfg.UinHeaderName)
+	uin, _ := strconv.Atoi(u)
+	return uint64(uin), len(u) > 0
 }
 
-func (br *Response) filterRespHeader() {
-	for k, v := range br.h {
-		_, ok := br.s.hf[textproto.CanonicalMIMEHeaderKey(k)]
+func (r *Response) filterRespHeader() {
+	for k, v := range r.h {
+		_, ok := r.s.hf[textproto.CanonicalMIMEHeaderKey(k)]
 		if !ok {
 			continue
 		}
 		for _, vv := range v {
-			br.w.Header().Add(k, vv)
+			r.w.Header().Add(k, vv)
 		}
 	}
 }

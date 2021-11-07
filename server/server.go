@@ -174,7 +174,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	resp := NewResponse(s, rr.Config, w)
+	resp := NewResponse(s, uin, rr.Config, w)
 	err := processor.Do(&proto.BackendContext{
 		Cfg:     s.cfg,
 		Uin:     uin,
@@ -307,9 +307,13 @@ func (s *Server) SignIn(w http.ResponseWriter, uin uint64) {
 func (s *Server) SignOut(w http.ResponseWriter, uin uint64) {
 	log.Info("signout", uin)
 	http.SetCookie(w, &http.Cookie{
-		Name:   s.cfg.Session().GetName(),
-		Value:  "",
-		Domain: s.cfg.Session().Domain,
+		Name:     s.cfg.Session().GetName(),
+		Value:    "",
+		Domain:   s.cfg.Session().Domain,
+		Expires:  time.Now(),
+		Secure:   s.cfg.Session().Secure,
+		Path:     s.cfg.Session().GetPath(),
+		HttpOnly: s.cfg.Session().HttpOnly,
 	})
 	if err := s.sm.RemoveSession(uin); err != nil {
 		log.Println("remove session error", err)
@@ -317,6 +321,12 @@ func (s *Server) SignOut(w http.ResponseWriter, uin uint64) {
 }
 
 func (s *Server) normalizeRequest(req *http.Request) {
+	// 获取客户端IP
+	clientIp := req.Header.Get("Client-Ip")
+	if len(clientIp) == 0 {
+		clientIp, _, _ = net.SplitHostPort(req.RemoteAddr)
+	}
+	// 过滤请求头
 	for k := range req.Header {
 		_, ok := s.hf[textproto.CanonicalMIMEHeaderKey(k)]
 		if !ok {
@@ -326,10 +336,6 @@ func (s *Server) normalizeRequest(req *http.Request) {
 	// 设置UA
 	req.Header.Set("User-Agent", "gateway")
 	// 设置 ClientIP
-	clientIp := req.Header.Get("Client-Ip")
-	if len(clientIp) == 0 {
-		clientIp, _, _ = net.SplitHostPort(req.RemoteAddr)
-	}
 	req.Header.Set("Client-Ip", clientIp)
 }
 

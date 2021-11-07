@@ -60,15 +60,13 @@ func (s *httpProcessor) Do(ctx *proto.BackendContext, w http.ResponseWriter, r *
 		return err
 	}
 
+	log.Debug("req header", req.Header)
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
 
-	user := s.getUin(ctx.Cfg.UinHeaderName, resp)
-
 	s.copyHeader(w, resp.Header)
-	w.Header().Set(ctx.Cfg.UinHeaderName, strconv.Itoa(user))
 	w.WriteHeader(resp.StatusCode)
 
 	if _, err := io.Copy(w, resp.Body); err != nil {
