@@ -1,8 +1,9 @@
 package suda
 
 type Config struct {
-	Addr         string `yaml:"addr"`
-	ModuleConfig string `yaml:"module_config"`
+	Addr         string     `yaml:"addr"`
+	ModuleConfig string     `yaml:"module_config"`
+	Auth         AuthConfig `yaml:"auth"`
 }
 
 type ModuleConfig struct {
@@ -22,4 +23,20 @@ type RouteConfig struct {
 type RewriteConfig struct {
 	Regex   string `yaml:"regex"`
 	Replace string `yaml:"replace"`
+}
+
+type AuthConfig struct {
+	Type   string             `yaml:"type"`
+	Header string             `yaml:"header"`
+	Source []AuthSourceConfig `yaml:"source"`
+	Aes    AuthAesConfig      `yaml:"aes"`
+}
+
+type AuthAesConfig struct {
+	Key string `yaml:"key"`
+}
+
+type AuthSourceConfig struct {
+	Type string `yaml:"type"`
+	Name string `yaml:"name"`
 }

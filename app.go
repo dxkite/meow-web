@@ -2,12 +2,15 @@ package suda
 
 import (
 	"bufio"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
 	"os/exec"
 	"path"
 	"regexp"
+	"time"
 )
 
 type App struct {
@@ -92,6 +95,20 @@ func (app *App) forward(req *http.Request, conn net.Conn) error {
 		return writeBody(conn, http.StatusNotFound, "404 not found")
 	}
 
+	if info.Auth {
+		v := app.getAuthToken(req)
+		if v == nil {
+			return writeBody(conn, http.StatusUnauthorized, "unauthorized")
+		}
+
+		if !matchScope(req.URL.Path, v.Scope) {
+			return writeBody(conn, http.StatusUnauthorized, "unauthorized scope")
+		}
+
+		req.Header.Set(app.cfg.Auth.Header, v.Value)
+		fmt.Println("auth header", app.cfg.Auth.Header, v.Value)
+	}
+
 	endpoint := info.EndPoints[intn(len(info.EndPoints))]
 
 	if len(info.Rewrite.Regex) >= 2 {
@@ -108,6 +125,38 @@ func (app *App) forward(req *http.Request, conn net.Conn) error {
 	}
 
 	return nil
+}
+
+func (app *App) getAuthToken(req *http.Request) *Token {
+	return app.getAuthTokenAes(req)
+}
+
+func (app *App) getAuthTokenAes(req *http.Request) *Token {
+	if app.cfg.Auth.Type != "aes" {
+		return nil
+	}
+
+	b := readAuthData(req, app.cfg.Auth.Source)
+	enc, err := base64.RawURLEncoding.DecodeString(b)
+	if err != nil {
+		return nil
+	}
+
+	data, err := AesDecrypt([]byte(app.cfg.Auth.Aes.Key), enc)
+	if err != nil {
+		return nil
+	}
+
+	token := &Token{}
+	if err := json.Unmarshal([]byte(data), token); err != nil {
+		return nil
+	}
+
+	if time.Now().Unix() > token.ExpireAt {
+		return nil
+	}
+
+	return token
 }
 
 func (_ *App) forwardEndpoint(req *http.Request, conn net.Conn, endpoint, uri string) error {

@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -73,4 +74,30 @@ func writeBody(w io.Writer, code int, body string) error {
 	r.StatusCode = code
 	r.Body = io.NopCloser(bytes.NewBufferString(body))
 	return r.Write(w)
+}
+
+func readAuthData(req *http.Request, source []AuthSourceConfig) string {
+	for _, v := range source {
+		if v.Type == "cookie" {
+			if vv, err := req.Cookie(v.Name); err == nil {
+				return vv.Value
+			}
+		}
+		if v.Type == "header" {
+			if vv := req.Header.Get(v.Name); vv != "" {
+				return vv
+			}
+		}
+	}
+	return ""
+}
+
+func matchScope(uri string, scope string) bool {
+	scopes := strings.Split(scope, ",")
+	for _, m := range scopes {
+		if strings.HasPrefix(uri, m) {
+			return true
+		}
+	}
+	return false
 }
