@@ -1,9 +1,12 @@
 package suda
 
 import (
+	"bytes"
 	"encoding/base64"
+	"io"
 	"io/fs"
 	"math/rand"
+	"net/http"
 	"os"
 	"time"
 
@@ -60,4 +63,14 @@ func genRequestId() string {
 		return ""
 	}
 	return "req_" + base64.RawURLEncoding.EncodeToString(b)
+}
+
+func writeBody(w io.Writer, code int, body string) error {
+	r := &http.Response{}
+	r.Header = http.Header{}
+	r.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	r.Header.Set("X-Content-Type-Options", "nosniff")
+	r.StatusCode = code
+	r.Body = io.NopCloser(bytes.NewBufferString(body))
+	return r.Write(w)
 }

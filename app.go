@@ -2,7 +2,6 @@ package suda
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -64,6 +63,8 @@ func (app *App) web() error {
 }
 
 func (app *App) handleConn(conn net.Conn) error {
+	defer conn.Close()
+
 	r := bufio.NewReader(conn)
 	req, err := http.ReadRequest(r)
 	if err != nil {
@@ -71,7 +72,6 @@ func (app *App) handleConn(conn net.Conn) error {
 	}
 
 	if err := app.forward(req, conn); err != nil {
-		conn.Close()
 		return err
 	}
 
@@ -84,12 +84,12 @@ func (app *App) forward(req *http.Request, conn net.Conn) error {
 	_, route := app.router.Match(uri)
 
 	if route == nil {
-		return errors.New("no router")
+		return writeBody(conn, http.StatusNotFound, "404 not found")
 	}
 
 	info, ok := route.(*RouteInfo)
 	if !ok {
-		return errors.New("404 router")
+		return writeBody(conn, http.StatusNotFound, "404 not found")
 	}
 
 	endpoint := info.EndPoints[intn(len(info.EndPoints))]
