@@ -4,29 +4,30 @@ import (
 	"bufio"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"net"
 	"net/http"
 	"os/exec"
 	"path"
 	"regexp"
 	"time"
+
+	"dxkite.cn/log"
 )
 
 type App struct {
-	cfg    *Config
+	Cfg    *Config
 	mods   []*ModuleConfig
 	router *Router
 }
 
 func (app *App) Config(name string) error {
-	app.cfg = &Config{}
-	if err := loadYaml(name, app.cfg); err != nil {
+	app.Cfg = &Config{}
+	if err := loadYaml(name, app.Cfg); err != nil {
 		return err
 	}
 
 	// 加载模块
-	if err := app.loadModules(app.cfg.ModuleConfig); err != nil {
+	if err := app.loadModules(app.Cfg.ModuleConfig); err != nil {
 		return err
 	}
 
@@ -45,21 +46,21 @@ func (app *App) internal() error {
 }
 
 func (app *App) web() error {
-	l, err := net.Listen("tcp", app.cfg.Addr)
+	l, err := net.Listen("tcp", app.Cfg.Addr)
 	if err != nil {
-		fmt.Println("Listen", err)
+		log.Debug("Listen", err)
 		return err
 	}
-	fmt.Println("run at", app.cfg.Addr)
+	log.Debug("run at", app.Cfg.Addr)
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			fmt.Println("Accept", err)
+			log.Debug("Accept", err)
 			continue
 		}
 		go func(c net.Conn) {
 			if err := app.handleConn(c); err != nil {
-				fmt.Println("handleConn", err)
+				log.Debug("handleConn", err)
 			}
 		}(conn)
 	}
@@ -83,7 +84,7 @@ func (app *App) handleConn(conn net.Conn) error {
 
 func (app *App) forward(req *http.Request, conn net.Conn) error {
 	uri := req.URL.Path
-	fmt.Println("forward", uri)
+	log.Debug("forward", uri)
 	_, route := app.router.Match(uri)
 
 	if route == nil {
@@ -105,8 +106,8 @@ func (app *App) forward(req *http.Request, conn net.Conn) error {
 			return writeBody(conn, http.StatusUnauthorized, "unauthorized scope")
 		}
 
-		req.Header.Set(app.cfg.Auth.Header, v.Value)
-		fmt.Println("auth header", app.cfg.Auth.Header, v.Value)
+		req.Header.Set(app.Cfg.Auth.Header, v.Value)
+		log.Debug("auth header", app.Cfg.Auth.Header, v.Value)
 	}
 
 	endpoint := info.EndPoints[intn(len(info.EndPoints))]
@@ -118,7 +119,7 @@ func (app *App) forward(req *http.Request, conn net.Conn) error {
 		}
 	}
 
-	fmt.Println("uri", req.URL.Path, uri)
+	log.Debug("uri", req.URL.Path, uri)
 
 	if err := app.forwardEndpoint(req, conn, endpoint, uri); err != nil {
 		return err
@@ -132,17 +133,17 @@ func (app *App) getAuthToken(req *http.Request) *Token {
 }
 
 func (app *App) getAuthTokenAes(req *http.Request) *Token {
-	if app.cfg.Auth.Type != "aes" {
+	if app.Cfg.Auth.Type != "aes" {
 		return nil
 	}
 
-	b := readAuthData(req, app.cfg.Auth.Source)
+	b := readAuthData(req, app.Cfg.Auth.Source)
 	enc, err := base64.RawURLEncoding.DecodeString(b)
 	if err != nil {
 		return nil
 	}
 
-	data, err := AesDecrypt([]byte(app.cfg.Auth.Aes.Key), enc)
+	data, err := AesDecrypt([]byte(app.Cfg.Auth.Aes.Key), enc)
 	if err != nil {
 		return nil
 	}
@@ -162,7 +163,7 @@ func (app *App) getAuthTokenAes(req *http.Request) *Token {
 func (_ *App) forwardEndpoint(req *http.Request, conn net.Conn, endpoint, uri string) error {
 	rmt, err := dial(endpoint)
 	if err != nil {
-		fmt.Println("Dial", err)
+		log.Debug("Dial", err)
 		return err
 	}
 
@@ -175,13 +176,13 @@ func (_ *App) forwardEndpoint(req *http.Request, conn net.Conn, endpoint, uri st
 
 	// write to remote
 	if err := req.WriteProxy(rmt); err != nil {
-		fmt.Println("WriteProxy", err)
+		log.Debug("WriteProxy", err)
 		return err
 	}
 
 	resp, err := http.ReadResponse(bufio.NewReader(rmt), req)
 	if err != nil {
-		fmt.Println("http.ReadResponse", err)
+		log.Debug("http.ReadResponse", err)
 		return err
 	}
 
@@ -189,17 +190,17 @@ func (_ *App) forwardEndpoint(req *http.Request, conn net.Conn, endpoint, uri st
 	resp.Header.Set("X-Powered-By", "suda/1.0")
 
 	if err := resp.Write(conn); err != nil {
-		fmt.Println("resp.Write", err)
+		log.Debug("resp.Write", err)
 		return err
 	}
 
 	r, w, err := transport(conn, rmt)
 	if err != nil {
-		fmt.Println("transport", err)
+		log.Debug("transport", err)
 		return err
 	}
 
-	fmt.Println("transport", r, w)
+	log.Debug("transport", r, w)
 	return nil
 }
 
@@ -214,7 +215,7 @@ func (app *App) loadModules(p string) error {
 		if ext != ".yaml" && ext != ".yml" {
 			continue
 		}
-		fmt.Println("load", p, name)
+		log.Debug("load", p, name)
 		cfg := &ModuleConfig{}
 		if err := loadYaml(path.Join(p, name), cfg); err != nil {
 			return err
@@ -231,7 +232,7 @@ func (app *App) registerModules() {
 	for _, mod := range app.mods {
 		for _, route := range mod.Routes {
 			for _, uri := range route.Paths {
-				fmt.Println("register", uri)
+				log.Debug("register", uri)
 				router.Add(uri, &RouteInfo{
 					Name:      mod.Name + ":" + route.Name,
 					Auth:      route.Auth,
@@ -241,7 +242,7 @@ func (app *App) registerModules() {
 			}
 		}
 	}
-	fmt.Println("registerModules", router)
+	log.Debug("registerModules", router)
 	app.router = router
 }
 
@@ -251,7 +252,7 @@ func (app *App) execModules() {
 			go func(mod *ModuleConfig) {
 				err := app.execModule(mod)
 				if err != nil {
-					fmt.Println(err)
+					log.Debug(err)
 				}
 			}(mod)
 		}
@@ -260,5 +261,8 @@ func (app *App) execModules() {
 
 func (app *App) execModule(cfg *ModuleConfig) error {
 	cmd := exec.Command(cfg.Exec[0], cfg.Exec[1:]...)
+	w := makeLoggerWriter(cfg.Name)
+	cmd.Stderr = w
+	cmd.Stdout = w
 	return cmd.Run()
 }

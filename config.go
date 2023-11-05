@@ -4,6 +4,11 @@ type Config struct {
 	Addr         string     `yaml:"addr"`
 	ModuleConfig string     `yaml:"module_config"`
 	Auth         AuthConfig `yaml:"auth"`
+
+	// 日志文件
+	LogFile string `yaml:"log_file"`
+	// 日志等级
+	LogLevel int `yaml:"log_level"`
 }
 
 type ModuleConfig struct {
