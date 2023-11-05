@@ -111,7 +111,7 @@ func (app *App) forward(req *http.Request, conn net.Conn) error {
 }
 
 func (_ *App) forwardEndpoint(req *http.Request, conn net.Conn, endpoint, uri string) error {
-	rmt, err := net.Dial("tcp", endpoint)
+	rmt, err := dial(endpoint)
 	if err != nil {
 		fmt.Println("Dial", err)
 		return err

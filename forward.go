@@ -1,8 +1,24 @@
 package suda
 
 import (
+	"errors"
 	"io"
+	"net"
+	"strings"
 )
+
+func dial(r string) (io.ReadWriteCloser, error) {
+	if strings.HasPrefix(r, "unix://") {
+		address := strings.TrimPrefix(r, "unix://")
+		return net.Dial("unix", address)
+	}
+	if strings.HasPrefix(r, "http://") {
+		address := strings.TrimPrefix(r, "http://")
+		return net.Dial("tcp", address)
+	}
+
+	return nil, errors.New("unknown remote: " + r)
+}
 
 func transport(src, dst io.ReadWriteCloser) (up, down int64, err error) {
 	var closeCh = make(chan struct{})
