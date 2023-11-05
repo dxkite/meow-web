@@ -93,7 +93,7 @@ func readAuthData(req *http.Request, source []AuthSourceConfig) string {
 }
 
 func matchScope(uri string, scope string) bool {
-	scopes := strings.Split(scope, ",")
+	scopes := strings.Split(scope, " ")
 	for _, m := range scopes {
 		if strings.HasPrefix(uri, m) {
 			return true
