@@ -161,9 +161,10 @@ func (app *App) getAuthTokenAes(req *http.Request) *Token {
 }
 
 func (_ *App) forwardEndpoint(req *http.Request, conn net.Conn, endpoint, uri string) error {
+	log.Debug("dial", endpoint, uri)
 	rmt, err := dial(endpoint)
 	if err != nil {
-		log.Debug("Dial", err)
+		log.Error("Dial", err)
 		return err
 	}
 
@@ -252,7 +253,7 @@ func (app *App) execModules() {
 			go func(mod *ModuleConfig) {
 				err := app.execModule(mod)
 				if err != nil {
-					log.Debug(err)
+					log.Error("execModule", err)
 				}
 			}(mod)
 		}

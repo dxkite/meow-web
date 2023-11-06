@@ -12,7 +12,7 @@ type moduleLogger struct {
 
 func (m moduleLogger) Write(b []byte) (int, error) {
 	log.Debug("[" + m.name + "] " + string(b))
-	return 0, nil
+	return len(b), nil
 }
 
 func makeLoggerWriter(name string) io.Writer {
