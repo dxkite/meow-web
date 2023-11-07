@@ -20,7 +20,7 @@ func dial(r string) (io.ReadWriteCloser, error) {
 	return nil, errors.New("unknown remote: " + r)
 }
 
-func transport(src, dst io.ReadWriteCloser) (up, down int64, err error) {
+func transport(src, dst io.ReadWriter) (up, down int64, err error) {
 	var closeCh = make(chan struct{})
 	var errCh = make(chan error)
 

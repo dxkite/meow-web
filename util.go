@@ -1,9 +1,7 @@
 package suda
 
 import (
-	"bytes"
 	"encoding/base64"
-	"io"
 	"io/fs"
 	"math/rand"
 	"net/http"
@@ -66,16 +64,6 @@ func genRequestId() string {
 	return "req_" + base64.RawURLEncoding.EncodeToString(b)
 }
 
-func writeBody(w io.Writer, code int, body string) error {
-	r := &http.Response{}
-	r.Header = http.Header{}
-	r.Header.Set("Content-Type", "text/plain; charset=utf-8")
-	r.Header.Set("X-Content-Type-Options", "nosniff")
-	r.StatusCode = code
-	r.Body = io.NopCloser(bytes.NewBufferString(body))
-	return r.Write(w)
-}
-
 func readAuthData(req *http.Request, source []AuthSourceConfig) string {
 	for _, v := range source {
 		if v.Type == "cookie" {
@@ -98,6 +86,24 @@ func matchScope(uri string, scope string) bool {
 		if strings.HasPrefix(uri, m) {
 			return true
 		}
+	}
+	return false
+}
+
+func copyHeader(w http.ResponseWriter, h http.Header) {
+	for k, v := range h {
+		for _, vv := range v {
+			w.Header().Add(k, vv)
+		}
+	}
+}
+
+func isUpgradeToWebsocket(req *http.Request) bool {
+	connection := req.Header.Get("Connection")
+	upgrade := req.Header.Get("Upgrade")
+	if strings.ToLower(connection) == "upgrade" &&
+		strings.ToLower(upgrade) == "websocket" {
+		return true
 	}
 	return false
 }

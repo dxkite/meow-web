@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"io"
 	"net"
 	"net/http"
 	"os/exec"
@@ -51,59 +53,38 @@ func (app *App) web() error {
 		log.Debug("Listen", err)
 		return err
 	}
-	log.Debug("run at", app.Cfg.Addr)
-	for {
-		conn, err := l.Accept()
-		if err != nil {
-			log.Debug("Accept", err)
-			continue
-		}
-		go func(c net.Conn) {
-			if err := app.handleConn(c); err != nil {
-				log.Debug("handleConn", err)
-			}
-		}(conn)
-	}
+
+	return http.Serve(l, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		app.forward(w, r)
+	}))
 }
 
-func (app *App) handleConn(conn net.Conn) error {
-	defer conn.Close()
-
-	r := bufio.NewReader(conn)
-	req, err := http.ReadRequest(r)
-	if err != nil {
-		return err
-	}
-
-	if err := app.forward(req, conn); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (app *App) forward(req *http.Request, conn net.Conn) error {
+func (app *App) forward(w http.ResponseWriter, req *http.Request) {
 	uri := req.URL.Path
 	log.Debug("forward", uri)
 	_, route := app.router.Match(uri)
 
 	if route == nil {
-		return writeBody(conn, http.StatusNotFound, "404 not found")
+		http.Error(w, "404 not found", http.StatusNotFound)
+		return
 	}
 
 	info, ok := route.(*RouteInfo)
 	if !ok {
-		return writeBody(conn, http.StatusNotFound, "404 not found")
+		http.Error(w, "404 not found", http.StatusNotFound)
+		return
 	}
 
 	if info.Auth {
 		v := app.getAuthToken(req)
 		if v == nil {
-			return writeBody(conn, http.StatusUnauthorized, "unauthorized")
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			return
 		}
 
 		if !matchScope(req.URL.Path, v.Scope) {
-			return writeBody(conn, http.StatusUnauthorized, "unauthorized scope")
+			http.Error(w, "unauthorized scope", http.StatusUnauthorized)
+			return
 		}
 
 		req.Header.Set(app.Cfg.Auth.Header, v.Value)
@@ -121,11 +102,11 @@ func (app *App) forward(req *http.Request, conn net.Conn) error {
 
 	log.Debug("uri", req.URL.Path, uri)
 
-	if err := app.forwardEndpoint(req, conn, endpoint, uri); err != nil {
-		return err
+	if err := app.forwardEndpoint(w, req, endpoint, uri); err != nil {
+		return
 	}
 
-	return nil
+	return
 }
 
 func (app *App) getAuthToken(req *http.Request) *Token {
@@ -160,13 +141,14 @@ func (app *App) getAuthTokenAes(req *http.Request) *Token {
 	return token
 }
 
-func (_ *App) forwardEndpoint(req *http.Request, conn net.Conn, endpoint, uri string) error {
+func (_ *App) forwardEndpoint(w http.ResponseWriter, req *http.Request, endpoint, uri string) error {
 	log.Debug("dial", endpoint, uri)
 	rmt, err := dial(endpoint)
 	if err != nil {
 		log.Error("Dial", err)
 		return err
 	}
+	defer rmt.Close()
 
 	reqId := genRequestId()
 
@@ -177,31 +159,60 @@ func (_ *App) forwardEndpoint(req *http.Request, conn net.Conn, endpoint, uri st
 
 	// write to remote
 	if err := req.WriteProxy(rmt); err != nil {
-		log.Debug("WriteProxy", err)
+		log.Error("WriteProxy", err)
 		return err
 	}
 
 	resp, err := http.ReadResponse(bufio.NewReader(rmt), req)
 	if err != nil {
-		log.Debug("http.ReadResponse", err)
+		log.Error("http.ReadResponse", err)
 		return err
 	}
 
 	resp.Header.Set("Request-Id", reqId)
-	resp.Header.Set("X-Powered-By", "suda/1.0")
+	resp.Header.Set("X-Powered-By", "suda")
+
+	// 是否升级到websocket
+	isWebsocket := isUpgradeToWebsocket(req) && resp.StatusCode == http.StatusSwitchingProtocols
+
+	// 普通http请求
+	if !isWebsocket {
+		copyHeader(w, resp.Header)
+		w.WriteHeader(resp.StatusCode)
+		if _, err := io.Copy(w, resp.Body); err != nil {
+			log.Error("copy error", err)
+			return err
+		}
+		return nil
+	}
+
+	log.Info("handle websocket")
+
+	// websocket 请求
+	hijacker, ok := w.(http.Hijacker)
+	if !ok {
+		return errors.New("error to attach http.Hijacker")
+	}
+
+	conn, _, err := hijacker.Hijack()
+	if err != nil {
+		log.Error("Hijack error", err)
+		return err
+	}
+	defer conn.Close()
 
 	if err := resp.Write(conn); err != nil {
-		log.Debug("resp.Write", err)
+		log.Error("resp.Write", err)
 		return err
 	}
 
-	r, w, err := transport(conn, rmt)
+	rb, wb, err := transport(conn, rmt)
 	if err != nil {
-		log.Debug("transport", err)
+		log.Error("transport", err)
 		return err
 	}
 
-	log.Debug("transport", r, w)
+	log.Debug("transport", rb, wb)
 	return nil
 }
 
