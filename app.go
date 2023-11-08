@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"regexp"
 	"time"
 
@@ -272,9 +273,34 @@ func (app *App) execModules() {
 }
 
 func (app *App) execModule(cfg *ModuleConfig) error {
-	cmd := exec.Command(cfg.Exec[0], cfg.Exec[1:]...)
+	ap, err := filepath.Abs(cfg.Exec[0])
+	if err != nil {
+		log.Error("exec", cfg.Exec, err)
+		return err
+	}
+
+	bp := filepath.Dir(ap)
+	cfg.Exec[0] = ap
+
 	w := makeLoggerWriter(cfg.Name)
-	cmd.Stderr = w
-	cmd.Stdout = w
-	return cmd.Run()
+	cmd := &exec.Cmd{
+		Path:   ap,
+		Dir:    bp,
+		Args:   cfg.Exec,
+		Stderr: w,
+		Stdout: w,
+	}
+
+	if err := cmd.Start(); err != nil {
+		log.Error("exec", cfg.Exec, err)
+		return err
+	}
+
+	log.Info("exec", cfg.Exec, "pid", cmd.Process.Pid)
+
+	defer func() {
+		cmd.Process.Kill()
+	}()
+
+	return cmd.Wait()
 }
