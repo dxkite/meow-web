@@ -282,7 +282,7 @@ func (app *App) execModule(cfg *ModuleConfig) error {
 	bp := filepath.Dir(ap)
 	cfg.Exec[0] = ap
 
-	w := makeLoggerWriter(cfg.Name)
+	w := MakeNameLoggerWriter(cfg.Name)
 	cmd := &exec.Cmd{
 		Path:   ap,
 		Dir:    bp,
