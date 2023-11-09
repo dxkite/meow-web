@@ -229,14 +229,27 @@ func (app *App) loadModules(p string) error {
 			continue
 		}
 		log.Debug("load", p, name)
-		cfg := &ModuleConfig{}
-		if err := loadYaml(path.Join(p, name), cfg); err != nil {
+		if err := app.loadModuleConfig(p, name); err != nil {
 			return err
 		}
-
-		app.mods = append(app.mods, cfg)
 	}
 
+	return nil
+}
+
+func (app *App) loadModuleConfig(p, name string) error {
+	cfg := &ModuleConfig{}
+	if err := loadYaml(path.Join(p, name), cfg); err != nil {
+		return err
+	}
+
+	if len(cfg.Exec) > 0 {
+		if !filepath.IsAbs(cfg.Exec[0]) {
+			cfg.Exec[0] = filepath.Join(p, cfg.Exec[0])
+		}
+	}
+
+	app.mods = append(app.mods, cfg)
 	return nil
 }
 
