@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dlclark/regexp2"
 	"gopkg.in/yaml.v3"
 )
 
@@ -106,4 +107,16 @@ func isUpgradeToWebsocket(req *http.Request) bool {
 		return true
 	}
 	return false
+}
+
+func regexReplaceAll(reg, input, replacement string) (string, error) {
+	r, err := regexp2.Compile(reg, 0)
+	if err != nil {
+		return "", err
+	}
+	v, err := r.Replace(input, replacement, -1, -1)
+	if err != nil {
+		return "", err
+	}
+	return v, nil
 }

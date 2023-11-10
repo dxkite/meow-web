@@ -11,7 +11,6 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"regexp"
 	"time"
 
 	"dxkite.cn/log"
@@ -95,9 +94,10 @@ func (app *App) forward(w http.ResponseWriter, req *http.Request) {
 	endpoint := info.EndPoints[intn(len(info.EndPoints))]
 
 	if len(info.Rewrite.Regex) >= 2 {
-		reg, _ := regexp.Compile(info.Rewrite.Regex)
-		if reg != nil {
-			uri = reg.ReplaceAllString(uri, info.Rewrite.Replace)
+		if v, err := regexReplaceAll(info.Rewrite.Regex, uri, info.Rewrite.Replace); err != nil {
+			log.Error("regexReplaceAll", err)
+		} else {
+			uri = v
 		}
 	}
 
