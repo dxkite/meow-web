@@ -16,7 +16,7 @@ func (m moduleLogger) Write(b []byte) (int, error) {
 	s := bufio.NewScanner(bytes.NewReader(b))
 	for s.Scan() {
 		t := s.Text()
-		log.Debug("[" + m.name + "] " + t)
+		log.Debug(log.Group(m.name), t)
 	}
 	return len(b), nil
 }
