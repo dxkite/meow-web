@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	log.SetOutput(log.NewColorWriter())
+	log.SetOutput(log.NewColorWriter(os.Stdout))
 	log.SetLogCaller(true)
 	log.SetAsync(false)
 	log.SetLevel(log.LMaxLevel)
