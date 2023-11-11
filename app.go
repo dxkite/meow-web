@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"dxkite.cn/log"
@@ -246,6 +247,16 @@ func (app *App) loadModuleConfig(p, name string) error {
 	if len(cfg.Exec) > 0 {
 		if !filepath.IsAbs(cfg.Exec[0]) {
 			cfg.Exec[0] = filepath.Join(p, cfg.Exec[0])
+		}
+	}
+
+	for i, ep := range cfg.EndPoints {
+		if strings.HasPrefix(ep, "unix://") {
+			sock := ep[7:]
+			if !filepath.IsAbs(sock) {
+				sock = filepath.Join(p, sock)
+			}
+			cfg.EndPoints[i] = "unix://" + sock
 		}
 	}
 

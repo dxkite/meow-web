@@ -9,12 +9,10 @@ import (
 
 func dial(r string) (io.ReadWriteCloser, error) {
 	if strings.HasPrefix(r, "unix://") {
-		address := strings.TrimPrefix(r, "unix://")
-		return net.Dial("unix", address)
+		return net.Dial("unix", r[7:])
 	}
 	if strings.HasPrefix(r, "http://") {
-		address := strings.TrimPrefix(r, "http://")
-		return net.Dial("tcp", address)
+		return net.Dial("tcp", r[7:])
 	}
 
 	return nil, errors.New("unknown remote: " + r)
