@@ -76,6 +76,9 @@ func (app *App) forward(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// 清除请求头
+	req.Header.Del(app.Cfg.Auth.Header)
+
 	if info.Auth {
 		v := app.getAuthToken(req)
 		if v == nil {
@@ -121,13 +124,17 @@ func (app *App) getAuthTokenAes(req *http.Request) *Token {
 	}
 
 	b := readAuthData(req, app.Cfg.Auth.Source)
+	log.Debug("read auth data", b)
+
 	enc, err := base64.RawURLEncoding.DecodeString(b)
 	if err != nil {
+		log.Error("decode token error", err)
 		return nil
 	}
 
 	data, err := AesDecrypt([]byte(app.Cfg.Auth.Aes.Key), enc)
 	if err != nil {
+		log.Error("decrypt token error", err)
 		return nil
 	}
 
