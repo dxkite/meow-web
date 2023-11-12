@@ -126,6 +126,10 @@ func (app *App) getAuthTokenAes(req *http.Request) *Token {
 	b := readAuthData(req, app.Cfg.Auth.Source)
 	log.Debug("read auth data", b)
 
+	if b == "" {
+		return nil
+	}
+
 	enc, err := base64.RawURLEncoding.DecodeString(b)
 	if err != nil {
 		log.Error("decode token error", err)
