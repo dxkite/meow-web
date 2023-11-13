@@ -14,5 +14,4 @@ func (r *RouteInfo) RouteName() string {
 type Token struct {
 	ExpireAt int64  `json:"exp"`
 	Value    string `json:"val"`
-	Scope    string `json:"sco"`
 }

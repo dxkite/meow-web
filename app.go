@@ -86,11 +86,6 @@ func (app *App) forward(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		if !matchScope(req.URL.Path, v.Scope) {
-			http.Error(w, "unauthorized scope", http.StatusUnauthorized)
-			return
-		}
-
 		req.Header.Set(app.Cfg.Auth.Header, v.Value)
 		log.Debug("auth header", app.Cfg.Auth.Header, v.Value)
 	}

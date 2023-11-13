@@ -81,16 +81,6 @@ func readAuthData(req *http.Request, source []AuthSourceConfig) string {
 	return ""
 }
 
-func matchScope(uri string, scope string) bool {
-	scopes := strings.Split(scope, " ")
-	for _, m := range scopes {
-		if strings.HasPrefix(uri, m) {
-			return true
-		}
-	}
-	return false
-}
-
 func copyHeader(w http.ResponseWriter, h http.Header) {
 	for k, v := range h {
 		for _, vv := range v {

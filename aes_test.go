@@ -12,7 +12,6 @@ func TestAesDecrypt(t *testing.T) {
 	token := &Token{
 		ExpireAt: time.Now().Add(1 * time.Hour).Unix(),
 		Value:    "dxkite",
-		Scope:    "/",
 	}
 	vv, _ := json.Marshal(token)
 	key := "12345678901234567890123456789012"
