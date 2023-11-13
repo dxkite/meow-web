@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"net"
 	"net/http"
 	"os/exec"
 	"path"
@@ -17,53 +16,40 @@ import (
 	"dxkite.cn/log"
 )
 
-type App struct {
-	Cfg    *Config
+type Service struct {
+	Cfg    *ServiceConfig
 	mods   []*ModuleConfig
 	router *Router
 }
 
-func (app *App) Config(name string) error {
-	app.Cfg = &Config{}
-	if err := loadYaml(name, app.Cfg); err != nil {
-		return err
-	}
+func (srv *Service) Config(cfg *ServiceConfig) error {
+	srv.Cfg = cfg
 
 	// 加载模块
-	if err := app.loadModules(app.Cfg.ModuleConfig); err != nil {
+	if err := srv.loadModules(srv.Cfg.ModuleConfig); err != nil {
 		return err
 	}
 
-	app.registerModules()
-
+	srv.registerModules()
 	return nil
 }
 
-func (app *App) Run() error {
-	go app.execModules()
-	return app.web()
+func (srv *Service) Run() error {
+	go srv.execModules()
+	return srv.web()
 }
 
-func (app *App) internal() error {
-	return nil
-}
-
-func (app *App) web() error {
-	l, err := net.Listen("tcp", app.Cfg.Addr)
-	if err != nil {
-		log.Debug("Listen", err)
-		return err
-	}
-
-	return http.Serve(l, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		app.forward(w, r)
+func (srv *Service) web() error {
+	log.Info("listen", srv.Cfg.Addr)
+	return ListenAndServe(srv.Cfg.Addr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		srv.forward(w, r)
 	}))
 }
 
-func (app *App) forward(w http.ResponseWriter, req *http.Request) {
+func (srv *Service) forward(w http.ResponseWriter, req *http.Request) {
 	uri := req.URL.Path
 	log.Debug("forward", uri)
-	_, route := app.router.Match(uri)
+	_, route := srv.router.Match(uri)
 
 	if route == nil {
 		http.Error(w, "404 not found", http.StatusNotFound)
@@ -77,17 +63,17 @@ func (app *App) forward(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// 清除请求头
-	req.Header.Del(app.Cfg.Auth.Header)
+	req.Header.Del(srv.Cfg.Auth.Header)
 
 	if info.Auth {
-		v := app.getAuthToken(req)
+		v := srv.getAuthToken(req)
 		if v == nil {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		req.Header.Set(app.Cfg.Auth.Header, v.Value)
-		log.Debug("auth header", app.Cfg.Auth.Header, v.Value)
+		req.Header.Set(srv.Cfg.Auth.Header, v.Value)
+		log.Debug("auth header", srv.Cfg.Auth.Header, v.Value)
 	}
 
 	endpoint := info.EndPoints[intn(len(info.EndPoints))]
@@ -102,23 +88,23 @@ func (app *App) forward(w http.ResponseWriter, req *http.Request) {
 
 	log.Debug("uri", req.URL.Path, uri)
 
-	if err := app.forwardEndpoint(w, req, endpoint, uri); err != nil {
+	if err := srv.forwardEndpoint(w, req, endpoint, uri); err != nil {
 		return
 	}
 
 	return
 }
 
-func (app *App) getAuthToken(req *http.Request) *Token {
-	return app.getAuthTokenAes(req)
+func (srv *Service) getAuthToken(req *http.Request) *Token {
+	return srv.getAuthTokenAes(req)
 }
 
-func (app *App) getAuthTokenAes(req *http.Request) *Token {
-	if app.Cfg.Auth.Type != "aes" {
+func (srv *Service) getAuthTokenAes(req *http.Request) *Token {
+	if srv.Cfg.Auth.Type != "aes" {
 		return nil
 	}
 
-	b := readAuthData(req, app.Cfg.Auth.Source)
+	b := readAuthData(req, srv.Cfg.Auth.Source)
 	log.Debug("read auth data", b)
 
 	if b == "" {
@@ -131,7 +117,7 @@ func (app *App) getAuthTokenAes(req *http.Request) *Token {
 		return nil
 	}
 
-	data, err := AesDecrypt([]byte(app.Cfg.Auth.Aes.Key), enc)
+	data, err := AesDecrypt([]byte(srv.Cfg.Auth.Aes.Key), enc)
 	if err != nil {
 		log.Error("decrypt token error", err)
 		return nil
@@ -149,7 +135,7 @@ func (app *App) getAuthTokenAes(req *http.Request) *Token {
 	return token
 }
 
-func (_ *App) forwardEndpoint(w http.ResponseWriter, req *http.Request, endpoint, uri string) error {
+func (_ *Service) forwardEndpoint(w http.ResponseWriter, req *http.Request, endpoint, uri string) error {
 	log.Debug("dial", endpoint, uri)
 	rmt, err := dial(endpoint)
 	if err != nil {
@@ -224,7 +210,7 @@ func (_ *App) forwardEndpoint(w http.ResponseWriter, req *http.Request, endpoint
 	return nil
 }
 
-func (app *App) loadModules(p string) error {
+func (srv *Service) loadModules(p string) error {
 	names, err := readDirNames(p)
 	if err != nil {
 		return err
@@ -236,7 +222,7 @@ func (app *App) loadModules(p string) error {
 			continue
 		}
 		log.Debug("load", p, name)
-		if err := app.loadModuleConfig(p, name); err != nil {
+		if err := srv.loadModuleConfig(p, name); err != nil {
 			return err
 		}
 	}
@@ -244,7 +230,7 @@ func (app *App) loadModules(p string) error {
 	return nil
 }
 
-func (app *App) loadModuleConfig(p, name string) error {
+func (srv *Service) loadModuleConfig(p, name string) error {
 	cfg := &ModuleConfig{}
 	if err := loadYaml(path.Join(p, name), cfg); err != nil {
 		return err
@@ -266,13 +252,13 @@ func (app *App) loadModuleConfig(p, name string) error {
 		}
 	}
 
-	app.mods = append(app.mods, cfg)
+	srv.mods = append(srv.mods, cfg)
 	return nil
 }
 
-func (app *App) registerModules() {
+func (srv *Service) registerModules() {
 	router := NewRouter()
-	for _, mod := range app.mods {
+	for _, mod := range srv.mods {
 		for _, route := range mod.Routes {
 			for _, uri := range route.Paths {
 				log.Debug("register", uri)
@@ -286,14 +272,14 @@ func (app *App) registerModules() {
 		}
 	}
 	log.Debug("registerModules", router)
-	app.router = router
+	srv.router = router
 }
 
-func (app *App) execModules() {
-	for _, mod := range app.mods {
+func (srv *Service) execModules() {
+	for _, mod := range srv.mods {
 		if len(mod.Exec) > 0 {
 			go func(mod *ModuleConfig) {
-				err := app.execModule(mod)
+				err := srv.execModule(mod)
 				if err != nil {
 					log.Error("execModule", err)
 				}
@@ -302,7 +288,7 @@ func (app *App) execModules() {
 	}
 }
 
-func (app *App) execModule(cfg *ModuleConfig) error {
+func (srv *Service) execModule(cfg *ModuleConfig) error {
 	ap, err := filepath.Abs(cfg.Exec[0])
 	if err != nil {
 		log.Error("exec", cfg.Exec, err)
@@ -312,7 +298,7 @@ func (app *App) execModule(cfg *ModuleConfig) error {
 	bp := filepath.Dir(ap)
 	cfg.Exec[0] = ap
 
-	w := MakeNameLoggerWriter(cfg.Name)
+	w := MakeNameLoggerWriter(srv.Cfg.Name + ":" + cfg.Name)
 	cmd := &exec.Cmd{
 		Path:   ap,
 		Dir:    bp,

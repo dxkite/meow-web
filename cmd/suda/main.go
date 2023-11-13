@@ -3,9 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
-	"path/filepath"
 	"runtime"
 	"time"
 
@@ -18,36 +16,6 @@ func init() {
 	log.SetLogCaller(true)
 	log.SetAsync(false)
 	log.SetLevel(log.LMaxLevel)
-}
-
-func applyLogConfig(ctx context.Context, cfg *suda.Config) {
-	if cfg.LogLevel != 0 {
-		log.SetLevel(log.LogLevel(cfg.LogLevel))
-	}
-
-	if cfg.LogFile == "" {
-		return
-	}
-
-	log.Println("log output file", cfg.LogFile)
-	filename := cfg.LogFile
-	var w io.Writer
-	if f, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm); err != nil {
-		log.Warn("log file open error", filename)
-		return
-	} else {
-		w = f
-		if filepath.Ext(filename) == ".json" {
-			w = log.NewJsonWriter(w)
-		} else {
-			w = log.NewTextWriter(w)
-		}
-		go func() {
-			<-ctx.Done()
-			_ = f.Close()
-		}()
-	}
-	log.SetOutput(log.MultiWriter(w, log.Writer()))
 }
 
 func main() {
@@ -65,15 +33,12 @@ func main() {
 		}
 	}()
 
-	app := new(suda.App)
-	if err := app.Config("./config.yaml"); err != nil {
-		log.Error(err)
-		return
+	cfg := "./config.yaml"
+	if len(os.Args) >= 2 {
+		cfg = os.Args[1]
 	}
 
-	applyLogConfig(ctx, app.Cfg)
-
-	if err := app.Run(); err != nil {
+	if err := suda.Bootstrap(ctx, cfg); err != nil {
 		log.Error(err)
 	}
 }

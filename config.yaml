@@ -1,12 +1,14 @@
-addr: ":8088"
-module_config: "./modules"
-auth:
-  type: "aes"
-  aes:
-    key: "12345678901234567890123456789012"
-  header: "User-Id"
-  source:
-    - type: "header"
-      name: "Authorization"
-    - type: "cookie"
-      name: "token"
+services:
+  - addr: "http://:8088"
+    name: "web"
+    auth:
+      type: "aes"
+      aes:
+        key: "12345678901234567890123456789012"
+      header: "User-Id"
+      source:
+        - type: "header"
+          name: "Authorization"
+        - type: "cookie"
+          name: "token"
+    module_config: "./modules"

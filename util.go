@@ -1,14 +1,21 @@
 package suda
 
 import (
+	"context"
 	"encoding/base64"
+	"errors"
+	"fmt"
+	"io"
 	"io/fs"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
+	"dxkite.cn/log"
 	"github.com/dlclark/regexp2"
 	"gopkg.in/yaml.v3"
 )
@@ -109,4 +116,59 @@ func regexReplaceAll(reg, input, replacement string) (string, error) {
 		return "", err
 	}
 	return v, nil
+}
+
+func ListenAndServe(target string, handler http.Handler) error {
+	var listener net.Listener
+	if len(target) < 7 {
+		return errors.New("invalid addr")
+	}
+	switch v := target[0:7]; v {
+	case "unix://":
+		sock := target[7:]
+		os.Remove(sock)
+		if l, err := net.Listen("unix", sock); err != nil {
+			return err
+		} else {
+			listener = l
+		}
+	case "http://":
+		addr := target[7:]
+		if l, err := net.Listen("tcp", addr); err != nil {
+			return err
+		} else {
+			listener = l
+		}
+	default:
+		return errors.New(fmt.Sprintf("unsupported target: %s", v))
+	}
+	return http.Serve(listener, handler)
+}
+
+func applyLogConfig(ctx context.Context, level int, output string) {
+	if level != 0 {
+		log.SetLevel(log.LogLevel(level))
+	}
+	if output == "" {
+		return
+	}
+	log.Println("log output file", output)
+	filename := output
+	var w io.Writer
+	if f, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, os.ModePerm); err != nil {
+		log.Warn("log file open error", filename)
+		return
+	} else {
+		w = f
+		if filepath.Ext(filename) == ".json" {
+			w = log.NewJsonWriter(w)
+		} else {
+			w = log.NewTextWriter(w)
+		}
+		go func() {
+			<-ctx.Done()
+			_ = f.Close()
+		}()
+	}
+	log.SetOutput(log.MultiWriter(w, log.Writer()))
 }

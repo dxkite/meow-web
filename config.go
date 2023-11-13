@@ -1,14 +1,19 @@
 package suda
 
 type Config struct {
-	Addr         string     `yaml:"addr"`
-	ModuleConfig string     `yaml:"module_config"`
-	Auth         AuthConfig `yaml:"auth"`
-
+	// 服务配置
+	Services []ServiceConfig `yaml:"services"`
 	// 日志文件
 	LogFile string `yaml:"log_file"`
 	// 日志等级
 	LogLevel int `yaml:"log_level"`
+}
+
+type ServiceConfig struct {
+	Name         string     `yaml:"name"`
+	Addr         string     `yaml:"addr"`
+	ModuleConfig string     `yaml:"module_config"`
+	Auth         AuthConfig `yaml:"auth"`
 }
 
 type ModuleConfig struct {
