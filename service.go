@@ -197,6 +197,7 @@ func (_ *Service) forwardEndpoint(w http.ResponseWriter, req *http.Request, endp
 	// websocket 请求
 	hijacker, ok := w.(http.Hijacker)
 	if !ok {
+		http.Error(w, "Attach Hijack Connection Error", http.StatusInternalServerError)
 		return errors.New("error to attach http.Hijacker")
 	}
 
@@ -229,7 +230,7 @@ func (srv *Service) registerRouters() {
 	router := NewRouter()
 	for _, route := range srv.Cfg.Routes {
 		for _, uri := range route.Paths {
-			log.Debug("register", uri)
+			log.Debug("register", srv.Cfg.Ports, uri)
 			router.Add(uri, &RouteInfo{
 				Name:      srv.Cfg.Name + ":" + route.Name,
 				Auth:      route.Auth,
