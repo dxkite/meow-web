@@ -19,11 +19,11 @@ func Bootstrap(ctx context.Context, configPath string) error {
 	wait.Add(len(cfg.Services))
 
 	for _, srvCfg := range cfg.Services {
-		go func(srvCfg *ServiceConfig) {
+		go func(srvCfg ServiceConfig) {
 			defer wait.Done()
 
 			srv := new(Service)
-			if err := srv.Config(srvCfg); err != nil {
+			if err := srv.Config(&srvCfg); err != nil {
 				log.Error(err)
 				return
 			}
@@ -31,7 +31,7 @@ func Bootstrap(ctx context.Context, configPath string) error {
 			if err := srv.Run(); err != nil {
 				log.Error(err)
 			}
-		}(&srvCfg)
+		}(srvCfg)
 	}
 
 	wait.Wait()

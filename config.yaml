@@ -1,5 +1,5 @@
 services:
-  - addr: "http://:8088"
+  - addr: "http://:80"
     name: "web"
     auth:
       type: "aes"
@@ -11,4 +11,7 @@ services:
           name: "Authorization"
         - type: "cookie"
           name: "token"
-    module_config: "./modules"
+    module_config: "./modules/web"
+  - addr: "http://:3000"
+    name: "internal"
+    module_config: "./modules/internalWeb"
