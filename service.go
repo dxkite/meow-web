@@ -8,9 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os/exec"
-	"path"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"dxkite.cn/log"
@@ -18,32 +16,41 @@ import (
 
 type Service struct {
 	Cfg    *ServiceConfig
-	mods   []*ModuleConfig
 	router *Router
 }
 
 func (srv *Service) Config(cfg *ServiceConfig) error {
 	srv.Cfg = cfg
-
-	// 加载模块
-	if err := srv.loadModules(srv.Cfg.ModuleConfig); err != nil {
-		return err
-	}
-
-	srv.registerModules()
+	srv.registerRouters()
 	return nil
 }
 
 func (srv *Service) Run() error {
-	go srv.execModules()
-	return srv.web()
+	return srv.serve()
 }
 
-func (srv *Service) web() error {
-	log.Info("listen", srv.Cfg.Addr)
-	return ListenAndServe(srv.Cfg.Addr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		srv.forward(w, r)
-	}))
+func (srv *Service) serve() error {
+	listen := func(port Port) func() error {
+		return func() error {
+			l, err := Listen(port)
+			if err != nil {
+				return err
+			}
+			log.Info("listen", port.String())
+			if err := http.Serve(l, http.HandlerFunc(srv.forward)); err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+
+	execChain := ExecChain{}
+
+	for _, port := range srv.Cfg.Ports {
+		execChain = append(execChain, listen(port))
+	}
+
+	return execChain.Run()
 }
 
 func (srv *Service) forward(w http.ResponseWriter, req *http.Request) {
@@ -135,31 +142,35 @@ func (srv *Service) getAuthTokenAes(req *http.Request) *Token {
 	return token
 }
 
-func (_ *Service) forwardEndpoint(w http.ResponseWriter, req *http.Request, endpoint, uri string) error {
+func (_ *Service) forwardEndpoint(w http.ResponseWriter, req *http.Request, endpoint Port, uri string) error {
 	log.Debug("dial", endpoint, uri)
-	rmt, err := dial(endpoint)
+	rmt, err := Dial(endpoint)
 	if err != nil {
 		log.Error("Dial", err)
+		http.Error(w, "Unavailable Server", http.StatusInternalServerError)
 		return err
 	}
+
 	defer rmt.Close()
 
 	reqId := genRequestId()
 
 	req.URL.Path = uri
 	req.RequestURI = req.URL.String()
-	req.Header.Set("X-Forward-Endpoint", endpoint)
+	req.Header.Set("X-Forward-Endpoint", endpoint.String())
 	req.Header.Set("Request-Id", reqId)
 
 	// write to remote
 	if err := req.WriteProxy(rmt); err != nil {
 		log.Error("WriteProxy", err)
+		http.Error(w, "Write Proxy Error", http.StatusInternalServerError)
 		return err
 	}
 
 	resp, err := http.ReadResponse(bufio.NewReader(rmt), req)
 	if err != nil {
 		log.Error("http.ReadResponse", err)
+		http.Error(w, "Read Response Error", http.StatusInternalServerError)
 		return err
 	}
 
@@ -175,6 +186,7 @@ func (_ *Service) forwardEndpoint(w http.ResponseWriter, req *http.Request, endp
 		w.WriteHeader(resp.StatusCode)
 		if _, err := io.Copy(w, resp.Body); err != nil {
 			log.Error("copy error", err)
+			http.Error(w, "Write Response Error", http.StatusInternalServerError)
 			return err
 		}
 		return nil
@@ -191,18 +203,21 @@ func (_ *Service) forwardEndpoint(w http.ResponseWriter, req *http.Request, endp
 	conn, _, err := hijacker.Hijack()
 	if err != nil {
 		log.Error("Hijack error", err)
+		http.Error(w, "Hijack Response Error", http.StatusInternalServerError)
 		return err
 	}
 	defer conn.Close()
 
 	if err := resp.Write(conn); err != nil {
 		log.Error("resp.Write", err)
+		http.Error(w, "Write Response Error", http.StatusInternalServerError)
 		return err
 	}
 
 	rb, wb, err := transport(conn, rmt)
 	if err != nil {
 		log.Error("transport", err)
+		http.Error(w, "Transport Error", http.StatusInternalServerError)
 		return err
 	}
 
@@ -210,109 +225,47 @@ func (_ *Service) forwardEndpoint(w http.ResponseWriter, req *http.Request, endp
 	return nil
 }
 
-func (srv *Service) loadModules(p string) error {
-	names, err := readDirNames(p)
-	if err != nil {
-		return err
-	}
-
-	for _, name := range names {
-		ext := path.Ext(name)
-		if ext != ".yaml" && ext != ".yml" {
-			continue
-		}
-		log.Debug("load", p, name)
-		if err := srv.loadModuleConfig(p, name); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (srv *Service) loadModuleConfig(p, name string) error {
-	cfg := &ModuleConfig{}
-	if err := loadYaml(path.Join(p, name), cfg); err != nil {
-		return err
-	}
-
-	if len(cfg.Exec) > 0 {
-		if !filepath.IsAbs(cfg.Exec[0]) {
-			cfg.Exec[0] = filepath.Join(p, cfg.Exec[0])
-		}
-	}
-
-	for i, ep := range cfg.EndPoints {
-		if strings.HasPrefix(ep, "unix://") {
-			sock := ep[7:]
-			if !filepath.IsAbs(sock) {
-				sock = filepath.Join(p, sock)
-			}
-			cfg.EndPoints[i] = "unix://" + sock
-		}
-	}
-
-	srv.mods = append(srv.mods, cfg)
-	return nil
-}
-
-func (srv *Service) registerModules() {
+func (srv *Service) registerRouters() {
 	router := NewRouter()
-	for _, mod := range srv.mods {
-		for _, route := range mod.Routes {
-			for _, uri := range route.Paths {
-				log.Debug("register", uri)
-				router.Add(uri, &RouteInfo{
-					Name:      mod.Name + ":" + route.Name,
-					Auth:      route.Auth,
-					Rewrite:   route.Rewrite,
-					EndPoints: mod.EndPoints,
-				})
-			}
+	for _, route := range srv.Cfg.Routes {
+		for _, uri := range route.Paths {
+			log.Debug("register", uri)
+			router.Add(uri, &RouteInfo{
+				Name:      srv.Cfg.Name + ":" + route.Name,
+				Auth:      route.Auth,
+				Rewrite:   route.Rewrite,
+				EndPoints: route.EndPoints,
+			})
 		}
 	}
-	log.Debug("registerModules", router)
 	srv.router = router
 }
 
-func (srv *Service) execModules() {
-	for _, mod := range srv.mods {
-		if len(mod.Exec) > 0 {
-			go func(mod *ModuleConfig) {
-				err := srv.execModule(mod)
-				if err != nil {
-					log.Error("execModule", err)
-				}
-			}(mod)
-		}
-	}
-}
-
-func (srv *Service) execModule(cfg *ModuleConfig) error {
-	ap, err := filepath.Abs(cfg.Exec[0])
+func execInstance(ins *InstanceConfig) error {
+	ap, err := filepath.Abs(ins.Exec[0])
 	if err != nil {
-		log.Error("exec", cfg.Exec, err)
+		log.Error("exec", ins.Exec, err)
 		return err
 	}
 
 	bp := filepath.Dir(ap)
-	cfg.Exec[0] = ap
+	ins.Exec[0] = ap
 
-	w := MakeNameLoggerWriter(srv.Cfg.Name + ":" + cfg.Name)
+	w := MakeNameLoggerWriter(ins.Name)
 	cmd := &exec.Cmd{
 		Path:   ap,
 		Dir:    bp,
-		Args:   cfg.Exec,
+		Args:   ins.Exec,
 		Stderr: w,
 		Stdout: w,
 	}
 
 	if err := cmd.Start(); err != nil {
-		log.Error("exec", cfg.Exec, err)
+		log.Error("exec", ins.Exec, err)
 		return err
 	}
 
-	log.Info("exec", cfg.Exec, "pid", cmd.Process.Pid)
+	log.Info("exec", ins.Exec, "pid", cmd.Process.Pid)
 
 	defer func() {
 		cmd.Process.Kill()

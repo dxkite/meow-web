@@ -4,7 +4,7 @@ type RouteInfo struct {
 	Name      string        `yaml:"name"`
 	Auth      bool          `yaml:"auth"`
 	Rewrite   RewriteConfig `yaml:"rewrite"`
-	EndPoints []string
+	EndPoints []Port        `yaml:"port"`
 }
 
 func (r *RouteInfo) RouteName() string {

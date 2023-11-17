@@ -1,8 +1,39 @@
+instances:
+  - name: "user-web"
+    exec:
+      - "./modules/user/user.exe"
+      - "web"
+      - "--config"
+      - "./config.yaml"
+  - name: "internal-user-web"
+    exec:
+      - "./modules/user/user.exe"
+      - "internalWeb"
+      - "--config"
+      - "./config-internal.yaml"
+
 services:
-  - addr: "http://:80"
-    name: "web"
+  - name: "user-internal-api"
+    ports:
+      - type: http
+        http:
+          host: "127.0.0.1"
+          port: 3000
+    routes:
+      - name: user-internal-api
+        endpoints:
+          - type: unix
+            unix:
+              path: ./modules/user/user-internal.sock
+        rewrite:
+          regex: "/api/user/(.*)"
+          replace: "/$1"
+        paths:
+          - "/api/user/info/batch"
+
+  - name: "user-api"
     auth:
-      type: "aes"
+      type: aes
       aes:
         key: "12345678901234567890123456789012"
       header: "User-Id"
@@ -11,7 +42,35 @@ services:
           name: "Authorization"
         - type: "cookie"
           name: "token"
-    module_config: "./modules/web"
-  - addr: "http://:3000"
-    name: "internal"
-    module_config: "./modules/internalWeb"
+    ports:
+      - type: http
+        http:
+          host: "127.0.0.1"
+          port: 80
+    rewrite:
+      regex: "/api/user/(.*)"
+      replace: "/$1"
+    routes:
+      - name: user-no-auth
+        endpoints:
+          - type: unix
+            unix:
+              path: ./modules/user/user.sock
+        rewrite:
+          regex: "/api/user/(.*)"
+          replace: "/$1"
+        paths:
+          - "/api/user/access_token"
+          - "/api/user/create"
+          - "/api/user/info"
+      - name: user-api
+        endpoints:
+          - type: unix
+            unix:
+              path: ./modules/user/user.sock
+        rewrite:
+          regex: "/api/user(.*)"
+          replace: "$1"
+        auth: true
+        paths:
+          - "/api/user"

@@ -118,31 +118,40 @@ func regexReplaceAll(reg, input, replacement string) (string, error) {
 	return v, nil
 }
 
-func ListenAndServe(target string, handler http.Handler) error {
+func Listen(port Port) (net.Listener, error) {
 	var listener net.Listener
-	if len(target) < 7 {
-		return errors.New("invalid addr")
-	}
-	switch v := target[0:7]; v {
-	case "unix://":
-		sock := target[7:]
+	switch port.Type {
+	case "unix":
+		sock := port.Unix.Path
 		os.Remove(sock)
 		if l, err := net.Listen("unix", sock); err != nil {
-			return err
+			return nil, err
 		} else {
 			listener = l
 		}
-	case "http://":
-		addr := target[7:]
+	case "http":
+		addr := fmt.Sprintf("%s:%d", port.Http.Host, port.Http.Port)
 		if l, err := net.Listen("tcp", addr); err != nil {
-			return err
+			return nil, err
 		} else {
 			listener = l
 		}
 	default:
-		return errors.New(fmt.Sprintf("unsupported target: %s", v))
+		return nil, errors.New(fmt.Sprintf("unsupported target: %s", port.String()))
 	}
-	return http.Serve(listener, handler)
+	return listener, nil
+}
+
+func Dial(port Port) (net.Conn, error) {
+	switch port.Type {
+	case "unix":
+		return net.Dial("unix", port.Unix.Path)
+	case "http":
+		addr := fmt.Sprintf("%s:%d", port.Http.Host, port.Http.Port)
+		return net.Dial("tcp", addr)
+	default:
+		return nil, errors.New(fmt.Sprintf("unsupported target: %s", port.String()))
+	}
 }
 
 func applyLogConfig(ctx context.Context, level int, output string) {
