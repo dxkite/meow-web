@@ -3,6 +3,7 @@ package suda
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"io"
 	"io/fs"
 	"math/rand"
@@ -83,6 +84,52 @@ func readAuthData(req *http.Request, source []AuthSourceConfig) string {
 		}
 	}
 	return ""
+}
+
+func matchRequest(req *http.Request, match []RouteMatch) bool {
+	for _, v := range match {
+		if v.Type == "cookie" {
+			if vv, err := req.Cookie(v.Name); err == nil {
+				return vv.Value == v.Value
+			}
+		}
+		if v.Type == "header" {
+			if vv := req.Header.Get(v.Name); vv != "" {
+				return vv == v.Value
+			}
+		}
+	}
+	return false
+}
+
+func matchRouteTarget(req *http.Request, routes []RouteTarget) (*RouteInfo, error) {
+	for _, v := range routes {
+		ri, ok := v.(*RouteInfo)
+		if !ok {
+			return nil, errors.New("not found")
+		}
+
+		if matchRequest(req, ri.Match) {
+			return ri, nil
+		}
+	}
+
+	route := routes[intn(len(routes))]
+	ri, ok := route.(*RouteInfo)
+	if !ok {
+		return nil, errors.New("not found")
+	}
+	return ri, nil
+}
+
+func matchEndpoint(req *http.Request, endpoints []Endpoint) *Endpoint {
+	for _, v := range endpoints {
+		if matchRequest(req, v.Match) {
+			return &v
+		}
+	}
+	endpoint := endpoints[intn(len(endpoints))]
+	return &endpoint
 }
 
 func copyHeader(w http.ResponseWriter, h http.Header) {

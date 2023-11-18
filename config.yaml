@@ -30,6 +30,20 @@ services:
           replace: "/$1"
         paths:
           - "/api/user/info/batch"
+      - name: user-internal-api-develop
+        match:
+          - type: header
+            name: x-feature
+            value: develop
+        endpoints:
+          - type: http
+            http:
+              port: 8089
+        rewrite:
+          regex: "/api/user/(.*)"
+          replace: "/$1"
+        paths:
+          - "/api/user/info/batch"
 
   - name: "web-api"
     auth:
@@ -67,6 +81,14 @@ services:
           - type: unix
             unix:
               path: ./modules/user/user.sock
+          - type: http
+            name: develop
+            match:
+              - type: header
+                name: user-id
+                value: d8JkHJARVRV
+            http:
+              port: 8089
         rewrite:
           regex: "/api/user(.*)"
           replace: "$1"

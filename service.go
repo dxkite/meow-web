@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"dxkite.cn/log"
@@ -56,17 +57,22 @@ func (srv *Service) serve() error {
 func (srv *Service) forward(w http.ResponseWriter, req *http.Request) {
 	uri := req.URL.Path
 	log.Debug("forward", uri)
-	_, route := srv.router.Match(uri)
+	_, routes := srv.router.MatchAll(uri)
 
-	if route == nil {
+	if len(routes) == 0 {
 		http.Error(w, "404 not found", http.StatusNotFound)
 		return
 	}
 
-	info, ok := route.(*RouteInfo)
-	if !ok {
+	var info *RouteInfo
+
+	// 匹配路由
+	if v, err := matchRouteTarget(req, routes); err != nil {
+		log.Error("matchRouteTarget", err)
 		http.Error(w, "404 not found", http.StatusNotFound)
 		return
+	} else {
+		info = v
 	}
 
 	// 清除请求头
@@ -75,15 +81,13 @@ func (srv *Service) forward(w http.ResponseWriter, req *http.Request) {
 	if info.Auth {
 		v := srv.getAuthToken(req)
 		if v == nil {
-			http.Error(w, "unauthorized", http.StatusUnauthorized)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		req.Header.Set(srv.Cfg.Auth.Header, v.Value)
 		log.Debug("auth header", srv.Cfg.Auth.Header, v.Value)
 	}
-
-	endpoint := info.EndPoints[intn(len(info.EndPoints))]
 
 	if len(info.Rewrite.Regex) >= 2 {
 		if v, err := regexReplaceAll(info.Rewrite.Regex, uri, info.Rewrite.Replace); err != nil {
@@ -93,7 +97,9 @@ func (srv *Service) forward(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	log.Debug("uri", req.URL.Path, uri)
+	log.Debug("uri", strconv.Quote(req.URL.Path), strconv.Quote(uri))
+
+	endpoint := matchEndpoint(req, info.EndPoints)
 
 	if err := srv.forwardEndpoint(w, req, endpoint, uri); err != nil {
 		return
@@ -142,9 +148,9 @@ func (srv *Service) getAuthTokenAes(req *http.Request) *Token {
 	return token
 }
 
-func (_ *Service) forwardEndpoint(w http.ResponseWriter, req *http.Request, endpoint Port, uri string) error {
+func (_ *Service) forwardEndpoint(w http.ResponseWriter, req *http.Request, endpoint *Endpoint, uri string) error {
 	log.Debug("dial", endpoint, uri)
-	rmt, err := Dial(endpoint)
+	rmt, err := Dial(endpoint.Port)
 	if err != nil {
 		log.Error("Dial", err)
 		http.Error(w, "Unavailable Server", http.StatusInternalServerError)
@@ -232,10 +238,8 @@ func (srv *Service) registerRouters() {
 		for _, uri := range route.Paths {
 			log.Debug("register", srv.Cfg.Ports, uri)
 			router.Add(uri, &RouteInfo{
-				Name:      srv.Cfg.Name + ":" + route.Name,
-				Auth:      route.Auth,
-				Rewrite:   route.Rewrite,
-				EndPoints: route.EndPoints,
+				Name:        srv.Cfg.Name + ":" + route.Name,
+				RouteConfig: &route,
 			})
 		}
 	}

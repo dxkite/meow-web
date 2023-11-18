@@ -1,10 +1,8 @@
 package suda
 
 type RouteInfo struct {
-	Name      string        `yaml:"name"`
-	Auth      bool          `yaml:"auth"`
-	Rewrite   RewriteConfig `yaml:"rewrite"`
-	EndPoints []Port        `yaml:"port"`
+	Name string
+	*RouteConfig
 }
 
 func (r *RouteInfo) RouteName() string {
