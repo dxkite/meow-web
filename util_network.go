@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"time"
 )
 
 type Port struct {
@@ -58,13 +59,13 @@ func Listen(port Port) (net.Listener, error) {
 	return listener, nil
 }
 
-func Dial(port Port) (net.Conn, error) {
+func DialTimeout(port Port, timeout time.Duration) (net.Conn, error) {
 	switch port.Type {
 	case "unix":
-		return net.Dial("unix", port.Unix.Path)
+		return net.DialTimeout("unix", port.Unix.Path, timeout)
 	case "http":
 		addr := fmt.Sprintf("%s:%d", port.Http.Host, port.Http.Port)
-		return net.Dial("tcp", addr)
+		return net.DialTimeout("tcp", addr, timeout)
 	default:
 		return nil, errors.New(fmt.Sprintf("unsupported target: %s", port.String()))
 	}

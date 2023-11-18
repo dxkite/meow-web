@@ -150,10 +150,16 @@ func (srv *Service) getAuthTokenAes(req *http.Request) *Token {
 
 func (_ *Service) forwardEndpoint(w http.ResponseWriter, req *http.Request, endpoint *Endpoint, uri string) error {
 	log.Debug("dial", endpoint, uri)
-	rmt, err := Dial(endpoint.Port)
+
+	timeout := 500 * time.Millisecond
+	if endpoint.Timeout != 0 {
+		timeout = time.Duration(endpoint.Timeout) * time.Millisecond
+	}
+
+	rmt, err := DialTimeout(endpoint.Port, timeout)
 	if err != nil {
 		log.Error("Dial", err)
-		http.Error(w, "Unavailable Server", http.StatusInternalServerError)
+		http.Error(w, "Unavailable Service", http.StatusInternalServerError)
 		return err
 	}
 

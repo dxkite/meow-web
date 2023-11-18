@@ -50,9 +50,10 @@ type RouteConfig struct {
 }
 
 type Endpoint struct {
-	Port  `yaml:",inline"`
-	Name  string       `yaml:"name"`
-	Match []RouteMatch `yaml:"match"`
+	Port    `yaml:",inline"`
+	Timeout int          `yaml:"timeout"`
+	Name    string       `yaml:"name"`
+	Match   []RouteMatch `yaml:"match"`
 }
 
 func (e Endpoint) String() string {
