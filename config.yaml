@@ -5,12 +5,36 @@ instances:
       - "web"
       - "--config"
       - "./config.yaml"
-  - name: "internal-user-web"
+  - name: "user-internal"
     exec:
       - "./modules/user/user.exe"
       - "internalWeb"
       - "--config"
       - "./config-internal.yaml"
+  - name: "category-web"
+    exec:
+      - "./modules/category/main.exe"
+      - "web"
+      - "--config"
+      - "./config.yaml"
+  - name: "category-internal"
+    exec:
+      - "./modules/category/main.exe"
+      - "internalWeb"
+      - "--config"
+      - "./config-internal.yaml"
+  - name: "tag-web"
+    exec:
+      - "./modules/category/main.exe"
+      - "web"
+      - "--config"
+      - "./tag.yaml"
+  - name: "tag-internal"
+    exec:
+      - "./modules/category/main.exe"
+      - "internalWeb"
+      - "--config"
+      - "./tag-internal.yaml"
 
 services:
   - name: "internal-api"
@@ -30,20 +54,30 @@ services:
           replace: "/$1"
         paths:
           - "/api/user/info/batch"
-      - name: user-internal-api-develop
-        match:
-          - type: header
-            name: x-feature
-            value: develop
+      - name: category-internal-api
         endpoints:
-          - type: http
-            http:
-              port: 8089
+          - type: unix
+            unix:
+              path: ./modules/category/category-internal.sock
         rewrite:
-          regex: "/api/user/(.*)"
+          regex: "/api/category/(.*)"
           replace: "/$1"
         paths:
-          - "/api/user/info/batch"
+          - "/api/category/create"
+          - "/api/category/update"
+          - "/api/category/batch"
+      - name: tag-internal-api
+        endpoints:
+          - type: unix
+            unix:
+              path: ./modules/category/tag-internal.sock
+        rewrite:
+          regex: "/api/tag/(.*)"
+          replace: "/$1"
+        paths:
+          - "/api/tag/create"
+          - "/api/tag/update"
+          - "/api/tag/batch"
 
   - name: "web-api"
     auth:
@@ -81,17 +115,31 @@ services:
           - type: unix
             unix:
               path: ./modules/user/user.sock
-          - type: http
-            name: develop
-            match:
-              - type: header
-                name: user-id
-                value: d8JkHJARVRV
-            http:
-              port: 8089
         rewrite:
           regex: "/api/user(.*)"
           replace: "$1"
         auth: true
         paths:
           - "/api/user"
+      - name: category-api
+        endpoints:
+          - type: unix
+            unix:
+              path: ./modules/category/category.sock
+        rewrite:
+          regex: "/api/category/(.*)"
+          replace: "/$1"
+        paths:
+          - "/api/category/children"
+          - "/api/category/tree"
+      - name: tag-api
+        endpoints:
+          - type: unix
+            unix:
+              path: ./modules/category/tag.sock
+        rewrite:
+          regex: "/api/tag/(.*)"
+          replace: "/$1"
+        paths:
+          - "/api/tag/children"
+          - "/api/tag/tree"
