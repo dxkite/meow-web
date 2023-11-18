@@ -3,12 +3,9 @@ package suda
 import (
 	"context"
 	"encoding/base64"
-	"errors"
-	"fmt"
 	"io"
 	"io/fs"
 	"math/rand"
-	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -116,42 +113,6 @@ func regexReplaceAll(reg, input, replacement string) (string, error) {
 		return "", err
 	}
 	return v, nil
-}
-
-func Listen(port Port) (net.Listener, error) {
-	var listener net.Listener
-	switch port.Type {
-	case "unix":
-		sock := port.Unix.Path
-		os.Remove(sock)
-		if l, err := net.Listen("unix", sock); err != nil {
-			return nil, err
-		} else {
-			listener = l
-		}
-	case "http":
-		addr := fmt.Sprintf("%s:%d", port.Http.Host, port.Http.Port)
-		if l, err := net.Listen("tcp", addr); err != nil {
-			return nil, err
-		} else {
-			listener = l
-		}
-	default:
-		return nil, errors.New(fmt.Sprintf("unsupported target: %s", port.String()))
-	}
-	return listener, nil
-}
-
-func Dial(port Port) (net.Conn, error) {
-	switch port.Type {
-	case "unix":
-		return net.Dial("unix", port.Unix.Path)
-	case "http":
-		addr := fmt.Sprintf("%s:%d", port.Http.Host, port.Http.Port)
-		return net.Dial("tcp", addr)
-	default:
-		return nil, errors.New(fmt.Sprintf("unsupported target: %s", port.String()))
-	}
 }
 
 func applyLogConfig(ctx context.Context, level int, output string) {

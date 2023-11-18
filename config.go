@@ -1,9 +1,5 @@
 package suda
 
-import (
-	"fmt"
-)
-
 type Config struct {
 	// 日志文件
 	LogFile string `yaml:"log_file"`
@@ -23,21 +19,6 @@ type AuthAesConfig struct {
 type AuthSourceConfig struct {
 	Type string `yaml:"type"`
 	Name string `yaml:"name"`
-}
-
-type Port struct {
-	Type string   `yaml:"type"`
-	Unix UnixPort `yaml:"unix"`
-	Http HttpPort `yaml:"http"`
-}
-
-type UnixPort struct {
-	Path string `yaml:"path"`
-}
-
-type HttpPort struct {
-	Host string `yaml:"host"`
-	Port int    `yaml:"port"`
 }
 
 type RewriteConfig struct {
@@ -70,15 +51,4 @@ type RouteConfig struct {
 type InstanceConfig struct {
 	Name string   `yaml:"name"`
 	Exec []string `yaml:"exec"`
-}
-
-func (port Port) String() string {
-	switch port.Type {
-	case "unix":
-		return fmt.Sprintf("unix://%s", port.Unix.Path)
-	case "http":
-		return fmt.Sprintf("http://%s:%d", port.Http.Host, port.Http.Port)
-	default:
-		return port.Type
-	}
 }

@@ -215,7 +215,7 @@ func (_ *Service) forwardEndpoint(w http.ResponseWriter, req *http.Request, endp
 		return err
 	}
 
-	rb, wb, err := transport(conn, rmt)
+	rb, wb, err := Transport(conn, rmt)
 	if err != nil {
 		log.Error("transport", err)
 		http.Error(w, "Transport Error", http.StatusInternalServerError)

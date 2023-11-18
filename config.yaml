@@ -13,7 +13,7 @@ instances:
       - "./config-internal.yaml"
 
 services:
-  - name: "user-internal-api"
+  - name: "internal-api"
     ports:
       - type: http
         http:
@@ -31,7 +31,7 @@ services:
         paths:
           - "/api/user/info/batch"
 
-  - name: "user-api"
+  - name: "web-api"
     auth:
       type: aes
       aes:
@@ -45,7 +45,6 @@ services:
     ports:
       - type: http
         http:
-          host: "127.0.0.1"
           port: 80
     rewrite:
       regex: "/api/user/(.*)"

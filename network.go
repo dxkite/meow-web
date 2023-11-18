@@ -2,23 +2,75 @@ package suda
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net"
-	"strings"
+	"os"
 )
 
-func dial(r string) (io.ReadWriteCloser, error) {
-	if strings.HasPrefix(r, "unix://") {
-		return net.Dial("unix", r[7:])
-	}
-	if strings.HasPrefix(r, "http://") {
-		return net.Dial("tcp", r[7:])
-	}
-
-	return nil, errors.New("unknown remote: " + r)
+type Port struct {
+	Type string   `yaml:"type"`
+	Unix UnixPort `yaml:"unix"`
+	Http HttpPort `yaml:"http"`
 }
 
-func transport(src, dst io.ReadWriter) (up, down int64, err error) {
+type UnixPort struct {
+	Path string `yaml:"path"`
+}
+
+type HttpPort struct {
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
+}
+
+func (port Port) String() string {
+	switch port.Type {
+	case "unix":
+		return fmt.Sprintf("unix://%s", port.Unix.Path)
+	case "http":
+		return fmt.Sprintf("http://%s:%d", port.Http.Host, port.Http.Port)
+	default:
+		return port.Type
+	}
+}
+
+func Listen(port Port) (net.Listener, error) {
+	var listener net.Listener
+	switch port.Type {
+	case "unix":
+		sock := port.Unix.Path
+		os.Remove(sock)
+		if l, err := net.Listen("unix", sock); err != nil {
+			return nil, err
+		} else {
+			listener = l
+		}
+	case "http":
+		addr := fmt.Sprintf("%s:%d", port.Http.Host, port.Http.Port)
+		if l, err := net.Listen("tcp", addr); err != nil {
+			return nil, err
+		} else {
+			listener = l
+		}
+	default:
+		return nil, errors.New(fmt.Sprintf("unsupported target: %s", port.String()))
+	}
+	return listener, nil
+}
+
+func Dial(port Port) (net.Conn, error) {
+	switch port.Type {
+	case "unix":
+		return net.Dial("unix", port.Unix.Path)
+	case "http":
+		addr := fmt.Sprintf("%s:%d", port.Http.Host, port.Http.Port)
+		return net.Dial("tcp", addr)
+	default:
+		return nil, errors.New(fmt.Sprintf("unsupported target: %s", port.String()))
+	}
+}
+
+func Transport(src, dst io.ReadWriter) (up, down int64, err error) {
 	var closeCh = make(chan struct{})
 	var errCh = make(chan error)
 
