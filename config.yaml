@@ -35,6 +35,18 @@ instances:
       - "internalWeb"
       - "--config"
       - "./tag-internal.yaml"
+  - name: "content-web"
+    exec:
+      - "./modules/content/main.exe"
+      - "web"
+      - "--config"
+      - "./config.yaml"
+  - name: "content-internal"
+    exec:
+      - "./modules/content/main.exe"
+      - "internalWeb"
+      - "--config"
+      - "./config-internal.yaml"
 
 services:
   - name: "internal-api"
@@ -78,6 +90,17 @@ services:
           - "/api/tag/create"
           - "/api/tag/update"
           - "/api/tag/batch"
+      - name: article-internal-api
+        endpoints:
+          - type: unix
+            unix:
+              path: ./modules/content/internal.sock
+        rewrite:
+          regex: "/api/article/(.*)"
+          replace: "/$1"
+        paths:
+          - "/api/article/create"
+          - "/api/article/update"
 
   - name: "web-api"
     auth:
@@ -143,3 +166,14 @@ services:
         paths:
           - "/api/tag/children"
           - "/api/tag/tree"
+      - name: article-api
+        endpoints:
+          - type: unix
+            unix:
+              path: ./modules/content/main.sock
+        rewrite:
+          regex: "/api/article/(.*)"
+          replace: "/$1"
+        paths:
+          - "/api/article/list"
+          - "/api/article"

@@ -245,7 +245,7 @@ func (srv *Service) registerRouters() {
 			log.Debug("register", srv.Cfg.Ports, uri)
 			router.Add(uri, &RouteInfo{
 				Name:        srv.Cfg.Name + ":" + route.Name,
-				RouteConfig: &route,
+				RouteConfig: route,
 			})
 		}
 	}

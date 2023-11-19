@@ -2,7 +2,7 @@ package suda
 
 type RouteInfo struct {
 	Name string
-	*RouteConfig
+	RouteConfig
 }
 
 func (r *RouteInfo) RouteName() string {
