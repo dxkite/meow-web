@@ -3,7 +3,6 @@ package suda
 import (
 	"context"
 	"encoding/base64"
-	"errors"
 	"io"
 	"io/fs"
 	"math/rand"
@@ -102,24 +101,14 @@ func matchRequest(req *http.Request, match []RouteMatch) bool {
 	return false
 }
 
-func matchRouteTarget(req *http.Request, routes []RouteTarget) (*RouteInfo, error) {
+func matchRouteTarget(req *http.Request, routes []ForwardTarget) (ForwardTarget, error) {
 	for _, v := range routes {
-		ri, ok := v.(*RouteInfo)
-		if !ok {
-			return nil, errors.New("not found")
-		}
-
-		if matchRequest(req, ri.Match) {
-			return ri, nil
+		if matchRequest(req, v.Match) {
+			return v, nil
 		}
 	}
-
 	route := routes[intn(len(routes))]
-	ri, ok := route.(*RouteInfo)
-	if !ok {
-		return nil, errors.New("not found")
-	}
-	return ri, nil
+	return route, nil
 }
 
 func matchEndpoint(req *http.Request, endpoints []Endpoint) *Endpoint {

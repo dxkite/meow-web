@@ -1,51 +1,45 @@
 package suda
 
 import (
-	"strings"
+	"net/http"
+
+	"github.com/julienschmidt/httprouter"
 )
 
-type RouteTarget interface {
-	RouteName() string
+var allMethods = []string{
+	http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch,
+	http.MethodHead, http.MethodOptions, http.MethodDelete, http.MethodConnect,
+	http.MethodTrace,
 }
 
 type Router struct {
-	routes map[string][]RouteTarget
+	routes map[string][]ForwardTarget
 }
 
 func NewRouter() *Router {
 	r := &Router{}
-	r.routes = map[string][]RouteTarget{}
+	r.routes = map[string][]ForwardTarget{}
 	return r
 }
 
-func (r *Router) Add(uri string, target RouteTarget) *Router {
+func (r *Router) Add(uri string, target ForwardTarget) *Router {
 	if r.routes[uri] == nil {
-		r.routes[uri] = []RouteTarget{}
+		r.routes[uri] = []ForwardTarget{}
 	}
 	r.routes[uri] = append(r.routes[uri], target)
 	return r
 }
 
-func (r Router) MatchAll(uri string) (string, []RouteTarget) {
-	// 完整路由
-	if routes, ok := r.routes[uri]; ok && routes != nil {
-		return uri, routes
-	}
-
-	// 前缀路由
-	for k, v := range r.routes {
-		if strings.HasPrefix(uri, k) && v != nil {
-			return k, v
+func (r Router) Build(auth *AuthConfig) *httprouter.Router {
+	router := httprouter.New()
+	for path, targets := range r.routes {
+		forwarder := &Forwarder{
+			Auth:    auth,
+			Targets: targets,
+		}
+		for _, method := range allMethods {
+			router.Handle(method, path, forwarder.serve)
 		}
 	}
-	return "", nil
-}
-
-func (r Router) Match(uri string) (string, RouteTarget) {
-	p, rr := r.MatchAll(uri)
-	if rr == nil {
-		return p, nil
-	}
-	i := intn(len(rr))
-	return p, rr[i]
+	return router
 }
