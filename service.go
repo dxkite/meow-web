@@ -24,7 +24,10 @@ func (srv *Service) Run() error {
 }
 
 func (srv *Service) serve() error {
-	router := srv.router.Build(&srv.Cfg.Auth)
+	router, err := srv.router.Build(&srv.Cfg.Auth)
+	if err != nil {
+		return err
+	}
 
 	listen := func(port Port) func() error {
 		return func() error {

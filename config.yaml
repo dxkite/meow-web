@@ -175,5 +175,5 @@ services:
           regex: "/api/article/(.*)"
           replace: "/$1"
         paths:
-          - "/api/article"
+          - "/api/article/list"
           - "/api/article/:id"

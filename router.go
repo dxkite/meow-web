@@ -1,6 +1,8 @@
 package suda
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -30,8 +32,13 @@ func (r *Router) Add(uri string, target ForwardTarget) *Router {
 	return r
 }
 
-func (r Router) Build(auth *AuthConfig) *httprouter.Router {
-	router := httprouter.New()
+func (r Router) Build(auth *AuthConfig) (router *httprouter.Router, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = errors.New(fmt.Sprintf("%s", r))
+		}
+	}()
+	router = httprouter.New()
 	for path, targets := range r.routes {
 		forwarder := &Forwarder{
 			Auth:    auth,
@@ -41,5 +48,5 @@ func (r Router) Build(auth *AuthConfig) *httprouter.Router {
 			router.Handle(method, path, forwarder.serve)
 		}
 	}
-	return router
+	return
 }
