@@ -32,13 +32,13 @@ func (r *Router) Add(uri string, target ForwardTarget) *Router {
 	return r
 }
 
-func (r Router) Build(auth *AuthConfig) (router *httprouter.Router, err error) {
+func (r Router) Build(auth *AuthConfig) (handler http.Handler, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = errors.New(fmt.Sprintf("%s", r))
 		}
 	}()
-	router = httprouter.New()
+	router := httprouter.New()
 	for path, targets := range r.routes {
 		forwarder := &Forwarder{
 			Auth:    auth,
@@ -48,5 +48,6 @@ func (r Router) Build(auth *AuthConfig) (router *httprouter.Router, err error) {
 			router.Handle(method, path, forwarder.serve)
 		}
 	}
+	handler = router
 	return
 }
