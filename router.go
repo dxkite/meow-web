@@ -1,53 +1,65 @@
 package suda
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
-
-	"github.com/julienschmidt/httprouter"
+	"sort"
+	"strings"
 )
 
-var allMethods = []string{
-	http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch,
-	http.MethodHead, http.MethodOptions, http.MethodDelete, http.MethodConnect,
-	http.MethodTrace,
-}
-
 type Router struct {
-	routes map[string][]ForwardTarget
+	routes map[string][]http.Handler
+	uris   []string
 }
 
 func NewRouter() *Router {
 	r := &Router{}
-	r.routes = map[string][]ForwardTarget{}
+	r.routes = map[string][]http.Handler{}
+	r.uris = []string{}
 	return r
 }
 
-func (r *Router) Add(uri string, target ForwardTarget) *Router {
+func (r *Router) Add(uri string, target http.Handler) *Router {
 	if r.routes[uri] == nil {
-		r.routes[uri] = []ForwardTarget{}
+		r.routes[uri] = []http.Handler{}
+		r.uris = append(r.uris, uri)
+		sort.Slice(r.uris, func(a, b int) bool {
+			if len(r.uris[a]) > len(r.uris[b]) {
+				return true
+			}
+			return r.uris[a] > r.uris[b]
+		})
 	}
 	r.routes[uri] = append(r.routes[uri], target)
 	return r
 }
 
-func (r Router) Build(auth *AuthConfig) (handler http.Handler, err error) {
-	defer func() {
-		if r := recover(); r != nil {
-			err = errors.New(fmt.Sprintf("%s", r))
-		}
-	}()
-	router := httprouter.New()
-	for path, targets := range r.routes {
-		forwarder := &Forwarder{
-			Auth:    auth,
-			Targets: targets,
-		}
-		for _, method := range allMethods {
-			router.Handle(method, path, forwarder.serve)
+func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if _, m := r.match(req.URL.Path); m != nil {
+		m.ServeHTTP(w, req)
+		return
+	}
+	http.NotFound(w, req)
+}
+
+func (r Router) matchAll(uri string) (string, []http.Handler) {
+	// 完整路由
+	if route, ok := r.routes[uri]; ok && route != nil {
+		return uri, route
+	}
+	// 前缀路由
+	for _, v := range r.uris {
+		if strings.HasPrefix(uri, v) {
+			return v, r.routes[v]
 		}
 	}
-	handler = router
-	return
+	return "", nil
+}
+
+func (r Router) match(uri string) (string, http.Handler) {
+	p, rr := r.matchAll(uri)
+	if rr == nil {
+		return p, nil
+	}
+	i := intn(len(rr))
+	return p, rr[i]
 }

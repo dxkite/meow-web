@@ -24,11 +24,6 @@ func (srv *Service) Run() error {
 }
 
 func (srv *Service) serve() error {
-	router, err := srv.router.Build(&srv.Cfg.Auth)
-	if err != nil {
-		return err
-	}
-
 	listen := func(port Port) func() error {
 		return func() error {
 			l, err := Listen(port)
@@ -36,7 +31,7 @@ func (srv *Service) serve() error {
 				return err
 			}
 			log.Info("listen", port.String())
-			if err := http.Serve(l, router); err != nil {
+			if err := http.Serve(l, srv.router); err != nil {
 				return err
 			}
 			return nil
@@ -57,12 +52,13 @@ func (srv *Service) registerRouters() {
 	for _, route := range srv.Cfg.Routes {
 		for _, uri := range route.Paths {
 			log.Debug("register", srv.Cfg.Ports, uri)
-			router.Add(uri, ForwardTarget{
-				Name:      srv.Cfg.Name + ":" + route.Name,
-				Auth:      route.Auth,
-				Match:     route.Match,
-				Rewrite:   route.Rewrite,
-				Endpoints: route.EndPoints,
+			router.Add(uri, &ForwardTarget{
+				Name:       srv.Cfg.Name + ":" + route.Name,
+				Auth:       route.Auth,
+				AuthConfig: &srv.Cfg.Auth,
+				Match:      route.Match,
+				Rewrite:    route.Rewrite,
+				Endpoints:  route.EndPoints,
 			})
 		}
 	}

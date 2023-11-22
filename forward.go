@@ -11,45 +11,32 @@ import (
 	"time"
 
 	"dxkite.cn/log"
-	"github.com/julienschmidt/httprouter"
 )
 
-type Forwarder struct {
-	Targets []ForwardTarget
-	Auth    *AuthConfig
-}
-
 type ForwardTarget struct {
-	Name      string
-	Auth      bool
-	Match     []RouteMatch
-	Rewrite   RewriteConfig
-	Endpoints []Endpoint
+	Name       string
+	Auth       bool
+	AuthConfig *AuthConfig
+	Match      []RouteMatch
+	Rewrite    RewriteConfig
+	Endpoints  []Endpoint
 }
 
-func (f *Forwarder) serve(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+func (target *ForwardTarget) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	uri := req.URL.Path
-	target, err := matchRouteTarget(req, f.Targets)
-
-	// 匹配路由
-	if err != nil {
-		log.Error("matchRouteTarget", err)
-		http.Error(w, "404 not found", http.StatusNotFound)
-		return
-	}
 
 	// 清除请求头
-	req.Header.Del(f.Auth.Header)
+	req.Header.Del(target.AuthConfig.Header)
 
-	if target.Auth {
-		v := f.getAuthToken(req)
+	if target.Auth && target.AuthConfig != nil {
+		v := target.getAuthToken(req)
 		if v == nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
-		req.Header.Set(f.Auth.Header, v.Value)
-		log.Debug("auth header", f.Auth.Header, v.Value)
+		req.Header.Set(target.AuthConfig.Header, v.Value)
+		log.Debug("auth header", target.AuthConfig.Header, v.Value)
 	}
 
 	if len(target.Rewrite.Regex) >= 2 {
@@ -64,14 +51,14 @@ func (f *Forwarder) serve(w http.ResponseWriter, req *http.Request, params httpr
 
 	endpoint := matchEndpoint(req, target.Endpoints)
 
-	if err := f.forwardEndpoint(w, req, endpoint, uri); err != nil {
+	if err := target.forwardEndpoint(w, req, endpoint, uri); err != nil {
 		return
 	}
 
 	return
 }
 
-func (_ *Forwarder) forwardEndpoint(w http.ResponseWriter, req *http.Request, endpoint *Endpoint, uri string) error {
+func (_ *ForwardTarget) forwardEndpoint(w http.ResponseWriter, req *http.Request, endpoint *Endpoint, uri string) error {
 	log.Debug("dial", endpoint, uri)
 
 	timeout := 500 * time.Millisecond
@@ -161,16 +148,16 @@ func (_ *Forwarder) forwardEndpoint(w http.ResponseWriter, req *http.Request, en
 	return nil
 }
 
-func (f *Forwarder) getAuthToken(req *http.Request) *Token {
+func (f *ForwardTarget) getAuthToken(req *http.Request) *Token {
 	return f.getAuthTokenAes(req)
 }
 
-func (f *Forwarder) getAuthTokenAes(req *http.Request) *Token {
-	if f.Auth.Type != "aes" {
+func (f *ForwardTarget) getAuthTokenAes(req *http.Request) *Token {
+	if f.AuthConfig.Type != "aes" {
 		return nil
 	}
 
-	b := readAuthData(req, f.Auth.Source)
+	b := readAuthData(req, f.AuthConfig.Source)
 	log.Debug("read auth data", b)
 
 	if b == "" {
@@ -183,7 +170,7 @@ func (f *Forwarder) getAuthTokenAes(req *http.Request) *Token {
 		return nil
 	}
 
-	data, err := AesDecrypt([]byte(f.Auth.Aes.Key), enc)
+	data, err := AesDecrypt([]byte(f.AuthConfig.Aes.Key), enc)
 	if err != nil {
 		log.Error("decrypt token error", err)
 		return nil
