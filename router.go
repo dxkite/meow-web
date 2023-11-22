@@ -11,6 +11,10 @@ type Router struct {
 	uris   []string
 }
 
+type RouteMatcher interface {
+	MatchRequest(req *http.Request) bool
+}
+
 func NewRouter() *Router {
 	r := &Router{}
 	r.routes = map[string][]http.Handler{}
@@ -34,7 +38,7 @@ func (r *Router) Add(uri string, target http.Handler) *Router {
 }
 
 func (r Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	if _, m := r.match(req.URL.Path); m != nil {
+	if _, m := r.match(req); m != nil {
 		m.ServeHTTP(w, req)
 		return
 	}
@@ -55,10 +59,16 @@ func (r Router) matchAll(uri string) (string, []http.Handler) {
 	return "", nil
 }
 
-func (r Router) match(uri string) (string, http.Handler) {
-	p, rr := r.matchAll(uri)
+func (r Router) match(req *http.Request) (string, http.Handler) {
+	p, rr := r.matchAll(req.URL.Path)
 	if rr == nil {
 		return p, nil
+	}
+
+	for _, v := range rr {
+		if m, ok := v.(RouteMatcher); ok && m.MatchRequest(req) {
+			return p, v
+		}
 	}
 	i := intn(len(rr))
 	return p, rr[i]

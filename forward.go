@@ -22,7 +22,11 @@ type ForwardTarget struct {
 	Endpoints  []Endpoint
 }
 
-func (target *ForwardTarget) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+func (target ForwardTarget) MatchRequest(req *http.Request) bool {
+	return matchRequest(req, target.Match)
+}
+
+func (target ForwardTarget) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	uri := req.URL.Path
 
 	// 清除请求头
