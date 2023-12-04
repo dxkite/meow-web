@@ -1,13 +1,13 @@
 instances:
   - name: "user-web"
     exec:
-      - "./modules/user/user.exe"
+      - "./modules/user/main.exe"
       - "web"
       - "--config"
       - "./config.yaml"
   - name: "user-internal"
     exec:
-      - "./modules/user/user.exe"
+      - "./modules/user/main.exe"
       - "internalWeb"
       - "--config"
       - "./config-internal.yaml"
@@ -61,11 +61,14 @@ services:
           - type: unix
             unix:
               path: ./modules/user/user-internal.sock
+          # - type: http
+          #   http:
+          #     port: 8089
         rewrite:
           regex: "/api/user/(.*)"
           replace: "/$1"
         paths:
-          - "/api/user/info/batch"
+          - "/api/user/info/batch/map"
       - name: category-internal-api
         endpoints:
           - type: unix
@@ -132,7 +135,7 @@ services:
         paths:
           - "/api/user/access_token"
           - "/api/user/create"
-          - "/api/user/info/:id"
+          - "/api/user/info"
       - name: user-api
         endpoints:
           - type: unix
@@ -168,12 +171,25 @@ services:
           - "/api/tag/tree"
       - name: article-api
         endpoints:
-          - type: unix
-            unix:
-              path: ./modules/content/main.sock
+          # - type: unix
+          #   unix:
+          #     path: ./modules/content/main.sock
+          - type: http
+            http:
+              port: 8088
         rewrite:
-          regex: "/api/article/(.*)"
-          replace: "/$1"
+          regex: "/api/article(.*)"
+          replace: "$1"
         paths:
           - "/api/article"
-          - "/api/article/:id"
+      - name: go-get-interface
+        match:
+          - type: "query"
+            name: "go-get"
+            value: "1"
+        endpoints:
+          - type: http
+            http:
+              port: 8088
+        paths:
+          - "/"

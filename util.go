@@ -87,13 +87,17 @@ func readAuthData(req *http.Request, source []AuthSourceConfig) string {
 
 func matchRequest(req *http.Request, match []RouteMatch) bool {
 	for _, v := range match {
-		if v.Type == "cookie" {
+		switch v.Type {
+		case "cookie":
 			if vv, err := req.Cookie(v.Name); err == nil {
 				return vv.Value == v.Value
 			}
-		}
-		if v.Type == "header" {
+		case "header":
 			if vv := req.Header.Get(v.Name); vv != "" {
+				return vv == v.Value
+			}
+		case "query":
+			if vv := req.URL.Query().Get(v.Name); vv != "" {
 				return vv == v.Value
 			}
 		}

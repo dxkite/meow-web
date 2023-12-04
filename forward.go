@@ -43,15 +43,16 @@ func (target ForwardTarget) ServeHTTP(w http.ResponseWriter, req *http.Request) 
 		log.Debug("auth header", target.AuthConfig.Header, v.Value)
 	}
 
-	if len(target.Rewrite.Regex) >= 2 {
+	if target.Rewrite.Regex != "" {
 		if v, err := regexReplaceAll(target.Rewrite.Regex, uri, target.Rewrite.Replace); err != nil {
 			log.Error("regexReplaceAll", err)
 		} else {
+			log.Debug("rewrite url", uri, "->", v, target.Rewrite.Regex)
 			uri = v
 		}
 	}
 
-	log.Debug("uri", strconv.Quote(req.URL.Path), strconv.Quote(uri))
+	log.Debug("match", target.Name, "uri", strconv.Quote(req.URL.Path), strconv.Quote(uri))
 
 	endpoint := matchEndpoint(req, target.Endpoints)
 
