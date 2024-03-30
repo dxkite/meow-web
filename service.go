@@ -66,7 +66,7 @@ func (srv *Service) registerRouters() {
 	srv.router = router
 }
 
-func execInstance(ins *InstanceConfig) error {
+func execInstance(ins *Component) error {
 	w := MakeNameLoggerWriter(ins.Name)
 	rebootLimit := 10
 	var err error
@@ -79,7 +79,7 @@ func execInstance(ins *InstanceConfig) error {
 	return err
 }
 
-func execCommand(ins *InstanceConfig, w io.Writer) error {
+func execCommand(ins *Component, w io.Writer) error {
 	ap, err := filepath.Abs(ins.Exec[0])
 	if err != nil {
 		log.Error("exec", ins.Exec, err)

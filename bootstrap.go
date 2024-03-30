@@ -15,7 +15,7 @@ func Bootstrap(ctx context.Context, configPath string) error {
 	execChain := ExecChain{}
 
 	execChain = append(execChain, func() error {
-		return RunInstance(ctx, cfg.Instances)
+		return RunInstance(ctx, cfg.Components)
 	})
 
 	execChain = append(execChain, func() error {
@@ -43,11 +43,11 @@ func RunService(ctx context.Context, services []ServiceConfig) error {
 	return execChain.Run()
 }
 
-func RunInstance(ctx context.Context, instance []InstanceConfig) error {
+func RunInstance(ctx context.Context, instance []Component) error {
 	execChain := ExecChain{}
 
 	for _, ins := range instance {
-		execChain = append(execChain, (func(ins InstanceConfig) func() error {
+		execChain = append(execChain, (func(ins Component) func() error {
 			return func() error {
 				return execInstance(&ins)
 			}

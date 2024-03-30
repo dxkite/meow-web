@@ -6,70 +6,45 @@ type Config struct {
 	// 日志等级
 	LogLevel int `yaml:"log_level"`
 
-	// 服务配置
-	Services []ServiceConfig `yaml:"services"`
-	// 实例配置
-	Instances []InstanceConfig `yaml:"instances"`
+	// 组件配置
+	Components []Component `yaml:"components"`
+	// Http 鉴权配置
+	HttpAuthorization HttpAuthorizationConfig `yaml:"http-authorization"`
+	// Http 路由配置
 }
 
-type AuthAesConfig struct {
+type HttpAuthorizationConfig struct {
+	Type     string          `yaml:"type"`
+	Header   string          `yaml:"header"`
+	Source   TokenSource     `yaml:"source"`
+	AesToken *AesTokenConfig `yaml:"aes-token"`
+}
+
+type AesTokenConfig struct {
 	Key string `yaml:"key"`
 }
 
-type AuthSourceConfig struct {
-	Type string `yaml:"type"`
-	Name string `yaml:"name"`
+type TokenSource struct {
+	Query  string `yaml:"query"`
+	Header string `yaml:"header"`
+	Cookie string `yaml:"cookie"`
+}
+
+type Component struct {
+	Name string   `yaml:"name"`
+	Exec []string `yaml:"exec"`
+}
+
+type HttpRouterGroupConfig struct {
+	Name          string        `yaml:"name"`
+	Hostname      []string      `yaml:"hostname"`
+	Authorization bool          `yaml:"authorization"`
+	Endpoints     []string      `yaml:"endpoints"`
+	Rewrite       RewriteConfig `yaml:"rewrite"`
+	Paths         []string      `yaml:"paths"`
 }
 
 type RewriteConfig struct {
 	Regex   string `yaml:"regex"`
 	Replace string `yaml:"replace"`
-}
-
-type AuthConfig struct {
-	Type   string             `yaml:"type"`
-	Header string             `yaml:"header"`
-	Source []AuthSourceConfig `yaml:"source"`
-	Aes    AuthAesConfig      `yaml:"aes"`
-}
-
-type ServiceConfig struct {
-	Name   string        `yaml:"name"`
-	Auth   AuthConfig    `yaml:"auth"`
-	Ports  []Port        `yaml:"ports"`
-	Routes []RouteConfig `yaml:"routes"`
-}
-
-type RouteConfig struct {
-	Name      string        `yaml:"name"`
-	Auth      bool          `yaml:"auth"`
-	Match     []RouteMatch  `yaml:"match"`
-	Rewrite   RewriteConfig `yaml:"rewrite"`
-	EndPoints []Endpoint    `yaml:"endpoints"`
-	Paths     []string      `yaml:"paths"`
-}
-
-type Endpoint struct {
-	Port    `yaml:",inline"`
-	Timeout int          `yaml:"timeout"`
-	Name    string       `yaml:"name"`
-	Match   []RouteMatch `yaml:"match"`
-}
-
-func (e Endpoint) String() string {
-	if e.Name != "" {
-		return e.Name + ":" + e.Port.String()
-	}
-	return e.Port.String()
-}
-
-type InstanceConfig struct {
-	Name string   `yaml:"name"`
-	Exec []string `yaml:"exec"`
-}
-
-type RouteMatch struct {
-	Type  string `yaml:"type"`
-	Name  string `yaml:"name"`
-	Value string `yaml:"value"`
 }
