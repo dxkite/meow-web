@@ -1,10 +1,11 @@
-# 应用网关
+# MeowNest (喵窝)
 
-- [x] HTTP协议转发
-  - [x] 支持Websocket
-- [x] 权限自动校验
-  - [x] AES自定义Token
-  - [ ] JWT自定义Token
-- [ ] 应用守护进程
-- [x] 负载均衡
-  - [x] 随机
+## 功能
+
+- [x] http 鉴权网关
+- [x] 组件守护进程
+- [ ] TCP 代理
+
+## 架构模型参考
+
+![](./images/meownest.drawio.png)
