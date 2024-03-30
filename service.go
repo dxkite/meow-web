@@ -1,6 +1,7 @@
 package suda
 
 import (
+	"io"
 	"net/http"
 	"os/exec"
 	"path/filepath"
@@ -66,16 +67,26 @@ func (srv *Service) registerRouters() {
 }
 
 func execInstance(ins *InstanceConfig) error {
+	w := MakeNameLoggerWriter(ins.Name)
+	rebootLimit := 10
+	var err error
+	for rebootLimit > 0 {
+		if err = execCommand(ins, w); err != nil {
+			log.Error("exec error, reboot", ins.Exec, err)
+			rebootLimit--
+		}
+	}
+	return err
+}
+
+func execCommand(ins *InstanceConfig, w io.Writer) error {
 	ap, err := filepath.Abs(ins.Exec[0])
 	if err != nil {
 		log.Error("exec", ins.Exec, err)
 		return err
 	}
-
 	bp := filepath.Dir(ap)
 	ins.Exec[0] = ap
-
-	w := MakeNameLoggerWriter(ins.Name)
 	cmd := &exec.Cmd{
 		Path:   ap,
 		Dir:    bp,
@@ -94,6 +105,5 @@ func execInstance(ins *InstanceConfig) error {
 	defer func() {
 		cmd.Process.Kill()
 	}()
-
 	return cmd.Wait()
 }
