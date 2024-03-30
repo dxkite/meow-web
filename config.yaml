@@ -1,195 +1,51 @@
-instances:
-  - name: "user-web"
+components:
+  - name: user-center
     exec:
-      - "./modules/user/main.exe"
+      - "./components/user/main.exe"
       - "web"
       - "--config"
       - "./config.yaml"
-  - name: "user-internal"
-    exec:
-      - "./modules/user/main.exe"
-      - "internalWeb"
-      - "--config"
-      - "./config-internal.yaml"
-  - name: "category-web"
-    exec:
-      - "./modules/category/main.exe"
-      - "web"
-      - "--config"
-      - "./config.yaml"
-  - name: "category-internal"
-    exec:
-      - "./modules/category/main.exe"
-      - "internalWeb"
-      - "--config"
-      - "./config-internal.yaml"
-  - name: "tag-web"
-    exec:
-      - "./modules/category/main.exe"
-      - "web"
-      - "--config"
-      - "./tag.yaml"
-  - name: "tag-internal"
-    exec:
-      - "./modules/category/main.exe"
-      - "internalWeb"
-      - "--config"
-      - "./tag-internal.yaml"
-  - name: "content-web"
-    exec:
-      - "./modules/content/main.exe"
-      - "web"
-      - "--config"
-      - "./config.yaml"
-  - name: "content-internal"
-    exec:
-      - "./modules/content/main.exe"
-      - "internalWeb"
-      - "--config"
-      - "./config-internal.yaml"
 
-services:
-  - name: "internal-api"
-    ports:
-      - type: http
-        http:
-          host: "127.0.0.1"
-          port: 3000
-    routes:
-      - name: user-internal-api
-        endpoints:
-          - type: unix
-            unix:
-              path: ./modules/user/user-internal.sock
-          # - type: http
-          #   http:
-          #     port: 8089
-        rewrite:
-          regex: "/api/user/(.*)"
-          replace: "/$1"
-        paths:
-          - "/api/user/info/batch/map"
-      - name: category-internal-api
-        endpoints:
-          - type: unix
-            unix:
-              path: ./modules/category/category-internal.sock
-        rewrite:
-          regex: "/api/category/(.*)"
-          replace: "/$1"
-        paths:
-          - "/api/category/create"
-          - "/api/category/update"
-          - "/api/category/batch"
-      - name: tag-internal-api
-        endpoints:
-          - type: unix
-            unix:
-              path: ./modules/category/tag-internal.sock
-        rewrite:
-          regex: "/api/tag/(.*)"
-          replace: "/$1"
-        paths:
-          - "/api/tag/create"
-          - "/api/tag/update"
-          - "/api/tag/batch"
-      - name: article-internal-api
-        endpoints:
-          - type: unix
-            unix:
-              path: ./modules/content/internal.sock
-        rewrite:
-          regex: "/api/article/(.*)"
-          replace: "/$1"
-        paths:
-          - "/api/article/create"
-          - "/api/article/update"
+http-authorization:
+  type: aes-token
+  header: User-Id
+  source:
+    header: Authorization
+    cookie: access_token
+    query: access_token
+  ase-token:
+    key: "12345678901234567890123456789012"
 
-  - name: "web-api"
-    auth:
-      type: aes
-      aes:
-        key: "12345678901234567890123456789012"
-      header: "User-Id"
-      source:
-        - type: "header"
-          name: "Authorization"
-        - type: "cookie"
-          name: "token"
-    ports:
-      - type: http
-        http:
-          port: 80
+http-router:
+  - name: admin-api
+    hostname:
+      - admin.dxkite.cn
+    authorization: true
+    endpoints:
+      - http://127.0.0.1:8080
     rewrite:
-      regex: "/api/user/(.*)"
+      regex: "/admin/(.*)"
       replace: "/$1"
-    routes:
-      - name: user-no-auth
-        endpoints:
-          - type: unix
-            unix:
-              path: ./modules/user/user.sock
-        rewrite:
-          regex: "/api/user/(.*)"
-          replace: "/$1"
-        paths:
-          - "/api/user/access_token"
-          - "/api/user/create"
-          - "/api/user/info"
-      - name: user-api
-        endpoints:
-          - type: unix
-            unix:
-              path: ./modules/user/user.sock
-        rewrite:
-          regex: "/api/user(.*)"
-          replace: "$1"
-        auth: true
-        paths:
-          - "/api/user"
-      - name: category-api
-        endpoints:
-          - type: unix
-            unix:
-              path: ./modules/category/category.sock
-        rewrite:
-          regex: "/api/category/(.*)"
-          replace: "/$1"
-        paths:
-          - "/api/category/children"
-          - "/api/category/tree"
-      - name: tag-api
-        endpoints:
-          - type: unix
-            unix:
-              path: ./modules/category/tag.sock
-        rewrite:
-          regex: "/api/tag/(.*)"
-          replace: "/$1"
-        paths:
-          - "/api/tag/children"
-          - "/api/tag/tree"
-      - name: article-api
-        endpoints:
-          # - type: unix
-          #   unix:
-          #     path: ./modules/content/main.sock
-          - type: http
-            http:
-              port: 8088
-        rewrite:
-          regex: "/api/article(.*)"
-          replace: "$1"
-        paths:
-          - "/api/article"
-      - name: go-get-interface
-        match:
-          - type: "query"
-            name: "go-get"
-            value: "1"
-        endpoints:
-          - type: http
-            http:
-              port: 8088
-        paths:
-          - "/"
+    paths:
+      - /admin
+  - name: simple-api
+    authorization: true
+    endpoints:
+      - http://127.0.0.1:8080
+    paths:
+      - /api
+  - name: user-no-auth
+    endpoints:
+      - http://127.0.0.1:8080
+    paths:
+      - /api/user/create-access-token
+      - /api/user/create
+      - /api/user/public-information
+  - name: vue-frontend
+    endpoints:
+      - http://127.0.0.1:8080
+  - name: go-get-helper
+    endpoints:
+      - http://127.0.0.1:8080
+    matches:
+      query: go-get=1

@@ -1,4 +1,4 @@
-package suda
+package meownest
 
 type Config struct {
 	// 日志文件
