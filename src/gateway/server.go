@@ -10,6 +10,8 @@ import (
 	"dxkite.cn/meownest/src/utils"
 )
 
+const DefaultHostname = ""
+
 type HttpServer struct {
 	authHandler AuthorizationHandler
 	authHeader  string
@@ -37,7 +39,7 @@ func (r *HttpServer) RegisterAuthorizationHandler(header string, handler Authori
 
 func (r *HttpServer) RegisterRouterGroup(group *HttpRouterGroupEntry) {
 	if len(group.Hostname) == 0 {
-		group.Hostname = []string{"."}
+		group.Hostname = []string{DefaultHostname}
 	}
 	for _, host := range group.Hostname {
 		if len(group.Paths) == 0 {
@@ -110,5 +112,11 @@ func (r *HttpServer) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	if r.router[DefaultHostname] != nil {
+		r.router[DefaultHostname].ServeHTTP(w, req)
+		return
+	}
+
+	log.Debug("miss match host name", host)
 	http.NotFound(w, req)
 }

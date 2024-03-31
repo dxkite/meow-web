@@ -22,17 +22,6 @@ http-authorization:
     key: "12345678901234567890123456789012"
 
 http-router:
-  - name: admin-api
-    hostname:
-      - admin.dxkite.cn
-    authorization: true
-    endpoints:
-      - http://127.0.0.1:8080
-    rewrite:
-      regex: "/admin/(.*)"
-      replace: "/$1"
-    paths:
-      - /admin
   - name: simple-api
     authorization: true
     endpoints:
@@ -48,9 +37,9 @@ http-router:
       - /api/user/public-information
   - name: vue-frontend
     endpoints:
-      - http://127.0.0.1:8080
+      - http://127.0.0.1:8082
   - name: go-get-helper
     endpoints:
-      - http://127.0.0.1:8080
+      - http://127.0.0.1:8081
     matches:
       query: go-get=1
