@@ -10,7 +10,7 @@ import (
 	"dxkite.cn/meownest/src/utils"
 )
 
-func ExecInstance(name string, command []string) error {
+func ExecCommandWithName(name string, command []string) error {
 	w := utils.MakeNameLoggerWriter(name)
 	rebootLimit := 10
 	var err error

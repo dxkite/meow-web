@@ -1,10 +1,28 @@
 components:
-  - name: user-center
+  - name: "user-web"
     exec:
       - "./components/user/main.exe"
       - "web"
       - "--config"
       - "./config.yaml"
+  - name: "user-internal"
+    exec:
+      - "./components/user/main.exe"
+      - "internalWeb"
+      - "--config"
+      - "./config-internal.yaml"
+  - name: "category-web"
+    exec:
+      - "./components/category/main.exe"
+      - "web"
+      - "--config"
+      - "./config.yaml"
+  - name: "category-internal"
+    exec:
+      - "./components/category/main.exe"
+      - "internalWeb"
+      - "--config"
+      - "./config-internal.yaml"
 
 listen: "http://:80"
 
@@ -40,7 +58,7 @@ http-router:
       - http://127.0.0.1:8082
   - name: user-no-auth-feature
     endpoints:
-      - http://127.0.0.1:8081
+      - unix://./components/user/user-internal.sock
     matcher:
       query: feature=1
     paths:

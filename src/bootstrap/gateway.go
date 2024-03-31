@@ -8,18 +8,34 @@ import (
 
 	"dxkite.cn/log"
 	"dxkite.cn/meownest/src/config"
+	"dxkite.cn/meownest/src/executer"
 	"dxkite.cn/meownest/src/gateway"
+	"dxkite.cn/meownest/src/utils"
 	"gopkg.in/yaml.v3"
 )
 
-func ServerGateway(ctx context.Context, configPath string) error {
-	cfg := config.GatewayConfig{}
+func ServeGateway(ctx context.Context, configPath string) error {
+	cfg := &config.GatewayConfig{}
 	if err := loadYaml(configPath, &cfg); err != nil {
 		return err
 	}
 
 	applyLogConfig(ctx, cfg.LogLevel, cfg.LogFile)
 
+	execChain := utils.ExecChain{}
+
+	execChain = append(execChain, func() error {
+		return StartGatewayHttpServer(ctx, cfg)
+	})
+
+	execChain = append(execChain, func() error {
+		return StartComponentList(ctx, cfg.Components)
+	})
+
+	return execChain.Run()
+}
+
+func StartGatewayHttpServer(ctx context.Context, cfg *config.GatewayConfig) error {
 	server := gateway.NewHttpServer()
 	server.RegisterAuthorizationHandler(cfg.HttpAuthorization.Header, &gateway.HttpAesHandler{
 		Key:    cfg.HttpAuthorization.AesToken.Key,
@@ -53,6 +69,20 @@ func ServerGateway(ctx context.Context, configPath string) error {
 	}
 
 	return server.Serve(cfg.Listen)
+}
+
+func StartComponentList(ctx context.Context, list []*config.Component) error {
+	execChain := utils.ExecChain{}
+
+	for _, comp := range list {
+		execChain = append(execChain, (func(comp *config.Component) func() error {
+			return func() error {
+				return executer.ExecCommandWithName(comp.Name, comp.Exec)
+			}
+		})(comp))
+	}
+
+	return execChain.Run()
 }
 
 func loadYaml(name string, data interface{}) error {

@@ -38,7 +38,7 @@ func main() {
 		cfg = os.Args[1]
 	}
 
-	if err := bootstrap.ServerGateway(ctx, cfg); err != nil {
+	if err := bootstrap.ServeGateway(ctx, cfg); err != nil {
 		log.Error(err)
 	}
 }

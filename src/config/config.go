@@ -8,11 +8,11 @@ type GatewayConfig struct {
 	// 监控
 	Listen string `yaml:"listen"`
 	// 组件配置
-	Components []Component `yaml:"components"`
+	Components []*Component `yaml:"components"`
 	// Http 鉴权配置
-	HttpAuthorization HttpAuthorizationConfig `yaml:"http-authorization"`
+	HttpAuthorization *HttpAuthorizationConfig `yaml:"http-authorization"`
 	// Http 路由配置
-	HttpRouter []HttpRouterGroupConfig `yaml:"http-router"`
+	HttpRouter []*HttpRouterGroupConfig `yaml:"http-router"`
 }
 
 type HttpAuthorizationConfig struct {

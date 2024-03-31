@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -14,7 +15,7 @@ func Listen(uri *url.URL) (net.Listener, error) {
 	var listener net.Listener
 	switch uri.Scheme {
 	case "unix":
-		sock := uri.Path
+		sock := getUnixPath(uri)
 		os.Remove(sock)
 		if l, err := net.Listen("unix", sock); err != nil {
 			return nil, err
@@ -33,10 +34,16 @@ func Listen(uri *url.URL) (net.Listener, error) {
 	return listener, nil
 }
 
+func getUnixPath(uri *url.URL) string {
+	v, _ := strings.CutPrefix(uri.String(), "unix://")
+	return v
+}
+
 func DialTimeout(uri *url.URL, timeout time.Duration) (net.Conn, error) {
 	switch uri.Scheme {
 	case "unix":
-		return net.DialTimeout("unix", uri.Path, timeout)
+		path := getUnixPath(uri)
+		return net.DialTimeout("unix", path, timeout)
 	case "http":
 		return net.DialTimeout("tcp", uri.Host, timeout)
 	default:
