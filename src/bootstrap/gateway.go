@@ -36,10 +36,17 @@ func ServerGateway(ctx context.Context, configPath string) error {
 			Endpoints:     v.Endpoints,
 			Paths:         v.Paths,
 		}
-		if v.Rewrite.Regex != "" {
+		if v.Rewrite != nil {
 			entry.Rewrite = &gateway.RewriteConfig{
 				Regex:   v.Rewrite.Regex,
 				Replace: v.Rewrite.Replace,
+			}
+		}
+		if v.Matcher != nil {
+			entry.Matcher = &gateway.MatcherConfig{
+				Query:  v.Matcher.Query,
+				Cookie: v.Matcher.Cookie,
+				Header: v.Matcher.Header,
 			}
 		}
 		server.RegisterRouterGroup(entry)

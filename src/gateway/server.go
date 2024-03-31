@@ -19,12 +19,19 @@ type HttpServer struct {
 	hosts       []string
 }
 
+type MatcherConfig struct {
+	Query  string
+	Header string
+	Cookie string
+}
+
 type HttpRouterGroupEntry struct {
 	Name          string
 	Hostname      []string
 	Authorization bool
 	Endpoints     []string
 	Rewrite       *RewriteConfig
+	Matcher       *MatcherConfig
 	Paths         []string
 }
 
@@ -47,14 +54,20 @@ func (r *HttpServer) RegisterRouterGroup(group *HttpRouterGroupEntry) {
 		}
 		for _, path := range group.Paths {
 			router := r.createOrGetRouterByHost(host)
-			router.Add(path, &HttpForwardHandler{
+			var handler http.Handler = &HttpForwardHandler{
 				Name:           group.Name,
 				Rewrite:        group.Rewrite,
 				AuthCheck:      group.Authorization,
 				AuthHandler:    r.authHandler,
 				IdAssignHeader: r.authHeader,
 				Endpoints:      group.Endpoints,
-			})
+			}
+			if group.Matcher != nil {
+				matchHandler := NewRequestMatcher(handler)
+				matchHandler.Load(group.Matcher)
+				handler = matchHandler
+			}
+			router.Add(path, handler)
 		}
 	}
 }

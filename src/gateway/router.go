@@ -76,6 +76,39 @@ func (r Router) match(req *http.Request) (string, http.Handler) {
 			return p, v
 		}
 	}
+
 	i := utils.Intn(len(rr))
 	return p, rr[i]
+}
+
+type RequestMatcher struct {
+	http.Handler
+	query  *Metadata
+	header *Metadata
+	cookie *Metadata
+}
+
+func NewRequestMatcher(h http.Handler) *RequestMatcher {
+	return &RequestMatcher{
+		Handler: h,
+		query:   &Metadata{},
+		header:  &Metadata{},
+		cookie:  &Metadata{},
+	}
+}
+
+func (m *RequestMatcher) Load(cfg *MatcherConfig) {
+	m.query.FromString(cfg.Query)
+	m.header.FromString(cfg.Header)
+	m.cookie.FromString(cfg.Cookie)
+}
+
+func (m *RequestMatcher) MatchRequest(req *http.Request) bool {
+	query := m.query.Equal((&Metadata{}).FromQuery(req.URL.Query()))
+	header := m.header.Equal((&Metadata{}).FromHeaders(req.Header))
+	cookie := m.cookie.Equal((&Metadata{}).FromCookies(req.Cookies()))
+	if query && header && cookie {
+		return true
+	}
+	return false
 }

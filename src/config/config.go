@@ -38,15 +38,22 @@ type Component struct {
 }
 
 type HttpRouterGroupConfig struct {
-	Name          string        `yaml:"name"`
-	Hostname      []string      `yaml:"hostname"`
-	Authorization bool          `yaml:"authorization"`
-	Endpoints     []string      `yaml:"endpoints"`
-	Rewrite       RewriteConfig `yaml:"rewrite"`
-	Paths         []string      `yaml:"paths"`
+	Name          string         `yaml:"name"`
+	Hostname      []string       `yaml:"hostname"`
+	Authorization bool           `yaml:"authorization"`
+	Endpoints     []string       `yaml:"endpoints"`
+	Rewrite       *RewriteConfig `yaml:"rewrite"`
+	Matcher       *MatcherConfig `yaml:"matcher"`
+	Paths         []string       `yaml:"paths"`
 }
 
 type RewriteConfig struct {
 	Regex   string `yaml:"regex"`
 	Replace string `yaml:"replace"`
+}
+
+type MatcherConfig struct {
+	Query  string `yaml:"query"`
+	Header string `yaml:"header"`
+	Cookie string `yaml:"cookie"`
 }

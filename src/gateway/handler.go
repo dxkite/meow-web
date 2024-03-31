@@ -55,7 +55,7 @@ func (h *HttpForwardHandler) forwardEndpoint(w http.ResponseWriter, req *http.Re
 	requestId := utils.GenerateRequestId()
 	h.rewriteRequest(req, requestId, endpoint, token)
 
-	log.Debug("dial", endpoint, requestId, req.URL)
+	log.Debug("dial", h.Name, endpoint, requestId, req.URL)
 
 	uri, err := url.Parse(endpoint)
 	if err != nil {
