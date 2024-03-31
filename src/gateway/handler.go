@@ -151,7 +151,7 @@ func (h HttpForwardHandler) checkAuth(req *http.Request) (*Token, error) {
 		return nil, ErrUnauthorized
 	}
 	token := &Token{}
-	if err := token.DecodeString(tok); err != nil {
+	if err := token.Unmarshal([]byte(tok)); err != nil {
 		return nil, ErrUnauthorized
 	}
 

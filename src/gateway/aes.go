@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"encoding/base64"
 	"net/http"
 
 	"dxkite.cn/meownest/src/crypto"
@@ -18,7 +19,13 @@ func (s *HttpAesHandler) GetTokenFromRequest(req *http.Request) (token string, e
 	if err != nil {
 		return "", err
 	}
-	if tok, err := crypto.AesDecrypt([]byte(s.Key), []byte(encryptedToken)); err != nil {
+
+	encryptedData, err := base64.RawURLEncoding.DecodeString(encryptedToken)
+	if err != nil {
+		return "", err
+	}
+
+	if tok, err := crypto.AesDecrypt([]byte(s.Key), encryptedData); err != nil {
 		return "", err
 	} else {
 		return string(tok), nil
