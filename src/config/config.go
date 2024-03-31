@@ -1,16 +1,18 @@
-package meownest
+package config
 
-type Config struct {
+type GatewayConfig struct {
 	// 日志文件
 	LogFile string `yaml:"log_file"`
 	// 日志等级
 	LogLevel int `yaml:"log_level"`
-
+	// 监控
+	Listen string `yaml:"listen"`
 	// 组件配置
 	Components []Component `yaml:"components"`
 	// Http 鉴权配置
 	HttpAuthorization HttpAuthorizationConfig `yaml:"http-authorization"`
 	// Http 路由配置
+	HttpRouter []HttpRouterGroupConfig `yaml:"http-router"`
 }
 
 type HttpAuthorizationConfig struct {
@@ -25,9 +27,9 @@ type AesTokenConfig struct {
 }
 
 type TokenSource struct {
-	Query  string `yaml:"query"`
-	Header string `yaml:"header"`
-	Cookie string `yaml:"cookie"`
+	Query  []string `yaml:"query"`
+	Header []string `yaml:"header"`
+	Cookie []string `yaml:"cookie"`
 }
 
 type Component struct {

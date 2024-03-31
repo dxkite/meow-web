@@ -1,24 +1,19 @@
-package meownest
+package crypto
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
 )
 
 func TestAesDecrypt(t *testing.T) {
-	token := &Token{
-		ExpireAt: time.Now().Add(1 * time.Hour).Unix(),
-		Value:    "dxkite",
-	}
-	vv, _ := json.Marshal(token)
+	token := strconv.FormatInt(time.Now().Add(1*time.Hour).Unix(), 10)
 	key := "12345678901234567890123456789012"
-	val, err := AesEncrypt([]byte(key), vv)
+	val, err := AesEncrypt([]byte(key), []byte(token))
 	if err != nil {
 		t.Errorf(err.Error())
 	}
-
 	fmt.Println(base64.RawURLEncoding.EncodeToString(val))
 }

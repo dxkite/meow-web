@@ -1,4 +1,4 @@
-package meownest
+package crypto
 
 import (
 	"crypto/aes"

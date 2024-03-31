@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"dxkite.cn/log"
-	"dxkite.cn/meownest"
+	"dxkite.cn/meownest/src/bootstrap"
 )
 
 func init() {
@@ -38,7 +38,7 @@ func main() {
 		cfg = os.Args[1]
 	}
 
-	if err := meownest.Bootstrap(ctx, cfg); err != nil {
+	if err := bootstrap.ServerGateway(ctx, cfg); err != nil {
 		log.Error(err)
 	}
 }

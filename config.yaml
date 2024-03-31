@@ -6,14 +6,19 @@ components:
       - "--config"
       - "./config.yaml"
 
+listen: "http://:80"
+
 http-authorization:
   type: aes-token
   header: User-Id
   source:
-    header: Authorization
-    cookie: access_token
-    query: access_token
-  ase-token:
+    header:
+      - Authorization
+    cookie:
+      - access_token
+    query:
+     - access_token
+  aes-token:
     key: "12345678901234567890123456789012"
 
 http-router:
