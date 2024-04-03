@@ -13,17 +13,23 @@ import (
 
 // 动态数据
 type DynamicStat struct {
-	CpuPercent     float64 `json:"cpu_percent"`
-	Load1          float64 `json:"load_1"`
-	Load5          float64 `json:"load_5"`
-	Load15         float64 `json:"load_15"`
-	MemSwapUsed    uint64  `json:"mem_swap_used"`
-	MemVirtualUsed uint64  `json:"mem_virtual_used"`
-	NetRecv        uint64  `json:"net_recv"`
-	NetSent        uint64  `json:"net_send"`
-	DiskUsage      uint64  `json:"disk_usage"`
+	CpuPercent      float64 `json:"cpu_percent"`
+	Load1           float64 `json:"load_1"`
+	Load5           float64 `json:"load_5"`
+	Load15          float64 `json:"load_15"`
+	MemSwapUsed     uint64  `json:"mem_swap_used"`
+	MemSwapTotal    uint64  `json:"mem_swap_total"`
+	MemVirtualUsed  uint64  `json:"mem_virtual_used"`
+	MemVirtualTotal uint64  `json:"mem_virtual_total"`
+	NetRecv         uint64  `json:"net_recv"`
+	NetSent         uint64  `json:"net_send"`
+	DiskUsage       uint64  `json:"disk_usage"`
+	DiskTotal       uint64  `json:"disk_total"`
+	DiskWrite       uint64  `json:"disk_write"`
+	DiskRead        uint64  `json:"disk_read"`
 }
 
+// 统计动态数据
 func Dynamic() (*DynamicStat, error) {
 	stat := &DynamicStat{}
 
@@ -45,12 +51,14 @@ func Dynamic() (*DynamicStat, error) {
 		return nil, err
 	} else {
 		stat.MemSwapUsed = v.Used
+		stat.MemSwapTotal = v.Total
 	}
 
 	if v, err := mem.VirtualMemory(); err != nil {
 		return nil, err
 	} else {
 		stat.MemVirtualUsed = v.Used
+		stat.MemVirtualTotal = v.Total
 	}
 
 	if send, recv, err := getNetStatus(); err != nil {
@@ -60,10 +68,18 @@ func Dynamic() (*DynamicStat, error) {
 		stat.NetSent = send
 	}
 
-	if _, used, err := getDiskStatus(); err != nil {
+	if total, used, err := getDiskStatus(); err != nil {
 		return nil, err
 	} else {
 		stat.DiskUsage = used
+		stat.DiskTotal = total
+	}
+
+	if read, write, err := getDiskIoStatus(); err != nil {
+		return nil, err
+	} else {
+		stat.DiskRead = read
+		stat.DiskWrite = write
 	}
 
 	return stat, nil
@@ -86,7 +102,6 @@ func getNetStatus() (send, recv uint64, err error) {
 
 func getDiskStatus() (total, used uint64, err error) {
 	parts, err := disk.Partitions(false)
-
 	for _, part := range parts {
 		if !isKnownFs(part.Fstype) {
 			continue
@@ -96,7 +111,15 @@ func getDiskStatus() (total, used uint64, err error) {
 			used += usage.Used
 		}
 	}
+	return
+}
 
+func getDiskIoStatus() (read, write uint64, err error) {
+	data, _ := disk.IOCounters()
+	for _, v := range data {
+		read += v.ReadBytes
+		write += v.WriteBytes
+	}
 	return
 }
 
@@ -112,11 +135,9 @@ type SystemStat struct {
 	KernelArch           string `json:"kernel_arch"`
 	VirtualizationSystem string `json:"virtualization_system"`
 	VirtualizationRole   string `json:"virtualization_role"`
-	MemSwapTotal         uint64 `json:"mem_swap_total"`
-	MemVirtualTotal      uint64 `json:"mem_virtual_total"`
-	DiskTotal            uint64 `json:"disk_total"`
 }
 
+// 获取系统信息
 func System() (*SystemStat, error) {
 	stat := &SystemStat{}
 	if v, err := host.Info(); err != nil {
@@ -133,28 +154,10 @@ func System() (*SystemStat, error) {
 		stat.VirtualizationRole = v.VirtualizationRole
 	}
 
-	if v, err := mem.SwapMemory(); err != nil {
-		return nil, err
-	} else {
-		stat.MemSwapTotal = v.Total
-	}
-
-	if v, err := mem.VirtualMemory(); err != nil {
-		return nil, err
-	} else {
-		stat.MemVirtualTotal = v.Total
-	}
-
 	if v, err := cpu.Counts(true); err != nil {
 		return nil, err
 	} else {
 		stat.CpuCount = v
-	}
-
-	if total, _, err := getDiskStatus(); err != nil {
-		return nil, err
-	} else {
-		stat.DiskTotal = total
 	}
 
 	return stat, nil
