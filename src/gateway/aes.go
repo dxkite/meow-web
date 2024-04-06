@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"net/http"
 
-	"dxkite.cn/meownest/common/crypto"
+	"dxkite.cn/meownest/pkg/crypto"
 )
 
 type HttpAesHandler struct {
