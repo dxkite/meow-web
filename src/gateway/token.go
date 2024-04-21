@@ -7,9 +7,8 @@ import (
 )
 
 type Token struct {
-	Id              uint64
-	ExpireAt        uint64
-	RefreshExpireAt uint64
+	Id       uint64
+	ExpireAt uint64
 }
 
 func (t Token) Marshal() []byte {

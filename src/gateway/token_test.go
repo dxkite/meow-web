@@ -8,9 +8,8 @@ import (
 
 func TestToken_Marshal(t *testing.T) {
 	token := &Token{
-		Id:              1,
-		ExpireAt:        uint64(time.Now().Add(1 * time.Hour).Unix()),
-		RefreshExpireAt: uint64(time.Now().Add(24 * time.Hour).Unix()),
+		Id:       1,
+		ExpireAt: uint64(time.Now().Add(1 * time.Hour).Unix()),
 	}
 
 	tok := token.EncodeToString()
