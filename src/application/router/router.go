@@ -1,22 +1,25 @@
 package router
 
 import (
-	v1 "dxkite.cn/meownest/src/application/router/v1"
+	"dxkite.cn/meownest/pkg/cmd"
+
+	"dxkite.cn/meownest/src/service/server_name"
 	"github.com/gin-gonic/gin"
 )
 
 func New() *gin.Engine {
 	r := gin.New()
-	apiV1 := r.Group("/api/v1")
+	api := r.Group("/api")
 
-	collections := apiV1.Group("/collections")
-	{
-		collections.POST("", v1.CreateCollection)
-	}
+	// collections := api.Group("/collections")
+	// {
+	// 	collections.POST("")
+	// }
 
-	ports := apiV1.Group("/ports")
+	serverNames := api.Group("/server_names")
 	{
-		ports.GET("", v1.CreateCollection)
+		serverNames.GET("", cmd.Exec(server_name.NewCreate))
+		serverNames.POST("", cmd.Exec(server_name.NewCreate))
 	}
 
 	return r

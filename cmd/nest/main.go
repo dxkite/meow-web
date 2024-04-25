@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"dxkite.cn/log"
-	"dxkite.cn/meownest/src/application"
 	"dxkite.cn/meownest/src/application/router"
 )
 
@@ -31,9 +30,12 @@ func main() {
 		}
 	}()
 
-	app := application.New(application.WithRouter(router.New()))
+	r := router.New()
+	r.Run(":2333")
 
-	if err := app.Serve(); err != nil {
-		log.Error(err)
-	}
+	// app := application.New(application.WithRouter(router.New()))
+
+	// if err := app.Serve(); err != nil {
+	// 	log.Error(err)
+	// }
 }
