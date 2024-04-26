@@ -9,6 +9,7 @@ import (
 
 type ServerName interface {
 	Create(ctx context.Context, serverName *model.ServerName) (*model.ServerName, error)
+	Get(ctx context.Context, id uint64) (*model.ServerName, error)
 }
 
 func NewServerName(db *gorm.DB) ServerName {
@@ -24,4 +25,12 @@ func (s *serverName) Create(ctx context.Context, serverName *model.ServerName) (
 		return nil, err
 	}
 	return serverName, nil
+}
+
+func (s *serverName) Get(ctx context.Context, id uint64) (*model.ServerName, error) {
+	var cert model.ServerName
+	if err := s.db.Where("id = ?", id).First(&cert).Error; err != nil {
+		return nil, err
+	}
+	return &cert, nil
 }

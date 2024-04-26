@@ -1,4 +1,4 @@
 package constant
 
-const ServerPrefix = "svr_"
-const ServerNamePrefix = "sn_"
+const ServerNamePrefix = "name_"
+const CertificatePrefix = "cert_"

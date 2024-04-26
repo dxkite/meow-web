@@ -2,6 +2,10 @@ package dto
 
 import (
 	"time"
+
+	"dxkite.cn/meownest/pkg/identity"
+	"dxkite.cn/meownest/src/constant"
+	"dxkite.cn/meownest/src/model"
 )
 
 // 服务
@@ -15,9 +19,18 @@ type Server struct {
 // 域名
 type ServerName struct {
 	Id          string       `json:"id"`
-	Name        string       `json:"string"`      // 域名
-	Protocol    string       `json:"protocol"`    // 协议
-	Certificate *Certificate `json:"certificate"` // 证书
+	Name        string       `json:"name"`                  // 域名
+	Protocol    string       `json:"protocol"`              // 协议
+	Certificate *Certificate `json:"certificate,omitempty"` // 证书
+}
+
+func NewServerName(cert *model.ServerName) *ServerName {
+	rst := &ServerName{
+		Id: identity.Format(constant.ServerNamePrefix, cert.Id),
+	}
+	rst.Name = cert.Name
+	rst.Protocol = cert.Protocol
+	return rst
 }
 
 // SSL证书
@@ -29,6 +42,17 @@ type Certificate struct {
 	EndTime     time.Time `json:"end_time"`
 	Key         string    `json:"key,omitempty"`
 	Certificate string    `json:"certificate,omitempty"`
+}
+
+func NewCertificate(cert *model.Certificate) *Certificate {
+	rst := &Certificate{
+		Id: identity.Format(constant.CertificatePrefix, cert.Id),
+	}
+	rst.Name = cert.Name
+	rst.StartTime = cert.StartTime
+	rst.EndTime = cert.EndTime
+	rst.Domain = cert.Domain
+	return rst
 }
 
 // 路由信息

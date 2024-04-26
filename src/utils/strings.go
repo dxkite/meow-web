@@ -29,3 +29,12 @@ func GenerateRequestId() string {
 	}
 	return "req_" + base64.RawURLEncoding.EncodeToString(b)
 }
+
+func InStringSlice(s string, arr []string) bool {
+	for _, v := range arr {
+		if s == v {
+			return true
+		}
+	}
+	return false
+}

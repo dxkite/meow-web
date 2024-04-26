@@ -9,6 +9,7 @@ import (
 
 type Certificate interface {
 	Create(ctx context.Context, certificate *model.Certificate) (*model.Certificate, error)
+	Get(ctx context.Context, id uint64) (*model.Certificate, error)
 }
 
 func NewCertificate(db *gorm.DB) Certificate {
@@ -24,4 +25,12 @@ func (s *certificate) Create(ctx context.Context, certificate *model.Certificate
 		return nil, err
 	}
 	return certificate, nil
+}
+
+func (s *certificate) Get(ctx context.Context, id uint64) (*model.Certificate, error) {
+	var cert model.Certificate
+	if err := s.db.Where("id = ?", id).First(&cert).Error; err != nil {
+		return nil, err
+	}
+	return &cert, nil
 }

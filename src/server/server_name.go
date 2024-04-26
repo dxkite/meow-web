@@ -37,4 +37,11 @@ func (s *serverName) Create(c *gin.Context) {
 	Result(c, http.StatusCreated, rst)
 }
 
-func (s *serverName) Get(c *gin.Context) {}
+func (s *serverName) Get(c *gin.Context) {
+	rst, err := s.s.Get(c, c.Param("id"), c.QueryArray("expand"))
+	if err != nil {
+		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		return
+	}
+	Result(c, http.StatusCreated, rst)
+}

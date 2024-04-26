@@ -70,19 +70,19 @@ func main() {
 	certificateServer := server.NewCertificate(certificateService)
 
 	nameServerRepo := repository.NewServerName(db)
-	serverNameService := service.NewServerName(nameServerRepo)
+	serverNameService := service.NewServerName(nameServerRepo, certificateRepository)
 	serverNameServer := server.NewServerName(serverNameService)
 
 	httpServer := gin.Default()
 	apiV1 := httpServer.Group("/api/v1")
 
-	serverNameApi := apiV1.Group("/server_names")
+	serverNameApi := apiV1.Group("/server_name")
 	{
 		serverNameApi.POST("", serverNameServer.Create)
-		serverNameApi.GET("", serverNameServer.Get)
+		serverNameApi.GET("/:id", serverNameServer.Get)
 	}
 
-	certificateApi := apiV1.Group("/certificates")
+	certificateApi := apiV1.Group("/certificate")
 	{
 		certificateApi.POST("", certificateServer.Create)
 	}

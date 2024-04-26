@@ -5,13 +5,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 
-	"dxkite.cn/meownest/pkg/id"
 	"dxkite.cn/meownest/src/dto"
 	"dxkite.cn/meownest/src/model"
 	"dxkite.cn/meownest/src/repository"
 )
-
-const CertificatePrefix = "cert_"
 
 type Certificate interface {
 	Create(ctx context.Context, create *CreateCertificateParam) (*dto.Certificate, error)
@@ -55,13 +52,5 @@ func (s *certificate) Create(ctx context.Context, param *CreateCertificateParam)
 		return nil, err
 	}
 
-	rst := &dto.Certificate{
-		Id: id.Format(CertificatePrefix, resp.Id),
-	}
-
-	rst.Name = val.Name
-	rst.StartTime = val.StartTime
-	rst.EndTime = val.EndTime
-	rst.Domain = val.Domain
-	return rst, nil
+	return dto.NewCertificate(resp), nil
 }
