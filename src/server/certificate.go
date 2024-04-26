@@ -7,21 +7,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ServerName interface {
+type Certificate interface {
 	Create(c *gin.Context)
-	Get(c *gin.Context)
 }
 
-func NewServerName(s service.ServerName) ServerName {
-	return &serverName{s: s}
+func NewCertificate(s service.Certificate) Certificate {
+	return &certificate{s: s}
 }
 
-type serverName struct {
-	s service.ServerName
+type certificate struct {
+	s service.Certificate
 }
 
-func (s *serverName) Create(c *gin.Context) {
-	var param service.CreateServerNameParam
+func (s *certificate) Create(c *gin.Context) {
+	var param service.CreateCertificateParam
 
 	if err := c.ShouldBind(&param); err != nil {
 		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
@@ -36,5 +35,3 @@ func (s *serverName) Create(c *gin.Context) {
 
 	Result(c, http.StatusCreated, rst)
 }
-
-func (s *serverName) Get(c *gin.Context) {}

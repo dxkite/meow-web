@@ -27,8 +27,8 @@ type Certificate struct {
 	Domain      []string  `json:"domain"`
 	StartTime   time.Time `json:"start_time"`
 	EndTime     time.Time `json:"end_time"`
-	Key         string    `json:"key"`
-	Certificate string    `json:"certificate"`
+	Key         string    `json:"key,omitempty"`
+	Certificate string    `json:"certificate,omitempty"`
 }
 
 // 路由信息

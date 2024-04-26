@@ -10,34 +10,34 @@ import (
 
 const ServerNamePrefix = "name_"
 
-type ServerName interface {
-	Create(ctx context.Context, create *CreateParam) (*CreateResult, error)
-	Get(ctx context.Context, id string) (*CreateResult, error)
-}
-
-func NewServerName(repo repository.ServerName) ServerName {
-	return &serverName{repo: repo}
-}
-
-type serverName struct {
-	repo repository.ServerName
-}
-
-type CreateParam struct {
+type CreateServerNameParam struct {
 	Name          string `json:"name" form:"name" binding:"required"`
 	Protocol      string `json:"protocol" form:"protocol" binding:"required"`
 	CertificateId string `json:"certificate_id" form:"certificate_id"`
 }
 
-type CreateResult struct {
+type CreateServerNameResult struct {
 	Id            string `json:"id"`
 	Name          string `json:"name"`
 	Protocol      string `json:"protocol"`
 	CertificateId string `json:"certificate_id,omitempty"`
 }
 
-func (s *serverName) Create(ctx context.Context, param *CreateParam) (*CreateResult, error) {
-	rst, err := s.repo.Create(ctx, &model.ServerName{
+type ServerName interface {
+	Create(ctx context.Context, create *CreateServerNameParam) (*CreateServerNameResult, error)
+	Get(ctx context.Context, id string) (*CreateServerNameResult, error)
+}
+
+func NewServerName(r repository.ServerName) ServerName {
+	return &serverName{r: r}
+}
+
+type serverName struct {
+	r repository.ServerName
+}
+
+func (s *serverName) Create(ctx context.Context, param *CreateServerNameParam) (*CreateServerNameResult, error) {
+	rst, err := s.r.Create(ctx, &model.ServerName{
 		Name:          param.Name,
 		Protocol:      param.Protocol,
 		CertificateId: param.CertificateId,
@@ -45,7 +45,7 @@ func (s *serverName) Create(ctx context.Context, param *CreateParam) (*CreateRes
 	if err != nil {
 		return nil, err
 	}
-	return &CreateResult{
+	return &CreateServerNameResult{
 		Id:            id.Format(ServerNamePrefix, rst.Id),
 		Name:          param.Name,
 		Protocol:      param.Protocol,
@@ -53,6 +53,6 @@ func (s *serverName) Create(ctx context.Context, param *CreateParam) (*CreateRes
 	}, nil
 }
 
-func (s *serverName) Get(ctx context.Context, id string) (*CreateResult, error) {
+func (s *serverName) Get(ctx context.Context, id string) (*CreateServerNameResult, error) {
 	return nil, nil
 }

@@ -1,12 +1,14 @@
 package model
 
+import "time"
+
 type Certificate struct {
 	Base
 
-	Domain      []string `json:"domain"`
-	Description string   `json:"description"`
-	Key         string   `json:"key"`
-	Certificate string   `json:"certificate"`
-
-	ExpireAt uint64 `json:"expire_at"`
+	Name        string    `json:"name"`
+	Domain      []string  `json:"domain" gorm:"serializer:json"`
+	StartTime   time.Time `json:"start_time"`
+	EndTime     time.Time `json:"end_time"`
+	Key         string    `json:"key"`
+	Certificate string    `json:"certificate"`
 }

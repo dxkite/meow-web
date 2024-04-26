@@ -62,7 +62,12 @@ func main() {
 		panic(err)
 	}
 
-	db.AutoMigrate(model.ServerName{})
+	db = db.Debug()
+	db.AutoMigrate(model.ServerName{}, model.Certificate{})
+
+	certificateRepository := repository.NewCertificate(db)
+	certificateService := service.NewCertificate(certificateRepository)
+	certificateServer := server.NewCertificate(certificateService)
 
 	nameServerRepo := repository.NewServerName(db)
 	serverNameService := service.NewServerName(nameServerRepo)
@@ -70,9 +75,16 @@ func main() {
 
 	httpServer := gin.Default()
 	apiV1 := httpServer.Group("/api/v1")
-	serverName := apiV1.Group("/server_names")
+
+	serverNameApi := apiV1.Group("/server_names")
 	{
-		serverName.POST("", serverNameServer.Create)
+		serverNameApi.POST("", serverNameServer.Create)
+		serverNameApi.GET("", serverNameServer.Get)
+	}
+
+	certificateApi := apiV1.Group("/certificates")
+	{
+		certificateApi.POST("", certificateServer.Create)
 	}
 
 	httpServer.Run(":2333")
