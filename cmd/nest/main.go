@@ -3,18 +3,45 @@ package main
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"runtime"
+	"strings"
 	"time"
 
 	"dxkite.cn/log"
-	"dxkite.cn/meownest/src/application/router"
+	"dxkite.cn/meownest/src/model"
+	"dxkite.cn/meownest/src/repository"
+	"dxkite.cn/meownest/src/server"
+	"dxkite.cn/meownest/src/service"
+	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/glebarez/sqlite"
+	"github.com/go-playground/validator"
+	"gorm.io/gorm"
 )
 
 func init() {
+	initLogger()
+	initBinding()
+}
+
+func initLogger() {
 	log.SetOutput(log.NewColorWriter(os.Stdout))
 	log.SetLogCaller(true)
 	log.SetAsync(false)
 	log.SetLevel(log.LMaxLevel)
+}
+
+func initBinding() {
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterTagNameFunc(func(field reflect.StructField) string {
+			name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
+			if name == "-" {
+				return ""
+			}
+			return name
+		})
+	}
 }
 
 func main() {
@@ -30,12 +57,23 @@ func main() {
 		}
 	}()
 
-	r := router.New()
-	r.Run(":2333")
+	db, err := gorm.Open(sqlite.Open("data.db"))
+	if err != nil {
+		panic(err)
+	}
 
-	// app := application.New(application.WithRouter(router.New()))
+	db.AutoMigrate(model.ServerName{})
 
-	// if err := app.Serve(); err != nil {
-	// 	log.Error(err)
-	// }
+	nameServerRepo := repository.NewServerName(db)
+	serverNameService := service.NewServerName(nameServerRepo)
+	serverNameServer := server.NewServerName(serverNameService)
+
+	httpServer := gin.Default()
+	apiV1 := httpServer.Group("/api/v1")
+	serverName := apiV1.Group("/server_names")
+	{
+		serverName.POST("", serverNameServer.Create)
+	}
+
+	httpServer.Run(":2333")
 }

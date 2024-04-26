@@ -6,37 +6,33 @@ import (
 
 // 服务
 type Server struct {
-	Id          string         `json:"id"`
-	Port        []*Port        `json:"port"`
-	RouterGroup []*RouterGroup `json:"router_group"`
-	Endpoint    []*Endpoint    `json:"endpoint,omitempty"`
+	Id          string        `json:"id"`
+	ServerName  []*ServerName `json:"server_name"`
+	Collections []*Collection `json:"collections"`
+	Endpoint    []*Endpoint   `json:"endpoint,omitempty"`
 }
 
-type Port struct {
-	Id            string        `json:"id"`
-	ServerName    []*ServerName `json:"server_name"`
-	Listen        []string      `json:"listen"`
-	Authorization string        `json:"authorization"`
-}
-
-// 域名管理
+// 域名
 type ServerName struct {
 	Id          string       `json:"id"`
-	Name        string       `json:"name"`
-	Certificate *Certificate `json:"certificate"`
+	Name        string       `json:"string"`      // 域名
+	Protocol    string       `json:"protocol"`    // 协议
+	Certificate *Certificate `json:"certificate"` // 证书
 }
 
-// 域名证书
+// SSL证书
 type Certificate struct {
 	Id          string    `json:"id"`
+	Name        string    `json:"name"`
 	Domain      []string  `json:"domain"`
-	ExpireAt    time.Time `json:"expire_at"`
+	StartTime   time.Time `json:"start_time"`
+	EndTime     time.Time `json:"end_time"`
 	Key         string    `json:"key"`
 	Certificate string    `json:"certificate"`
 }
 
-// 路由项
-type Router struct {
+// 路由信息
+type Route struct {
 	Id       string      `json:"id"`
 	Name     string      `json:"name"`
 	Method   []string    `json:"method"`
@@ -45,16 +41,18 @@ type Router struct {
 }
 
 // 路由组
-type RouterGroup struct {
-	Id          string         `json:"id"`
-	ParentId    string         `json:"parent_id,omitempty"`
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
-	Routes      []*Router      `json:"routes"`
-	Children    []*RouterGroup `json:"children,omitempty"`
-	Endpoint    []*Endpoint    `json:"endpoints,omitempty"`
+type Collection struct {
+	Id            string        `json:"id"`
+	ParentId      string        `json:"parent_id,omitempty"` // 父级ID
+	Name          string        `json:"name"`
+	Description   string        `json:"description"`
+	Authorization string        `json:"authorization"` // 权限校验
+	Routes        []*Route      `json:"routes"`
+	Collections   []*Collection `json:"collections,omitempty"`
+	Endpoint      []*Endpoint   `json:"endpoints,omitempty"`
 }
 
+// 后端配置
 type Endpoint struct {
 	Id string `json:"id"`
 	// 后端名

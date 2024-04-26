@@ -1,9 +1,7 @@
 package model
 
-import "gorm.io/gorm"
-
 type Certificate struct {
-	gorm.Model
+	Base
 
 	Domain      []string `json:"domain"`
 	Description string   `json:"description"`
