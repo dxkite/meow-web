@@ -35,7 +35,7 @@ func (s *serverName) Create(ctx context.Context, param *CreateServerNameParam) (
 	rst, err := s.r.Create(ctx, &model.ServerName{
 		Name:          param.Name,
 		Protocol:      param.Protocol,
-		CertificateId: param.CertificateId,
+		CertificateId: identity.Parse(constant.CertificatePrefix, param.CertificateId),
 	})
 	if err != nil {
 		return nil, err
@@ -56,10 +56,9 @@ func (s *serverName) Get(ctx context.Context, id string, expand []string) (*dto.
 		return nil, err
 	}
 	name := dto.NewServerName(rst)
-	name.Certificate = &dto.Certificate{Id: rst.CertificateId}
 
 	if utils.InStringSlice("certificate", expand) {
-		cert, err := s.rc.Get(ctx, identity.Parse(constant.CertificatePrefix, rst.CertificateId))
+		cert, err := s.rc.Get(ctx, rst.CertificateId)
 		if err != nil {
 			return nil, err
 		}
