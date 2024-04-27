@@ -8,7 +8,7 @@ import (
 	"dxkite.cn/meownest/src/dto"
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
-	"dxkite.cn/meownest/src/valueobject"
+	"dxkite.cn/meownest/src/value"
 )
 
 type CreateEndpointParam struct {
@@ -16,13 +16,13 @@ type CreateEndpointParam struct {
 	// 服务类型
 	Type string `json:"type" binding:"required"`
 	// 重写配置
-	ForwardRewrite *valueobject.ForwardRewriteOption `json:"forward_rewrite"`
+	ForwardRewrite *value.ForwardRewriteOption `json:"forward_rewrite"`
 	// 请求头转发配置
-	ForwardHeader []*valueobject.ForwardHeaderOption `json:"forward_header"`
+	ForwardHeader []*value.ForwardHeaderOption `json:"forward_header"`
 	// 匹配规则
-	Matcher []*valueobject.MatcherOption `json:"matcher"`
+	Matcher []*value.MatcherOption `json:"matcher"`
 	// 远程服务
-	Endpoint *valueobject.ForwardEndpoint `json:"endpoint" binding:"required"`
+	Endpoint *value.ForwardEndpoint `json:"endpoint" binding:"required"`
 }
 
 type GetEndpointParam struct {

@@ -8,15 +8,15 @@ import (
 	"dxkite.cn/meownest/src/dto"
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
-	"dxkite.cn/meownest/src/valueobject"
+	"dxkite.cn/meownest/src/value"
 )
 
 type CreateRouteParam struct {
-	Name        string                       `json:"name" form:"name" binding:"required"`
-	Description string                       `json:"description" form:"description"`
-	Method      []string                     `json:"method" form:"method" binding:"required"`
-	Path        string                       `json:"path" form:"path" binding:"required"`
-	Matcher     []*valueobject.MatcherOption `json:"matcher" form:"matcher"`
+	Name        string                 `json:"name" form:"name" binding:"required"`
+	Description string                 `json:"description" form:"description"`
+	Method      []string               `json:"method" form:"method" binding:"required"`
+	Path        string                 `json:"path" form:"path" binding:"required"`
+	Matcher     []*value.MatcherOption `json:"matcher" form:"matcher"`
 }
 
 type GetRouteParam struct {

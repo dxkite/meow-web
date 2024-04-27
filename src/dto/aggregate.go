@@ -6,7 +6,7 @@ import (
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/entity"
-	"dxkite.cn/meownest/src/valueobject"
+	"dxkite.cn/meownest/src/value"
 )
 
 // 服务
@@ -68,15 +68,15 @@ func NewCertificate(item *entity.Certificate) *Certificate {
 
 // 路由信息
 type Route struct {
-	Id          string                       `json:"id"`
-	Name        string                       `json:"name"`
-	Description string                       `json:"description"`
-	Method      []string                     `json:"method"`
-	Path        string                       `json:"path"`
-	Matcher     []*valueobject.MatcherOption `json:"matcher"`
-	Endpoint    []*Endpoint                  `json:"endpoints,omitempty"`
-	CreatedAt   time.Time                    `json:"created_at"`
-	UpdatedAt   time.Time                    `json:"updated_at"`
+	Id          string                 `json:"id"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Method      []string               `json:"method"`
+	Path        string                 `json:"path"`
+	Matcher     []*value.MatcherOption `json:"matcher"`
+	Endpoint    []*Endpoint            `json:"endpoints,omitempty"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
 }
 
 func NewRoute(item *entity.Route) *Route {
@@ -121,13 +121,13 @@ type Endpoint struct {
 	// 服务类型
 	Type string `json:"type"`
 	// 重写配置
-	ForwardRewrite *valueobject.ForwardRewriteOption `json:"forward_rewrite"`
+	ForwardRewrite *value.ForwardRewriteOption `json:"forward_rewrite"`
 	// 请求头转发配置
-	ForwardHeader []*valueobject.ForwardHeaderOption `json:"forward_header"`
+	ForwardHeader []*value.ForwardHeaderOption `json:"forward_header"`
 	// 匹配规则
-	Matcher []*valueobject.MatcherOption `json:"matcher"`
+	Matcher []*value.MatcherOption `json:"matcher"`
 	// 远程服务
-	Endpoint *valueobject.ForwardEndpoint `gorm:"serializer:json" json:"endpoint"`
+	Endpoint *value.ForwardEndpoint `gorm:"serializer:json" json:"endpoint"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

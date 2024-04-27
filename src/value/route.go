@@ -1,4 +1,4 @@
-package valueobject
+package value
 
 type MatcherOption struct {
 	Source string `json:"source" binding:"required"` // 匹配源
