@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"dxkite.cn/log"
+	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/model"
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/server"
@@ -22,6 +23,7 @@ import (
 func init() {
 	initLogger()
 	initBinding()
+	identity.DefaultMask = 1234627081864056831
 }
 
 func initLogger() {

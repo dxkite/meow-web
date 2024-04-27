@@ -7,34 +7,34 @@ import (
 )
 
 var encodeId = "RSTUVde-fghijklABOPQmnopCDstu_vwxyz012345EFGHIJWXYZabcKLMNqr6789"
-var IdEncoding = base64.NewEncoding(encodeId).WithPadding(base64.NoPadding)
-var mask uint64 = 1723627081864056832
+var Encoding = base64.NewEncoding(encodeId).WithPadding(base64.NoPadding)
+var DefaultMask uint64 = 1723627081864056832
 
 func Encode(id uint64) string {
-	id = id ^ mask
+	id = id ^ DefaultMask
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, id)
-	return IdEncoding.EncodeToString(b)
+	return Encoding.EncodeToString(b)
 }
 
 func Decode(id string) uint64 {
-	v, err := IdEncoding.DecodeString(id)
+	v, err := Encoding.DecodeString(id)
 	if err != nil {
 		return 0
 	}
 	vv := binary.BigEndian.Uint64(v)
-	return vv ^ mask
+	return vv ^ DefaultMask
 }
 
 func EncodeMask(id, mask uint64) string {
 	id = id ^ mask
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, id)
-	return IdEncoding.EncodeToString(b)
+	return Encoding.EncodeToString(b)
 }
 
 func DecodeMask(id string, mask uint64) uint64 {
-	v, err := IdEncoding.DecodeString(id)
+	v, err := Encoding.DecodeString(id)
 	if err != nil {
 		return 0
 	}
@@ -60,5 +60,5 @@ func Mask(key string) uint64 {
 	for i := 0; i < n; i++ {
 		keyFull[i] = key[i]
 	}
-	return binary.BigEndian.Uint64(keyFull) ^ mask
+	return binary.BigEndian.Uint64(keyFull) ^ DefaultMask
 }
