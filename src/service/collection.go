@@ -14,6 +14,7 @@ import (
 type Collection interface {
 	Create(ctx context.Context, param *CreateCollectionParam) (*dto.Collection, error)
 	Get(ctx context.Context, param *GetCollectionParam) (*dto.Collection, error)
+	List(ctx context.Context, param *ListCollectionParam) (*ListCollectionResult, error)
 	LinkRoute(ctx context.Context, param *LinkRouteParam) error
 	DeleteRoute(ctx context.Context, param *DeleteRouteParam) error
 	LinkEndpoint(ctx context.Context, param *LinkEndpointParam) error
@@ -209,4 +210,48 @@ func (s *collection) DeleteEndpoint(ctx context.Context, param *DeleteEndpointPa
 	}
 
 	return s.rl.BatchDeleteLink(ctx, constant.LinkDirectCollectionEndpoint, item.Id, linkIds)
+}
+
+type ListCollectionParam struct {
+	ParentId      string `form:"parent_id"`
+	Name          string `form:"name"`
+	Deep          int    `form:"deep" binding:"max=10"`
+	Limit         int    `form:"limit" binding:"max=1000"`
+	StartingAfter string `form:"starting_after"`
+	EndingBefore  string `form:"ending_before"`
+}
+
+type ListCollectionResult struct {
+	HasMore bool              `json:"has_more"`
+	Data    []*dto.Collection `json:"data"`
+}
+
+func (s *collection) List(ctx context.Context, param *ListCollectionParam) (*ListCollectionResult, error) {
+	if param.Limit == 0 {
+		param.Limit = 10
+	}
+
+	entities, err := s.r.List(ctx, &repository.ListCollectionParam{
+		Name:          param.Name,
+		ParentId:      identity.Parse(constant.CollectionPrefix, param.ParentId),
+		Deep:          param.Deep,
+		Limit:         param.Limit,
+		StartingAfter: identity.Parse(constant.CollectionPrefix, param.StartingAfter),
+		EndingBefore:  identity.Parse(constant.CollectionPrefix, param.EndingBefore),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	n := len(entities)
+
+	items := make([]*dto.Collection, n)
+	for i, v := range entities {
+		items[i] = dto.NewCollection(v)
+	}
+
+	rst := &ListCollectionResult{}
+	rst.Data = items
+	rst.HasMore = n == param.Limit
+	return rst, nil
 }

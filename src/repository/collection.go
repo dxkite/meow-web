@@ -11,6 +11,7 @@ import (
 type Collection interface {
 	Create(ctx context.Context, param *entity.Collection) (*entity.Collection, error)
 	Get(ctx context.Context, id uint64) (*entity.Collection, error)
+	List(ctx context.Context, param *ListCollectionParam) ([]*entity.Collection, error)
 }
 
 func NewCollection(db *gorm.DB) Collection {
@@ -50,4 +51,58 @@ func (r *collection) Get(ctx context.Context, id uint64) (*entity.Collection, er
 		return nil, err
 	}
 	return &item, nil
+}
+
+type ListCollectionParam struct {
+	ParentId uint64
+	// deep = 0 只获取当前层级
+	// deep > 0 获取当前层级 > deep
+	Deep          int
+	Name          string
+	Limit         int
+	StartingAfter uint64
+	EndingBefore  uint64
+}
+
+func (r *collection) List(ctx context.Context, param *ListCollectionParam) ([]*entity.Collection, error) {
+	var items []*entity.Collection
+	db := r.db.Model(entity.Collection{})
+
+	if param.Name != "" {
+		db = db.Where("name like ?", "%"+param.Name+"%")
+	}
+
+	deep := param.Deep
+	if param.ParentId != 0 {
+		db = db.Where("parent_id = ?", param.ParentId)
+		if param.Deep != 0 {
+			parent, err := r.Get(ctx, param.ParentId)
+			if err != nil {
+				return nil, err
+			}
+			deep = parent.Depth + deep
+			db = db.Where("`index` like ?", parent.Index+"%")
+		}
+	}
+
+	if deep != 0 {
+		db = db.Where("depth <= ?", deep)
+	}
+
+	if param.StartingAfter != 0 {
+		db = db.Where("id > ?", param.StartingAfter)
+	}
+
+	if param.EndingBefore != 0 {
+		db = db.Where("id < ?", param.EndingBefore)
+	}
+
+	if param.Limit != 0 {
+		db = db.Limit(param.Limit)
+	}
+
+	if err := db.Find(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
 }

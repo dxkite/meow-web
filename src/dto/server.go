@@ -85,15 +85,14 @@ func NewRoute(item *entity.Route) *Route {
 
 // 路由组
 type Collection struct {
-	Id          string        `json:"id"`
-	ParentId    string        `json:"parent_id,omitempty"` // 父级ID
-	Name        string        `json:"name"`
-	Description string        `json:"description"`
-	Routes      []*Route      `json:"routes,omitempty"`
-	Collections []*Collection `json:"collections,omitempty"`
-	Endpoints   []*Endpoint   `json:"endpoints,omitempty"`
-	CreatedAt   time.Time     `json:"created_at"`
-	UpdatedAt   time.Time     `json:"updated_at"`
+	Id          string      `json:"id"`
+	ParentId    string      `json:"parent_id,omitempty"` // 父级ID
+	Name        string      `json:"name"`
+	Description string      `json:"description"`
+	Routes      []*Route    `json:"routes,omitempty"`
+	Endpoints   []*Endpoint `json:"endpoints,omitempty"`
+	CreatedAt   time.Time   `json:"created_at"`
+	UpdatedAt   time.Time   `json:"updated_at"`
 }
 
 func NewCollection(item *entity.Collection) *Collection {
