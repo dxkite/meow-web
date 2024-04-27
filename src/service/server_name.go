@@ -46,12 +46,7 @@ func (s *serverName) Create(ctx context.Context, param *CreateServerNameParam) (
 		return nil, err
 	}
 
-	name := &dto.ServerName{
-		Id:          identity.Format(constant.ServerNamePrefix, rst.Id),
-		Name:        param.Name,
-		Protocol:    param.Protocol,
-		Certificate: &dto.Certificate{Id: param.CertificateId},
-	}
+	name := dto.NewServerName(rst)
 	return name, nil
 }
 
