@@ -17,9 +17,14 @@ type CreateServerNameParam struct {
 	CertificateId string `json:"certificate_id" form:"certificate_id"`
 }
 
+type GetServerNameParam struct {
+	Id     string   `json:"id" uri:"id" binding:"required"`
+	Expand []string `json:"expand" form:"expand"`
+}
+
 type ServerName interface {
-	Create(ctx context.Context, create *CreateServerNameParam) (*dto.ServerName, error)
-	Get(ctx context.Context, id string, expand []string) (*dto.ServerName, error)
+	Create(ctx context.Context, param *CreateServerNameParam) (*dto.ServerName, error)
+	Get(ctx context.Context, param *GetServerNameParam) (*dto.ServerName, error)
 }
 
 func NewServerName(r repository.ServerName, rc repository.Certificate) ServerName {
@@ -50,14 +55,14 @@ func (s *serverName) Create(ctx context.Context, param *CreateServerNameParam) (
 	return name, nil
 }
 
-func (s *serverName) Get(ctx context.Context, id string, expand []string) (*dto.ServerName, error) {
-	rst, err := s.r.Get(ctx, identity.Parse(constant.ServerNamePrefix, id))
+func (s *serverName) Get(ctx context.Context, param *GetServerNameParam) (*dto.ServerName, error) {
+	rst, err := s.r.Get(ctx, identity.Parse(constant.ServerNamePrefix, param.Id))
 	if err != nil {
 		return nil, err
 	}
 	name := dto.NewServerName(rst)
 
-	if utils.InStringSlice("certificate", expand) {
+	if utils.InStringSlice("certificate", param.Expand) {
 		cert, err := s.rc.Get(ctx, rst.CertificateId)
 		if err != nil {
 			return nil, err

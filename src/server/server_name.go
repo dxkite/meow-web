@@ -38,7 +38,19 @@ func (s *serverName) Create(c *gin.Context) {
 }
 
 func (s *serverName) Get(c *gin.Context) {
-	rst, err := s.s.Get(c, c.Param("id"), c.QueryArray("expand"))
+	var param service.GetServerNameParam
+
+	if err := c.ShouldBindUri(&param); err != nil {
+		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		return
+	}
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		return
+	}
+
+	rst, err := s.s.Get(c, &param)
 	if err != nil {
 		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
 		return
