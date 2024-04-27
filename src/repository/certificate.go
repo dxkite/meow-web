@@ -20,17 +20,21 @@ type certificate struct {
 	db *gorm.DB
 }
 
-func (s *certificate) Create(ctx context.Context, certificate *entity.Certificate) (*entity.Certificate, error) {
-	if err := s.db.Create(&certificate).Error; err != nil {
+func (r *certificate) Create(ctx context.Context, certificate *entity.Certificate) (*entity.Certificate, error) {
+	if err := r.dataSource(ctx).Create(&certificate).Error; err != nil {
 		return nil, err
 	}
 	return certificate, nil
 }
 
-func (s *certificate) Get(ctx context.Context, id uint64) (*entity.Certificate, error) {
+func (r *certificate) Get(ctx context.Context, id uint64) (*entity.Certificate, error) {
 	var cert entity.Certificate
-	if err := s.db.Where("id = ?", id).First(&cert).Error; err != nil {
+	if err := r.dataSource(ctx).Where("id = ?", id).First(&cert).Error; err != nil {
 		return nil, err
 	}
 	return &cert, nil
+}
+
+func (r *certificate) dataSource(ctx context.Context) *gorm.DB {
+	return DataSource(ctx, r.db)
 }

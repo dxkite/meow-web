@@ -21,25 +21,29 @@ type route struct {
 	db *gorm.DB
 }
 
-func (s *route) Create(ctx context.Context, route *entity.Route) (*entity.Route, error) {
-	if err := s.db.Create(&route).Error; err != nil {
+func (r *route) Create(ctx context.Context, route *entity.Route) (*entity.Route, error) {
+	if err := r.dataSource(ctx).Create(&route).Error; err != nil {
 		return nil, err
 	}
 	return route, nil
 }
 
-func (s *route) Get(ctx context.Context, id uint64) (*entity.Route, error) {
+func (r *route) Get(ctx context.Context, id uint64) (*entity.Route, error) {
 	var cert entity.Route
-	if err := s.db.Where("id = ?", id).First(&cert).Error; err != nil {
+	if err := r.dataSource(ctx).Where("id = ?", id).First(&cert).Error; err != nil {
 		return nil, err
 	}
 	return &cert, nil
 }
 
-func (s *route) BatchGet(ctx context.Context, ids []uint64) ([]*entity.Route, error) {
+func (r *route) BatchGet(ctx context.Context, ids []uint64) ([]*entity.Route, error) {
 	var items []*entity.Route
-	if err := s.db.Where("id in ?", ids).Find(&items).Error; err != nil {
+	if err := r.dataSource(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
 		return nil, err
 	}
 	return items, nil
+}
+
+func (r *route) dataSource(ctx context.Context) *gorm.DB {
+	return DataSource(ctx, r.db)
 }

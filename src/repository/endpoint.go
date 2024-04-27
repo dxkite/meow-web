@@ -21,25 +21,29 @@ type endpoint struct {
 	db *gorm.DB
 }
 
-func (s *endpoint) Create(ctx context.Context, endpoint *entity.Endpoint) (*entity.Endpoint, error) {
-	if err := s.db.Create(&endpoint).Error; err != nil {
+func (r *endpoint) Create(ctx context.Context, endpoint *entity.Endpoint) (*entity.Endpoint, error) {
+	if err := r.dataSource(ctx).Create(&endpoint).Error; err != nil {
 		return nil, err
 	}
 	return endpoint, nil
 }
 
-func (s *endpoint) Get(ctx context.Context, id uint64) (*entity.Endpoint, error) {
+func (r *endpoint) Get(ctx context.Context, id uint64) (*entity.Endpoint, error) {
 	var cert entity.Endpoint
-	if err := s.db.Where("id = ?", id).First(&cert).Error; err != nil {
+	if err := r.dataSource(ctx).Where("id = ?", id).First(&cert).Error; err != nil {
 		return nil, err
 	}
 	return &cert, nil
 }
 
-func (s *endpoint) BatchGet(ctx context.Context, ids []uint64) ([]*entity.Endpoint, error) {
+func (r *endpoint) BatchGet(ctx context.Context, ids []uint64) ([]*entity.Endpoint, error) {
 	var items []*entity.Endpoint
-	if err := s.db.Where("id in ?", ids).Find(&items).Error; err != nil {
+	if err := r.dataSource(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
 		return nil, err
 	}
 	return items, nil
+}
+
+func (r *endpoint) dataSource(ctx context.Context) *gorm.DB {
+	return DataSource(ctx, r.db)
 }

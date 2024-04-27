@@ -38,7 +38,7 @@ func (r *collection) Create(ctx context.Context, param *entity.Collection) (*ent
 	param.Index = index
 	param.Depth = depth
 
-	if err := r.db.Create(&param).Error; err != nil {
+	if err := r.dataSource(ctx).Create(&param).Error; err != nil {
 		return nil, err
 	}
 
@@ -47,7 +47,7 @@ func (r *collection) Create(ctx context.Context, param *entity.Collection) (*ent
 
 func (r *collection) Get(ctx context.Context, id uint64) (*entity.Collection, error) {
 	var item entity.Collection
-	if err := r.db.Where("id = ?", id).First(&item).Error; err != nil {
+	if err := r.dataSource(ctx).Where("id = ?", id).First(&item).Error; err != nil {
 		return nil, err
 	}
 	return &item, nil
@@ -66,7 +66,7 @@ type ListCollectionParam struct {
 
 func (r *collection) List(ctx context.Context, param *ListCollectionParam) ([]*entity.Collection, error) {
 	var items []*entity.Collection
-	db := r.db.Model(entity.Collection{})
+	db := r.dataSource(ctx).Model(entity.Collection{})
 
 	if param.Name != "" {
 		db = db.Where("name like ?", "%"+param.Name+"%")
@@ -105,4 +105,8 @@ func (r *collection) List(ctx context.Context, param *ListCollectionParam) ([]*e
 		return nil, err
 	}
 	return items, nil
+}
+
+func (r *collection) dataSource(ctx context.Context) *gorm.DB {
+	return DataSource(ctx, r.db)
 }
