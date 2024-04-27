@@ -70,6 +70,22 @@ func (s *ServerName) List(c *gin.Context) {
 	Result(c, http.StatusOK, rst)
 }
 
+func (s *ServerName) Delete(c *gin.Context) {
+	var param service.DeleteServerNameParam
+
+	if err := c.ShouldBindUri(&param); err != nil {
+		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		return
+	}
+	err := s.s.Delete(c, &param)
+	if err != nil {
+		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		return
+	}
+
+	ResultEmpty(c, http.StatusOK)
+}
+
 func WithServerName(path string, server *ServerName) func(s *HttpServer) {
 	return func(s *HttpServer) {
 		group := s.engine.Group(path)
@@ -77,6 +93,7 @@ func WithServerName(path string, server *ServerName) func(s *HttpServer) {
 			group.GET("", server.List)
 			group.POST("", server.Create)
 			group.GET("/:id", server.Get)
+			group.DELETE("/:id", server.Delete)
 		}
 	}
 }

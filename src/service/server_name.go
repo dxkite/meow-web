@@ -12,14 +12,10 @@ import (
 	"gorm.io/gorm"
 )
 
-type GetServerNameParam struct {
-	Id     string   `json:"id" uri:"id" binding:"required"`
-	Expand []string `json:"expand" form:"expand"`
-}
-
 type ServerName interface {
 	Create(ctx context.Context, param *CreateServerNameParam) (*dto.ServerName, error)
 	Get(ctx context.Context, param *GetServerNameParam) (*dto.ServerName, error)
+	Delete(ctx context.Context, param *DeleteServerNameParam) error
 	List(ctx context.Context, param *ListServerNameParam) (*ListServerNameResult, error)
 }
 
@@ -88,6 +84,11 @@ func (s *serverName) Create(ctx context.Context, param *CreateServerNameParam) (
 	return name, err
 }
 
+type GetServerNameParam struct {
+	Id     string   `json:"id" uri:"id" binding:"required"`
+	Expand []string `json:"expand" form:"expand"`
+}
+
 func (s *serverName) Get(ctx context.Context, param *GetServerNameParam) (*dto.ServerName, error) {
 	rst, err := s.r.Get(ctx, identity.Parse(constant.ServerNamePrefix, param.Id))
 	if err != nil {
@@ -104,6 +105,18 @@ func (s *serverName) Get(ctx context.Context, param *GetServerNameParam) (*dto.S
 	}
 
 	return name, nil
+}
+
+type DeleteServerNameParam struct {
+	Id string `json:"id" uri:"id" binding:"required"`
+}
+
+func (s *serverName) Delete(ctx context.Context, param *DeleteServerNameParam) error {
+	err := s.r.Delete(ctx, identity.Parse(constant.ServerNamePrefix, param.Id))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 type ListServerNameParam struct {
