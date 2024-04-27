@@ -38,7 +38,7 @@ func (s *route) Get(ctx context.Context, id uint64) (*entity.Route, error) {
 
 func (s *route) BatchGet(ctx context.Context, ids []uint64) ([]*entity.Route, error) {
 	var items []*entity.Route
-	if err := s.db.Where("id in ?", ids).First(&items).Error; err != nil {
+	if err := s.db.Where("id in ?", ids).Find(&items).Error; err != nil {
 		return nil, err
 	}
 	return items, nil

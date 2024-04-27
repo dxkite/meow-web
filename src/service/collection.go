@@ -87,8 +87,8 @@ func (s *collection) Get(ctx context.Context, param *GetCollectionParam) (*dto.C
 }
 
 type LinkRouteParam struct {
-	Id      string `json:"id" uri:"id" binding:"required"`
-	RouteId string `json:"route_id" form:"route_id" binding:"required"`
+	Id      string   `json:"id" uri:"id" binding:"required"`
+	RouteId []string `json:"route_id" form:"route_id" binding:"required"`
 }
 
 func (s *collection) LinkRoute(ctx context.Context, param *LinkRouteParam) error {
@@ -97,10 +97,15 @@ func (s *collection) LinkRoute(ctx context.Context, param *LinkRouteParam) error
 		return err
 	}
 
-	route, err := s.rr.Get(ctx, identity.Parse(constant.RoutePrefix, param.RouteId))
+	linkIds := []uint64{}
+	routes, err := s.rr.BatchGet(ctx, identity.ParseSlice(constant.RoutePrefix, param.RouteId))
 	if err != nil {
 		return err
 	}
 
-	return s.rl.Link(ctx, constant.LinkDirectCollectionRoute, item.Id, route.Id)
+	for _, v := range routes {
+		linkIds = append(linkIds, v.Id)
+	}
+
+	return s.rl.BatchLink(ctx, constant.LinkDirectCollectionRoute, item.Id, linkIds)
 }

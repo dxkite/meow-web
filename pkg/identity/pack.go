@@ -57,6 +57,14 @@ func Parse(prefix, id string) uint64 {
 	return DecodeMask(id, Mask(prefix))
 }
 
+func ParseSlice(prefix string, idSlice []string) []uint64 {
+	ids := make([]uint64, len(idSlice))
+	for i, v := range idSlice {
+		ids[i] = Parse(prefix, v)
+	}
+	return ids
+}
+
 func Mask(key string) uint64 {
 	keyFull := make([]byte, 8)
 	n := len(key)
