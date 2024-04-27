@@ -7,19 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Collection interface {
-	Create(c *gin.Context)
+func NewCollection(s service.Collection) *Collection {
+	return &Collection{s: s}
 }
 
-func NewCollection(s service.Collection) Collection {
-	return &collection{s: s}
-}
-
-type collection struct {
+type Collection struct {
 	s service.Collection
 }
 
-func (s *collection) Create(c *gin.Context) {
+func (s *Collection) Create(c *gin.Context) {
 	var param service.CreateCollectionParam
 
 	if err := c.ShouldBind(&param); err != nil {
@@ -36,11 +32,33 @@ func (s *collection) Create(c *gin.Context) {
 	Result(c, http.StatusCreated, rst)
 }
 
-func WithCollection(path string, server Collection) func(s *HttpServer) {
+func (s *Collection) Get(c *gin.Context) {
+	var param service.GetCollectionParam
+
+	if err := c.ShouldBindUri(&param); err != nil {
+		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		return
+	}
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		return
+	}
+
+	rst, err := s.s.Get(c, &param)
+	if err != nil {
+		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		return
+	}
+	Result(c, http.StatusCreated, rst)
+}
+
+func WithCollection(path string, server *Collection) func(s *HttpServer) {
 	return func(s *HttpServer) {
 		group := s.engine.Group(path)
 		{
 			group.POST("", server.Create)
+			group.GET("/:id", server.Get)
 		}
 	}
 }

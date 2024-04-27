@@ -10,6 +10,7 @@ import (
 
 type Collection interface {
 	Create(ctx context.Context, param *model.Collection) (*model.Collection, error)
+	Get(ctx context.Context, id uint64) (*model.Collection, error)
 }
 
 func NewCollection(db *gorm.DB) Collection {

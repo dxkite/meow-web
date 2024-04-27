@@ -75,14 +75,18 @@ type Collection struct {
 	Routes      []*Route      `json:"routes,omitempty"`
 	Collections []*Collection `json:"collections,omitempty"`
 	Endpoint    []*Endpoint   `json:"endpoints,omitempty"`
+	CreatedAt   time.Time     `json:"created_at"`
+	UpdatedAt   time.Time     `json:"updated_at"`
 }
 
 func NewCollection(item *model.Collection) *Collection {
-	coll := &Collection{Id: identity.Format(constant.CollectionPrefix, item.Id)}
-	coll.Name = item.Name
-	coll.Description = item.Description
-	coll.ParentId = identity.Format(constant.CollectionPrefix, item.ParentId)
-	return coll
+	obj := &Collection{Id: identity.Format(constant.CollectionPrefix, item.Id)}
+	obj.Name = item.Name
+	obj.Description = item.Description
+	obj.ParentId = identity.Format(constant.CollectionPrefix, item.ParentId)
+	obj.CreatedAt = item.CreatedAt
+	obj.UpdatedAt = item.UpdatedAt
+	return obj
 }
 
 // 后端配置

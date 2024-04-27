@@ -16,8 +16,14 @@ type CreateCollectionParam struct {
 	ParentId    string `json:"parent_id" form:"parent_id"`
 }
 
+type GetCollectionParam struct {
+	Id     string   `json:"id" uri:"id" binding:"required"`
+	Expand []string `json:"expand" form:"expand"`
+}
+
 type Collection interface {
 	Create(ctx context.Context, param *CreateCollectionParam) (*dto.Collection, error)
+	Get(ctx context.Context, param *GetCollectionParam) (*dto.Collection, error)
 }
 
 func NewCollection(r repository.Collection) Collection {
@@ -34,6 +40,14 @@ func (s *collection) Create(ctx context.Context, param *CreateCollectionParam) (
 		Description: param.Description,
 		ParentId:    identity.Parse(constant.CollectionPrefix, param.ParentId),
 	})
+	if err != nil {
+		return nil, err
+	}
+	return dto.NewCollection(rst), nil
+}
+
+func (s *collection) Get(ctx context.Context, param *GetCollectionParam) (*dto.Collection, error) {
+	rst, err := s.r.Get(ctx, identity.Parse(constant.CollectionPrefix, param.Id))
 	if err != nil {
 		return nil, err
 	}
