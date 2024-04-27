@@ -1,6 +1,12 @@
 package server
 
-import "github.com/gin-gonic/gin"
+import (
+	"errors"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+)
 
 type WithOption func(s *HttpServer)
 
@@ -35,4 +41,12 @@ func Result(c *gin.Context, status int, data interface{}) {
 
 func ResultEmpty(c *gin.Context, status int) {
 	c.Status(status)
+}
+
+func ResultError(c *gin.Context, err error) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		Error(c, http.StatusNotFound, "not_found", err.Error())
+		return
+	}
+	Error(c, http.StatusInternalServerError, "internal_error", err.Error())
 }

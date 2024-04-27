@@ -25,7 +25,7 @@ func (s *Collection) Create(c *gin.Context) {
 
 	rst, err := s.s.Create(c, &param)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		ResultError(c, err)
 		return
 	}
 
@@ -44,7 +44,7 @@ func (s *Collection) Get(c *gin.Context) {
 
 	rst, err := s.s.Get(c, &param)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		ResultError(c, err)
 		return
 	}
 	Result(c, http.StatusOK, rst)
@@ -60,7 +60,7 @@ func (s *Collection) List(c *gin.Context) {
 
 	rst, err := s.s.List(c, &param)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		ResultError(c, err)
 		return
 	}
 
@@ -79,7 +79,7 @@ func (s *Collection) LinkRoute(c *gin.Context) {
 
 	err := s.s.LinkRoute(c, &param)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		ResultError(c, err)
 		return
 	}
 
@@ -98,7 +98,7 @@ func (s *Collection) DeleteRoute(c *gin.Context) {
 
 	err := s.s.DeleteRoute(c, &param)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		ResultError(c, err)
 		return
 	}
 
@@ -117,7 +117,7 @@ func (s *Collection) LinkEndpoint(c *gin.Context) {
 
 	err := s.s.LinkEndpoint(c, &param)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		ResultError(c, err)
 		return
 	}
 
@@ -136,7 +136,7 @@ func (s *Collection) DeleteEndpoint(c *gin.Context) {
 
 	err := s.s.DeleteEndpoint(c, &param)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		ResultError(c, err)
 		return
 	}
 

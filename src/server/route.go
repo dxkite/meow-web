@@ -25,7 +25,7 @@ func (s *Route) Create(c *gin.Context) {
 
 	rst, err := s.s.Create(c, &param)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		ResultError(c, err)
 		return
 	}
 
@@ -47,7 +47,7 @@ func (s *Route) Get(c *gin.Context) {
 
 	rst, err := s.s.Get(c, &param)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		ResultError(c, err)
 		return
 	}
 	Result(c, http.StatusOK, rst)
@@ -63,7 +63,7 @@ func (s *Route) List(c *gin.Context) {
 
 	rst, err := s.s.List(c, &param)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		ResultError(c, err)
 		return
 	}
 

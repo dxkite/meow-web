@@ -25,7 +25,7 @@ func (s *Certificate) Create(c *gin.Context) {
 
 	rst, err := s.s.Create(c, &param)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		ResultError(c, err)
 		return
 	}
 

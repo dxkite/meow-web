@@ -25,7 +25,7 @@ func (s *Endpoint) Create(c *gin.Context) {
 
 	rst, err := s.s.Create(c, &param)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		ResultError(c, err)
 		return
 	}
 
@@ -47,7 +47,7 @@ func (s *Endpoint) Get(c *gin.Context) {
 
 	rst, err := s.s.Get(c, &param)
 	if err != nil {
-		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		ResultError(c, err)
 		return
 	}
 	Result(c, http.StatusOK, rst)
