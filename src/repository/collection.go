@@ -4,13 +4,13 @@ import (
 	"context"
 	"strconv"
 
-	"dxkite.cn/meownest/src/model"
+	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
 
 type Collection interface {
-	Create(ctx context.Context, param *model.Collection) (*model.Collection, error)
-	Get(ctx context.Context, id uint64) (*model.Collection, error)
+	Create(ctx context.Context, param *entity.Collection) (*entity.Collection, error)
+	Get(ctx context.Context, id uint64) (*entity.Collection, error)
 }
 
 func NewCollection(db *gorm.DB) Collection {
@@ -21,7 +21,7 @@ type collection struct {
 	db *gorm.DB
 }
 
-func (r *collection) Create(ctx context.Context, param *model.Collection) (*model.Collection, error) {
+func (r *collection) Create(ctx context.Context, param *entity.Collection) (*entity.Collection, error) {
 	index := "."
 	depth := 1
 
@@ -44,8 +44,8 @@ func (r *collection) Create(ctx context.Context, param *model.Collection) (*mode
 	return param, nil
 }
 
-func (r *collection) Get(ctx context.Context, id uint64) (*model.Collection, error) {
-	var item model.Collection
+func (r *collection) Get(ctx context.Context, id uint64) (*entity.Collection, error) {
+	var item entity.Collection
 	if err := r.db.Where("id = ?", id).First(&item).Error; err != nil {
 		return nil, err
 	}

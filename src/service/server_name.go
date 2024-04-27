@@ -6,7 +6,7 @@ import (
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/dto"
-	"dxkite.cn/meownest/src/model"
+	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/utils"
 )
@@ -37,7 +37,7 @@ type serverName struct {
 }
 
 func (s *serverName) Create(ctx context.Context, param *CreateServerNameParam) (*dto.ServerName, error) {
-	rst, err := s.r.Create(ctx, &model.ServerName{
+	rst, err := s.r.Create(ctx, &entity.ServerName{
 		Name:          param.Name,
 		Protocol:      param.Protocol,
 		CertificateId: identity.Parse(constant.CertificatePrefix, param.CertificateId),

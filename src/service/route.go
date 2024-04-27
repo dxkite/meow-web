@@ -6,7 +6,7 @@ import (
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/dto"
-	"dxkite.cn/meownest/src/model"
+	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/valueobject"
 )
@@ -38,7 +38,7 @@ type route struct {
 }
 
 func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route, error) {
-	rst, err := s.r.Create(ctx, &model.Route{
+	rst, err := s.r.Create(ctx, &entity.Route{
 		Name:        param.Name,
 		Description: param.Description,
 		Method:      param.Method,

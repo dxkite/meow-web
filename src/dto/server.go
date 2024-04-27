@@ -5,7 +5,7 @@ import (
 
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
-	"dxkite.cn/meownest/src/model"
+	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/valueobject"
 )
 
@@ -26,7 +26,7 @@ type ServerName struct {
 	Certificate   *Certificate `json:"certificate,omitempty"`    // 证书
 }
 
-func NewServerName(cert *model.ServerName) *ServerName {
+func NewServerName(cert *entity.ServerName) *ServerName {
 	rst := &ServerName{
 		Id: identity.Format(constant.ServerNamePrefix, cert.Id),
 	}
@@ -47,7 +47,7 @@ type Certificate struct {
 	Certificate string    `json:"certificate,omitempty"`
 }
 
-func NewCertificate(cert *model.Certificate) *Certificate {
+func NewCertificate(cert *entity.Certificate) *Certificate {
 	rst := &Certificate{
 		Id: identity.Format(constant.CertificatePrefix, cert.Id),
 	}
@@ -71,7 +71,7 @@ type Route struct {
 	UpdatedAt   time.Time                    `json:"updated_at"`
 }
 
-func NewRoute(item *model.Route) *Route {
+func NewRoute(item *entity.Route) *Route {
 	obj := &Route{Id: identity.Format(constant.CollectionPrefix, item.Id)}
 	obj.Name = item.Name
 	obj.Description = item.Description
@@ -96,7 +96,7 @@ type Collection struct {
 	UpdatedAt   time.Time     `json:"updated_at"`
 }
 
-func NewCollection(item *model.Collection) *Collection {
+func NewCollection(item *entity.Collection) *Collection {
 	obj := &Collection{Id: identity.Format(constant.CollectionPrefix, item.Id)}
 	obj.Name = item.Name
 	obj.Description = item.Description

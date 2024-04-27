@@ -6,7 +6,7 @@ import (
 	"crypto/x509"
 
 	"dxkite.cn/meownest/src/dto"
-	"dxkite.cn/meownest/src/model"
+	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
 )
 
@@ -39,7 +39,7 @@ func (s *certificate) Create(ctx context.Context, param *CreateCertificateParam)
 		return nil, err
 	}
 
-	val := &model.Certificate{}
+	val := &entity.Certificate{}
 	val.Name = param.Name
 	val.Key = param.Key
 	val.Certificate = param.Certificate

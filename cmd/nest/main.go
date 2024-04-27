@@ -10,7 +10,7 @@ import (
 
 	"dxkite.cn/log"
 	"dxkite.cn/meownest/pkg/identity"
-	"dxkite.cn/meownest/src/model"
+	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/server"
 	"dxkite.cn/meownest/src/service"
@@ -64,7 +64,7 @@ func main() {
 	}
 
 	db = db.Debug()
-	db.AutoMigrate(model.ServerName{}, model.Certificate{}, model.Collection{}, model.Route{})
+	db.AutoMigrate(entity.ServerName{}, entity.Certificate{}, entity.Collection{}, entity.Route{})
 
 	certificateRepository := repository.NewCertificate(db)
 	certificateService := service.NewCertificate(certificateRepository)

@@ -1,4 +1,4 @@
-package model
+package entity
 
 import "dxkite.cn/meownest/src/valueobject"
 

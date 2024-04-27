@@ -3,13 +3,13 @@ package repository
 import (
 	"context"
 
-	"dxkite.cn/meownest/src/model"
+	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
 
 type Route interface {
-	Create(ctx context.Context, route *model.Route) (*model.Route, error)
-	Get(ctx context.Context, id uint64) (*model.Route, error)
+	Create(ctx context.Context, route *entity.Route) (*entity.Route, error)
+	Get(ctx context.Context, id uint64) (*entity.Route, error)
 }
 
 func NewRoute(db *gorm.DB) Route {
@@ -20,15 +20,15 @@ type route struct {
 	db *gorm.DB
 }
 
-func (s *route) Create(ctx context.Context, route *model.Route) (*model.Route, error) {
+func (s *route) Create(ctx context.Context, route *entity.Route) (*entity.Route, error) {
 	if err := s.db.Create(&route).Error; err != nil {
 		return nil, err
 	}
 	return route, nil
 }
 
-func (s *route) Get(ctx context.Context, id uint64) (*model.Route, error) {
-	var cert model.Route
+func (s *route) Get(ctx context.Context, id uint64) (*entity.Route, error) {
+	var cert entity.Route
 	if err := s.db.Where("id = ?", id).First(&cert).Error; err != nil {
 		return nil, err
 	}

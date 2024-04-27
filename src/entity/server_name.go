@@ -1,4 +1,4 @@
-package model
+package entity
 
 // 入口配置信息
 type ServerName struct {

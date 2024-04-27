@@ -1,4 +1,4 @@
-package model
+package entity
 
 type Link struct {
 	Base

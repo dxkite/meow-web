@@ -6,7 +6,7 @@ import (
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/dto"
-	"dxkite.cn/meownest/src/model"
+	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
 )
 
@@ -35,7 +35,7 @@ type collection struct {
 }
 
 func (s *collection) Create(ctx context.Context, param *CreateCollectionParam) (*dto.Collection, error) {
-	rst, err := s.r.Create(ctx, &model.Collection{
+	rst, err := s.r.Create(ctx, &entity.Collection{
 		Name:        param.Name,
 		Description: param.Description,
 		ParentId:    identity.Parse(constant.CollectionPrefix, param.ParentId),
