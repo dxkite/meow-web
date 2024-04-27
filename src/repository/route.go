@@ -12,6 +12,8 @@ type Route interface {
 	Get(ctx context.Context, id uint64) (*entity.Route, error)
 	BatchGet(ctx context.Context, ids []uint64) ([]*entity.Route, error)
 	List(ctx context.Context, param *ListRouteParam) ([]*entity.Route, error)
+	Delete(ctx context.Context, id uint64) error
+	Update(ctx context.Context, id uint64, ent *entity.Route) error
 }
 
 func NewRoute(db *gorm.DB) Route {
@@ -43,6 +45,20 @@ func (r *route) BatchGet(ctx context.Context, ids []uint64) ([]*entity.Route, er
 		return nil, err
 	}
 	return items, nil
+}
+
+func (r *route) Delete(ctx context.Context, id uint64) error {
+	if err := r.dataSource(ctx).Where("id = ?", id).Delete(entity.Route{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *route) Update(ctx context.Context, id uint64, ent *entity.Route) error {
+	if err := r.dataSource(ctx).Where("id = ?", id).Updates(&ent).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 type ListRouteParam struct {

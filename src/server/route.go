@@ -70,6 +70,39 @@ func (s *Route) List(c *gin.Context) {
 	Result(c, http.StatusOK, rst)
 }
 
+func (s *Route) Update(c *gin.Context) {
+	var param service.UpdateRouteParam
+	param.Id = c.Param("id")
+
+	if err := c.ShouldBind(&param); err != nil {
+		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		return
+	}
+
+	rst, err := s.s.Update(c, &param)
+	if err != nil {
+		ResultError(c, err)
+		return
+	}
+	Result(c, http.StatusOK, rst)
+}
+
+func (s *Route) Delete(c *gin.Context) {
+	var param service.DeleteRouteParam
+
+	if err := c.ShouldBindUri(&param); err != nil {
+		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		return
+	}
+	err := s.s.Delete(c, &param)
+	if err != nil {
+		ResultError(c, err)
+		return
+	}
+
+	ResultEmpty(c, http.StatusOK)
+}
+
 func WithRoute(path string, server *Route) func(s *HttpServer) {
 	return func(s *HttpServer) {
 		group := s.engine.Group(path)
@@ -77,6 +110,8 @@ func WithRoute(path string, server *Route) func(s *HttpServer) {
 			group.POST("", server.Create)
 			group.GET("", server.List)
 			group.GET("/:id", server.Get)
+			group.POST("/:id", server.Update)
+			group.DELETE("/:id", server.Delete)
 		}
 	}
 }

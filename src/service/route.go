@@ -11,14 +11,6 @@ import (
 	"dxkite.cn/meownest/src/value"
 )
 
-type CreateRouteParam struct {
-	Name        string                 `json:"name" form:"name" binding:"required"`
-	Description string                 `json:"description" form:"description"`
-	Method      []string               `json:"method" form:"method" binding:"required"`
-	Path        string                 `json:"path" form:"path" binding:"required"`
-	Matcher     []*value.MatcherOption `json:"matcher" form:"matcher"`
-}
-
 type GetRouteParam struct {
 	Id     string   `json:"id" uri:"id" binding:"required"`
 	Expand []string `json:"expand" form:"expand"`
@@ -28,6 +20,8 @@ type Route interface {
 	Create(ctx context.Context, param *CreateRouteParam) (*dto.Route, error)
 	Get(ctx context.Context, param *GetRouteParam) (*dto.Route, error)
 	List(ctx context.Context, param *ListRouteParam) (*ListRouteResult, error)
+	Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route, error)
+	Delete(ctx context.Context, param *DeleteRouteParam) error
 }
 
 func NewRoute(r repository.Route) Route {
@@ -36,6 +30,14 @@ func NewRoute(r repository.Route) Route {
 
 type route struct {
 	r repository.Route
+}
+
+type CreateRouteParam struct {
+	Name        string                 `json:"name" form:"name" binding:"required"`
+	Description string                 `json:"description" form:"description"`
+	Method      []string               `json:"method" form:"method" binding:"required"`
+	Path        string                 `json:"path" form:"path" binding:"required"`
+	Matcher     []*value.MatcherOption `json:"matcher" form:"matcher"`
 }
 
 func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route, error) {
@@ -101,4 +103,40 @@ func (s *route) List(ctx context.Context, param *ListRouteParam) (*ListRouteResu
 	rst.Data = items
 	rst.HasMore = n == param.Limit
 	return rst, nil
+}
+
+type DeleteRouteParam struct {
+	Id string `json:"id" uri:"id" binding:"required"`
+}
+
+func (s *route) Delete(ctx context.Context, param *DeleteRouteParam) error {
+	err := s.r.Delete(ctx, identity.Parse(constant.RoutePrefix, param.Id))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type UpdateRouteParam struct {
+	Id string `json:"id" uri:"id" binding:"required"`
+	CreateRouteParam
+}
+
+func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route, error) {
+	err := s.r.Update(ctx, identity.Parse(constant.RoutePrefix, param.Id), &entity.Route{
+		Name:        param.Name,
+		Description: param.Description,
+		Method:      param.Method,
+		Path:        param.Path,
+		Matcher:     param.Matcher,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	obj, err := s.r.Get(ctx, identity.Parse(constant.RoutePrefix, param.Id))
+	if err != nil {
+		return nil, err
+	}
+	return dto.NewRoute(obj), nil
 }
