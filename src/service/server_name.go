@@ -194,11 +194,8 @@ func (s *serverName) List(ctx context.Context, param *ListServerNameParam) (*Lis
 }
 
 type UpdateServerNameParam struct {
-	Id            string                            `json:"id" uri:"id" binding:"required"`
-	Name          string                            `json:"name" form:"name" binding:"required"`
-	Protocol      string                            `json:"protocol" form:"protocol" binding:"required"`
-	CertificateId string                            `json:"certificate_id" form:"certificate_id"`
-	Certificate   *CreateServerNameCertificateParam `json:"certificate" form:"certificate"`
+	Id string `json:"id" uri:"id" binding:"required"`
+	CreateServerNameParam
 }
 
 func (s *serverName) Update(ctx context.Context, param *UpdateServerNameParam) (*dto.ServerName, error) {
