@@ -65,7 +65,10 @@ func main() {
 
 	db = db.Debug()
 	db.AutoMigrate(entity.ServerName{}, entity.Certificate{},
+		entity.Link{},
 		entity.Collection{}, entity.Route{}, entity.Endpoint{})
+
+	linkRepository := repository.NewLink(db)
 
 	certificateRepository := repository.NewCertificate(db)
 	certificateService := service.NewCertificate(certificateRepository)
@@ -75,10 +78,6 @@ func main() {
 	serverNameService := service.NewServerName(nameServerRepository, certificateRepository)
 	serverNameServer := server.NewServerName(serverNameService)
 
-	collectionRepository := repository.NewCollection(db)
-	collectionService := service.NewCollection(collectionRepository)
-	collectionServer := server.NewCollection(collectionService)
-
 	routeRepository := repository.NewRoute(db)
 	routeService := service.NewRoute(routeRepository)
 	routeServer := server.NewRoute(routeService)
@@ -86,6 +85,10 @@ func main() {
 	endpointRepository := repository.NewEndpoint(db)
 	endpointService := service.NewEndpoint(endpointRepository)
 	endpointServer := server.NewEndpoint(endpointService)
+
+	collectionRepository := repository.NewCollection(db)
+	collectionService := service.NewCollection(collectionRepository, linkRepository, routeRepository)
+	collectionServer := server.NewCollection(collectionService)
 
 	httpServer := server.New(
 		server.WithServerName("/api/v1/server_name", serverNameServer),

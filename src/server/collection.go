@@ -35,10 +35,7 @@ func (s *Collection) Create(c *gin.Context) {
 func (s *Collection) Get(c *gin.Context) {
 	var param service.GetCollectionParam
 
-	if err := c.ShouldBindUri(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
-		return
-	}
+	param.Id = c.Param("id")
 
 	if err := c.ShouldBindQuery(&param); err != nil {
 		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
@@ -53,12 +50,32 @@ func (s *Collection) Get(c *gin.Context) {
 	Result(c, http.StatusOK, rst)
 }
 
+func (s *Collection) LinkRoute(c *gin.Context) {
+	var param service.LinkRouteParam
+
+	param.Id = c.Param("id")
+
+	if err := c.ShouldBind(&param); err != nil {
+		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		return
+	}
+
+	err := s.s.LinkRoute(c, &param)
+	if err != nil {
+		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		return
+	}
+
+	ResultEmpty(c, http.StatusOK)
+}
+
 func WithCollection(path string, server *Collection) func(s *HttpServer) {
 	return func(s *HttpServer) {
 		group := s.engine.Group(path)
 		{
 			group.POST("", server.Create)
 			group.GET("/:id", server.Get)
+			group.POST("/:id/route", server.LinkRoute)
 		}
 	}
 }

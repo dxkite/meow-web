@@ -26,7 +26,7 @@ func (r *link) Link(ctx context.Context, direct string, sourceId, linkedId uint6
 	link.Direct = direct
 	link.SourceId = sourceId
 	link.LinkedId = linkedId
-	return r.db.Create(&direct).Error
+	return r.db.Create(&link).Error
 }
 
 func (r *link) LinkOnce(ctx context.Context, direct string, sourceId, linkedId uint64) error {
@@ -38,13 +38,13 @@ func (r *link) LinkOnce(ctx context.Context, direct string, sourceId, linkedId u
 		link.Direct = direct
 		link.SourceId = sourceId
 		link.LinkedId = linkedId
-		return r.db.Create(&direct).Error
+		return r.db.Create(&link).Error
 	})
 }
 
 func (r *link) LinkOf(ctx context.Context, direct string, sourceId uint64) ([]*entity.Link, error) {
 	links := []*entity.Link{}
-	if err := r.db.Where(entity.Link{SourceId: sourceId}).Find(&links).Error; err != nil {
+	if err := r.db.Model(entity.Link{}).Where(entity.Link{SourceId: sourceId}).Find(&links).Error; err != nil {
 		return nil, err
 	}
 	return links, nil

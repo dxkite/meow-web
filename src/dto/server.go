@@ -72,7 +72,7 @@ type Route struct {
 }
 
 func NewRoute(item *entity.Route) *Route {
-	obj := &Route{Id: identity.Format(constant.CollectionPrefix, item.Id)}
+	obj := &Route{Id: identity.Format(constant.RoutePrefix, item.Id)}
 	obj.Name = item.Name
 	obj.Description = item.Description
 	obj.Method = item.Method

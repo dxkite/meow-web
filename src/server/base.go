@@ -32,3 +32,7 @@ func Error(c *gin.Context, status int, code, message string) {
 func Result(c *gin.Context, status int, data interface{}) {
 	c.JSON(status, data)
 }
+
+func ResultEmpty(c *gin.Context, status int) {
+	c.Status(status)
+}
