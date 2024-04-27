@@ -43,10 +43,16 @@ func DecodeMask(id string, mask uint64) uint64 {
 }
 
 func Format(prefix string, id uint64) string {
+	if id == 0 {
+		return ""
+	}
 	return prefix + EncodeMask(id, Mask(prefix))
 }
 
 func Parse(prefix, id string) uint64 {
+	if id == "" {
+		return 0
+	}
 	id = strings.TrimPrefix(id, prefix)
 	return DecodeMask(id, Mask(prefix))
 }

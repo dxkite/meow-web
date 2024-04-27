@@ -1,9 +1,7 @@
 package model
 
-import "gorm.io/gorm"
-
 type Collection struct {
-	gorm.Model
+	Base
 
 	// 树型节点部分
 	ParentId uint64 `gorm:"index"`

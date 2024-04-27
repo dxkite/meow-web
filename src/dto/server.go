@@ -68,14 +68,21 @@ type Route struct {
 
 // 路由组
 type Collection struct {
-	Id            string        `json:"id"`
-	ParentId      string        `json:"parent_id,omitempty"` // 父级ID
-	Name          string        `json:"name"`
-	Description   string        `json:"description"`
-	Authorization string        `json:"authorization"` // 权限校验
-	Routes        []*Route      `json:"routes"`
-	Collections   []*Collection `json:"collections,omitempty"`
-	Endpoint      []*Endpoint   `json:"endpoints,omitempty"`
+	Id          string        `json:"id"`
+	ParentId    string        `json:"parent_id,omitempty"` // 父级ID
+	Name        string        `json:"name"`
+	Description string        `json:"description"`
+	Routes      []*Route      `json:"routes,omitempty"`
+	Collections []*Collection `json:"collections,omitempty"`
+	Endpoint    []*Endpoint   `json:"endpoints,omitempty"`
+}
+
+func NewCollection(item *model.Collection) *Collection {
+	coll := &Collection{Id: identity.Format(constant.CollectionPrefix, item.Id)}
+	coll.Name = item.Name
+	coll.Description = item.Description
+	coll.ParentId = identity.Format(constant.CollectionPrefix, item.ParentId)
+	return coll
 }
 
 // 后端配置

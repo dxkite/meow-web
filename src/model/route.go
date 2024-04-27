@@ -1,14 +1,12 @@
 package model
 
-import "gorm.io/gorm"
-
 type Route struct {
-	gorm.Model
+	Base
 	Name        string           `json:"name"`
 	Description string           `json:"description"`
-	Method      []string         `json:"method"`
+	Method      []string         `json:"method" gorm:"serializer:json"`
 	Path        string           `json:"path"`
-	Matcher     []*MatcherConfig `json:"matcher"`
+	Matcher     []*MatcherConfig `json:"matcher" gorm:"serializer:json"`
 }
 
 type MatcherConfig struct {

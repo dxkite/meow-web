@@ -64,19 +64,24 @@ func main() {
 	}
 
 	db = db.Debug()
-	db.AutoMigrate(model.ServerName{}, model.Certificate{})
+	db.AutoMigrate(model.ServerName{}, model.Certificate{}, model.Collection{})
 
 	certificateRepository := repository.NewCertificate(db)
 	certificateService := service.NewCertificate(certificateRepository)
 	certificateServer := server.NewCertificate(certificateService)
 
-	nameServerRepo := repository.NewServerName(db)
-	serverNameService := service.NewServerName(nameServerRepo, certificateRepository)
+	nameServerRepository := repository.NewServerName(db)
+	serverNameService := service.NewServerName(nameServerRepository, certificateRepository)
 	serverNameServer := server.NewServerName(serverNameService)
+
+	collectionRepository := repository.NewCollection(db)
+	collectionService := service.NewCollection(collectionRepository)
+	collectionServer := server.NewCollection(collectionService)
 
 	httpServer := server.New(
 		server.WithServerName("/api/v1/server_name", serverNameServer),
 		server.WithCertificate("/api/v1/certificate", certificateServer),
+		server.WithCollection("/api/v1/collection", collectionServer),
 	)
 	httpServer.Run(":2333")
 }
