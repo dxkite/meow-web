@@ -16,16 +16,19 @@ type Collection interface {
 	Get(ctx context.Context, param *GetCollectionParam) (*dto.Collection, error)
 	LinkRoute(ctx context.Context, param *LinkRouteParam) error
 	DeleteRoute(ctx context.Context, param *DeleteRouteParam) error
+	LinkEndpoint(ctx context.Context, param *LinkEndpointParam) error
+	DeleteEndpoint(ctx context.Context, param *DeleteEndpointParam) error
 }
 
-func NewCollection(r repository.Collection, rl repository.Link, rr repository.Route) Collection {
-	return &collection{r: r, rr: rr, rl: rl}
+func NewCollection(r repository.Collection, rl repository.Link, rr repository.Route, re repository.Endpoint) Collection {
+	return &collection{r: r, rr: rr, rl: rl, re: re}
 }
 
 type collection struct {
 	r  repository.Collection
 	rl repository.Link
 	rr repository.Route
+	re repository.Endpoint
 }
 
 type CreateCollectionParam struct {
@@ -60,7 +63,7 @@ func (s *collection) Get(ctx context.Context, param *GetCollectionParam) (*dto.C
 	collection := dto.NewCollection(rst)
 
 	if utils.InStringSlice("routes", param.Expand) {
-		routeIds := []uint64{}
+		entityIds := []uint64{}
 
 		linked, err := s.rl.LinkOf(ctx, constant.LinkDirectCollectionRoute, rst.Id)
 		if err != nil {
@@ -68,20 +71,45 @@ func (s *collection) Get(ctx context.Context, param *GetCollectionParam) (*dto.C
 		}
 
 		for _, v := range linked {
-			routeIds = append(routeIds, v.LinkedId)
+			entityIds = append(entityIds, v.LinkedId)
 		}
 
-		routes, err := s.rr.BatchGet(ctx, routeIds)
+		entities, err := s.rr.BatchGet(ctx, entityIds)
 		if err != nil {
 			return nil, err
 		}
 
-		routeDtos := make([]*dto.Route, len(routes))
-		for i, v := range routes {
-			routeDtos[i] = dto.NewRoute(v)
+		items := make([]*dto.Route, len(entities))
+		for i, v := range entities {
+			items[i] = dto.NewRoute(v)
 		}
 
-		collection.Routes = routeDtos
+		collection.Routes = items
+	}
+
+	if utils.InStringSlice("endpoints", param.Expand) {
+		entityIds := []uint64{}
+
+		linked, err := s.rl.LinkOf(ctx, constant.LinkDirectCollectionEndpoint, rst.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, v := range linked {
+			entityIds = append(entityIds, v.LinkedId)
+		}
+
+		entities, err := s.re.BatchGet(ctx, entityIds)
+		if err != nil {
+			return nil, err
+		}
+
+		items := make([]*dto.Endpoint, len(entities))
+		for i, v := range entities {
+			items[i] = dto.NewEndpoint(v)
+		}
+
+		collection.Endpoints = items
 	}
 
 	return collection, nil
@@ -133,4 +161,52 @@ func (s *collection) DeleteRoute(ctx context.Context, param *DeleteRouteParam) e
 	}
 
 	return s.rl.BatchDeleteLink(ctx, constant.LinkDirectCollectionRoute, item.Id, linkIds)
+}
+
+type LinkEndpointParam struct {
+	Id         string   `json:"id" uri:"id" binding:"required"`
+	EndpointId []string `json:"endpoint_id" form:"endpoint_id" binding:"required"`
+}
+
+func (s *collection) LinkEndpoint(ctx context.Context, param *LinkEndpointParam) error {
+	item, err := s.r.Get(ctx, identity.Parse(constant.CollectionPrefix, param.Id))
+	if err != nil {
+		return err
+	}
+
+	linkIds := []uint64{}
+	endpoints, err := s.re.BatchGet(ctx, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId))
+	if err != nil {
+		return err
+	}
+
+	for _, v := range endpoints {
+		linkIds = append(linkIds, v.Id)
+	}
+
+	return s.rl.BatchLink(ctx, constant.LinkDirectCollectionEndpoint, item.Id, linkIds)
+}
+
+type DeleteEndpointParam struct {
+	Id         string   `json:"id" uri:"id" binding:"required"`
+	EndpointId []string `json:"endpoint_id" form:"endpoint_id" binding:"required,max=1000"`
+}
+
+func (s *collection) DeleteEndpoint(ctx context.Context, param *DeleteEndpointParam) error {
+	item, err := s.r.Get(ctx, identity.Parse(constant.CollectionPrefix, param.Id))
+	if err != nil {
+		return err
+	}
+
+	linkIds := []uint64{}
+	endpoints, err := s.re.BatchGet(ctx, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId))
+	if err != nil {
+		return err
+	}
+
+	for _, v := range endpoints {
+		linkIds = append(linkIds, v.Id)
+	}
+
+	return s.rl.BatchDeleteLink(ctx, constant.LinkDirectCollectionEndpoint, item.Id, linkIds)
 }

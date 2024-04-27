@@ -57,7 +57,7 @@ func (r *link) LinkOnce(ctx context.Context, direct string, sourceId, linkedId u
 
 func (r *link) LinkOf(ctx context.Context, direct string, sourceId uint64) ([]*entity.Link, error) {
 	links := []*entity.Link{}
-	if err := r.db.Model(entity.Link{}).Where(entity.Link{SourceId: sourceId}).Find(&links).Error; err != nil {
+	if err := r.db.Model(entity.Link{}).Where(entity.Link{Direct: direct, SourceId: sourceId}).Find(&links).Error; err != nil {
 		return nil, err
 	}
 	return links, nil

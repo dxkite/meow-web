@@ -10,6 +10,7 @@ import (
 type Endpoint interface {
 	Create(ctx context.Context, endpoint *entity.Endpoint) (*entity.Endpoint, error)
 	Get(ctx context.Context, id uint64) (*entity.Endpoint, error)
+	BatchGet(ctx context.Context, ids []uint64) ([]*entity.Endpoint, error)
 }
 
 func NewEndpoint(db *gorm.DB) Endpoint {
@@ -33,4 +34,12 @@ func (s *endpoint) Get(ctx context.Context, id uint64) (*entity.Endpoint, error)
 		return nil, err
 	}
 	return &cert, nil
+}
+
+func (s *endpoint) BatchGet(ctx context.Context, ids []uint64) ([]*entity.Endpoint, error) {
+	var items []*entity.Endpoint
+	if err := s.db.Where("id in ?", ids).Find(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
 }

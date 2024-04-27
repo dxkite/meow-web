@@ -91,7 +91,7 @@ type Collection struct {
 	Description string        `json:"description"`
 	Routes      []*Route      `json:"routes,omitempty"`
 	Collections []*Collection `json:"collections,omitempty"`
-	Endpoint    []*Endpoint   `json:"endpoints,omitempty"`
+	Endpoints   []*Endpoint   `json:"endpoints,omitempty"`
 	CreatedAt   time.Time     `json:"created_at"`
 	UpdatedAt   time.Time     `json:"updated_at"`
 }
@@ -127,7 +127,7 @@ type Endpoint struct {
 }
 
 func NewEndpoint(item *entity.Endpoint) *Endpoint {
-	obj := &Endpoint{Id: identity.Format(constant.CollectionPrefix, item.Id)}
+	obj := &Endpoint{Id: identity.Format(constant.EndpointPrefix, item.Id)}
 	obj.Name = item.Name
 	obj.Type = item.Type
 	obj.ForwardRewrite = item.ForwardRewrite
