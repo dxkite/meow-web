@@ -19,7 +19,7 @@ func (s *Endpoint) Create(c *gin.Context) {
 	var param service.CreateEndpointParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 
@@ -36,12 +36,12 @@ func (s *Endpoint) Get(c *gin.Context) {
 	var param service.GetEndpointParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 

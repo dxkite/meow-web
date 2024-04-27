@@ -2,9 +2,11 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 )
 
@@ -29,8 +31,8 @@ func (s *HttpServer) Run(addr ...string) {
 func Error(c *gin.Context, status int, code, message string) {
 	c.JSON(status, gin.H{
 		"error": gin.H{
-			"code":    code,
-			"message": message,
+			"error":         code,
+			"error_message": message,
 		},
 	})
 }
@@ -49,4 +51,29 @@ func ResultError(c *gin.Context, err error) {
 		return
 	}
 	Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+}
+
+func ResultErrorBind(c *gin.Context, err error) {
+	if e, ok := err.(validator.ValidationErrors); ok {
+		errorList := []string{}
+
+		for _, v := range e {
+			customErr := fmt.Sprintf("invalid key %s (%s) by validate rule %s (%s)", v.Field(), v.Namespace(), v.Tag(), v.Param())
+			errorList = append(errorList, customErr)
+		}
+
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"error":         "invalid_parameter",
+				"error_details": errorList,
+			},
+		})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"error":         "invalid_parameter",
+				"error_message": err.Error(),
+			},
+		})
+	}
 }

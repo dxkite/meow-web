@@ -19,7 +19,7 @@ func (s *Collection) Create(c *gin.Context) {
 	var param service.CreateCollectionParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 
@@ -38,7 +38,7 @@ func (s *Collection) Get(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 
@@ -54,7 +54,7 @@ func (s *Collection) List(c *gin.Context) {
 	var param service.ListCollectionParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 
@@ -73,7 +73,7 @@ func (s *Collection) LinkRoute(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 
@@ -92,7 +92,7 @@ func (s *Collection) DeleteRoute(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 
@@ -111,7 +111,7 @@ func (s *Collection) LinkEndpoint(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 
@@ -130,7 +130,7 @@ func (s *Collection) DeleteEndpoint(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 

@@ -19,7 +19,7 @@ func (s *Route) Create(c *gin.Context) {
 	var param service.CreateRouteParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 
@@ -36,12 +36,12 @@ func (s *Route) Get(c *gin.Context) {
 	var param service.GetRouteParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 
@@ -57,7 +57,7 @@ func (s *Route) List(c *gin.Context) {
 	var param service.ListRouteParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 
@@ -75,7 +75,7 @@ func (s *Route) Update(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 
@@ -91,7 +91,7 @@ func (s *Route) Delete(c *gin.Context) {
 	var param service.DeleteRouteParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 	err := s.s.Delete(c, &param)

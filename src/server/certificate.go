@@ -19,7 +19,7 @@ func (s *Certificate) Create(c *gin.Context) {
 	var param service.CreateCertificateParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		ResultErrorBind(c, err)
 		return
 	}
 
