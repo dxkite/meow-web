@@ -15,9 +15,9 @@ type ForwardHeaderOption struct {
 
 type ForwardRewriteOption struct {
 	// 转发正则
-	Regex string `json:"regex"`
+	Regex string `json:"regex" binding:"required"`
 	// 转发配置
-	Replace string `json:"replace"`
+	Replace string `json:"replace" binding:"required"`
 }
 
 type ForwardEndpoint struct {

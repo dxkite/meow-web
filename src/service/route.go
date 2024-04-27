@@ -37,7 +37,7 @@ type CreateRouteParam struct {
 	Description string                 `json:"description" form:"description"`
 	Method      []string               `json:"method" form:"method" binding:"required"`
 	Path        string                 `json:"path" form:"path" binding:"required"`
-	Matcher     []*value.MatcherOption `json:"matcher" form:"matcher"`
+	Matcher     []*value.MatcherOption `json:"matcher" form:"matcher" binding:"dive,required"`
 }
 
 func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route, error) {
