@@ -69,6 +69,25 @@ func (s *Collection) LinkRoute(c *gin.Context) {
 	ResultEmpty(c, http.StatusOK)
 }
 
+func (s *Collection) DeleteRoute(c *gin.Context) {
+	var param service.DeleteRouteParam
+
+	param.Id = c.Param("id")
+
+	if err := c.ShouldBind(&param); err != nil {
+		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		return
+	}
+
+	err := s.s.DeleteRoute(c, &param)
+	if err != nil {
+		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		return
+	}
+
+	ResultEmpty(c, http.StatusOK)
+}
+
 func WithCollection(path string, server *Collection) func(s *HttpServer) {
 	return func(s *HttpServer) {
 		group := s.engine.Group(path)
@@ -76,6 +95,7 @@ func WithCollection(path string, server *Collection) func(s *HttpServer) {
 			group.POST("", server.Create)
 			group.GET("/:id", server.Get)
 			group.POST("/:id/route", server.LinkRoute)
+			group.DELETE("/:id/route", server.DeleteRoute)
 		}
 	}
 }

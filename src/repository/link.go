@@ -12,7 +12,7 @@ type Link interface {
 	BatchLink(ctx context.Context, direct string, sourceId uint64, linkedIds []uint64) error
 	LinkOnce(ctx context.Context, direct string, sourceId, linkedId uint64) error
 	LinkOf(ctx context.Context, direct string, sourceId uint64) ([]*entity.Link, error)
-	DeleteLink(ctx context.Context, direct string, sourceId, linkedId uint64) error
+	BatchDeleteLink(ctx context.Context, direct string, sourceId uint64, linkedIds []uint64) error
 }
 
 func NewLink(db *gorm.DB) Link {
@@ -63,8 +63,8 @@ func (r *link) LinkOf(ctx context.Context, direct string, sourceId uint64) ([]*e
 	return links, nil
 }
 
-func (r *link) DeleteLink(ctx context.Context, direct string, sourceId, linkedId uint64) error {
-	if err := r.db.Delete(entity.Link{Direct: direct, SourceId: sourceId, LinkedId: linkedId}).Error; err != nil {
+func (r *link) BatchDeleteLink(ctx context.Context, direct string, sourceId uint64, linkedIds []uint64) error {
+	if err := r.db.Where(entity.Link{Direct: direct, SourceId: sourceId}).Where("linked_id in ?", linkedIds).Delete(entity.Link{}).Error; err != nil {
 		return err
 	}
 	return nil
