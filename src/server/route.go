@@ -53,11 +53,29 @@ func (s *Route) Get(c *gin.Context) {
 	Result(c, http.StatusOK, rst)
 }
 
+func (s *Route) List(c *gin.Context) {
+	var param service.ListRouteParam
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		Error(c, http.StatusBadRequest, "invalid_parameter", err.Error())
+		return
+	}
+
+	rst, err := s.s.List(c, &param)
+	if err != nil {
+		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
+		return
+	}
+
+	Result(c, http.StatusOK, rst)
+}
+
 func WithRoute(path string, server *Route) func(s *HttpServer) {
 	return func(s *HttpServer) {
 		group := s.engine.Group(path)
 		{
 			group.POST("", server.Create)
+			group.GET("", server.List)
 			group.GET("/:id", server.Get)
 		}
 	}

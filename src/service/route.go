@@ -27,6 +27,7 @@ type GetRouteParam struct {
 type Route interface {
 	Create(ctx context.Context, param *CreateRouteParam) (*dto.Route, error)
 	Get(ctx context.Context, param *GetRouteParam) (*dto.Route, error)
+	List(ctx context.Context, param *ListRouteParam) (*ListRouteResult, error)
 }
 
 func NewRoute(r repository.Route) Route {
@@ -57,4 +58,47 @@ func (s *route) Get(ctx context.Context, param *GetRouteParam) (*dto.Route, erro
 		return nil, err
 	}
 	return dto.NewRoute(rst), nil
+}
+
+type ListRouteParam struct {
+	Name          string `form:"name"`
+	Path          string `form:"path"`
+	Limit         int    `form:"limit" binding:"max=1000"`
+	StartingAfter string `form:"starting_after"`
+	EndingBefore  string `form:"ending_before"`
+}
+
+type ListRouteResult struct {
+	HasMore bool         `json:"has_more"`
+	Data    []*dto.Route `json:"data"`
+}
+
+func (s *route) List(ctx context.Context, param *ListRouteParam) (*ListRouteResult, error) {
+	if param.Limit == 0 {
+		param.Limit = 10
+	}
+
+	entities, err := s.r.List(ctx, &repository.ListRouteParam{
+		Name:          param.Name,
+		Path:          param.Path,
+		Limit:         param.Limit,
+		StartingAfter: identity.Parse(constant.CollectionPrefix, param.StartingAfter),
+		EndingBefore:  identity.Parse(constant.CollectionPrefix, param.EndingBefore),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	n := len(entities)
+
+	items := make([]*dto.Route, n)
+
+	for i, v := range entities {
+		items[i] = dto.NewRoute(v)
+	}
+
+	rst := &ListRouteResult{}
+	rst.Data = items
+	rst.HasMore = n == param.Limit
+	return rst, nil
 }

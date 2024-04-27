@@ -11,6 +11,7 @@ type Route interface {
 	Create(ctx context.Context, route *entity.Route) (*entity.Route, error)
 	Get(ctx context.Context, id uint64) (*entity.Route, error)
 	BatchGet(ctx context.Context, ids []uint64) ([]*entity.Route, error)
+	List(ctx context.Context, param *ListRouteParam) ([]*entity.Route, error)
 }
 
 func NewRoute(db *gorm.DB) Route {
@@ -39,6 +40,44 @@ func (r *route) Get(ctx context.Context, id uint64) (*entity.Route, error) {
 func (r *route) BatchGet(ctx context.Context, ids []uint64) ([]*entity.Route, error) {
 	var items []*entity.Route
 	if err := r.dataSource(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+type ListRouteParam struct {
+	Name          string
+	Path          string
+	Limit         int
+	StartingAfter uint64
+	EndingBefore  uint64
+}
+
+func (r *route) List(ctx context.Context, param *ListRouteParam) ([]*entity.Route, error) {
+	var items []*entity.Route
+	db := r.dataSource(ctx).Model(entity.Route{})
+
+	if param.Name != "" {
+		db = db.Where("name like ?", "%"+param.Name+"%")
+	}
+
+	if param.Path != "" {
+		db = db.Where("path like ?", "%"+param.Path+"%")
+	}
+
+	if param.StartingAfter != 0 {
+		db = db.Where("id > ?", param.StartingAfter)
+	}
+
+	if param.EndingBefore != 0 {
+		db = db.Where("id < ?", param.EndingBefore)
+	}
+
+	if param.Limit != 0 {
+		db = db.Limit(param.Limit)
+	}
+
+	if err := db.Find(&items).Error; err != nil {
 		return nil, err
 	}
 	return items, nil
