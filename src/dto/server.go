@@ -18,10 +18,11 @@ type Server struct {
 
 // 域名
 type ServerName struct {
-	Id          string       `json:"id"`
-	Name        string       `json:"name"`                  // 域名
-	Protocol    string       `json:"protocol"`              // 协议
-	Certificate *Certificate `json:"certificate,omitempty"` // 证书
+	Id            string       `json:"id"`
+	Name          string       `json:"name"`                     // 域名
+	Protocol      string       `json:"protocol"`                 // 协议
+	CertificateId string       `json:"certificate_id,omitempty"` // 证书
+	Certificate   *Certificate `json:"certificate,omitempty"`    // 证书
 }
 
 func NewServerName(cert *model.ServerName) *ServerName {
@@ -30,6 +31,7 @@ func NewServerName(cert *model.ServerName) *ServerName {
 	}
 	rst.Name = cert.Name
 	rst.Protocol = cert.Protocol
+	rst.CertificateId = identity.Format(constant.CertificatePrefix, cert.CertificateId)
 	return rst
 }
 
