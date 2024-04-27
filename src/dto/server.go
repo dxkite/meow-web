@@ -6,6 +6,7 @@ import (
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/model"
+	"dxkite.cn/meownest/src/valueobject"
 )
 
 // 服务
@@ -59,11 +60,27 @@ func NewCertificate(cert *model.Certificate) *Certificate {
 
 // 路由信息
 type Route struct {
-	Id       string      `json:"id"`
-	Name     string      `json:"name"`
-	Method   []string    `json:"method"`
-	Path     string      `json:"path"`
-	Endpoint []*Endpoint `json:"endpoints,omitempty"`
+	Id          string                       `json:"id"`
+	Name        string                       `json:"name"`
+	Description string                       `json:"description"`
+	Method      []string                     `json:"method"`
+	Path        string                       `json:"path"`
+	Matcher     []*valueobject.MatcherConfig `json:"matcher"`
+	Endpoint    []*Endpoint                  `json:"endpoints,omitempty"`
+	CreatedAt   time.Time                    `json:"created_at"`
+	UpdatedAt   time.Time                    `json:"updated_at"`
+}
+
+func NewRoute(item *model.Route) *Route {
+	obj := &Route{Id: identity.Format(constant.CollectionPrefix, item.Id)}
+	obj.Name = item.Name
+	obj.Description = item.Description
+	obj.Method = item.Method
+	obj.Path = item.Path
+	obj.Matcher = item.Matcher
+	obj.CreatedAt = item.CreatedAt
+	obj.UpdatedAt = item.UpdatedAt
+	return obj
 }
 
 // 路由组

@@ -1,6 +1,9 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"dxkite.cn/meownest/src/valueobject"
+	"gorm.io/gorm"
+)
 
 type EndpointType string
 
@@ -19,7 +22,7 @@ type EndpointConfig struct {
 	// 请求头转发配置
 	ForwardHeader []*ForwardHeaderOption `gorm:"serializer:json" json:"forward_header"`
 	// 匹配规则
-	Matcher []*MatcherConfig `json:"matcher"`
+	Matcher []*valueobject.MatcherConfig `json:"matcher"`
 }
 
 type ForwardHeaderOption struct {
