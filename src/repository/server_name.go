@@ -11,6 +11,7 @@ type ServerName interface {
 	Create(ctx context.Context, serverName *entity.ServerName) (*entity.ServerName, error)
 	Get(ctx context.Context, id uint64) (*entity.ServerName, error)
 	List(ctx context.Context, param *ListServerNameParam) ([]*entity.ServerName, error)
+	Update(ctx context.Context, id uint64, ent *entity.ServerName) error
 	Delete(ctx context.Context, id uint64) error
 }
 
@@ -39,6 +40,13 @@ func (r *serverName) Get(ctx context.Context, id uint64) (*entity.ServerName, er
 
 func (r *serverName) Delete(ctx context.Context, id uint64) error {
 	if err := r.dataSource(ctx).Where("id = ?", id).Delete(entity.ServerName{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *serverName) Update(ctx context.Context, id uint64, ent *entity.ServerName) error {
+	if err := r.dataSource(ctx).Where("id = ?", id).Updates(&ent).Error; err != nil {
 		return err
 	}
 	return nil

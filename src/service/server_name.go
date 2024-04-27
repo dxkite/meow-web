@@ -16,6 +16,7 @@ type ServerName interface {
 	Create(ctx context.Context, param *CreateServerNameParam) (*dto.ServerName, error)
 	Get(ctx context.Context, param *GetServerNameParam) (*dto.ServerName, error)
 	Delete(ctx context.Context, param *DeleteServerNameParam) error
+	Update(ctx context.Context, param *UpdateServerNameParam) (*dto.ServerName, error)
 	List(ctx context.Context, param *ListServerNameParam) (*ListServerNameResult, error)
 }
 
@@ -190,6 +191,62 @@ func (s *serverName) List(ctx context.Context, param *ListServerNameParam) (*Lis
 	rst.Data = items
 	rst.HasMore = n == param.Limit
 	return rst, nil
+}
+
+type UpdateServerNameParam struct {
+	Id            string                            `json:"id" uri:"id" binding:"required"`
+	Name          string                            `json:"name" form:"name" binding:"required"`
+	Protocol      string                            `json:"protocol" form:"protocol" binding:"required"`
+	CertificateId string                            `json:"certificate_id" form:"certificate_id"`
+	Certificate   *CreateServerNameCertificateParam `json:"certificate" form:"certificate"`
+}
+
+func (s *serverName) Update(ctx context.Context, param *UpdateServerNameParam) (*dto.ServerName, error) {
+
+	var name *dto.ServerName
+	id := identity.Parse(constant.ServerNamePrefix, param.Id)
+
+	err := s.dataSource(ctx).Transaction(func(tx *gorm.DB) error {
+		ctx := repository.WithDataSource(ctx, tx)
+
+		var certificateId = identity.Parse(constant.CertificatePrefix, param.CertificateId)
+		var certificate *dto.Certificate
+
+		if param.Certificate != nil {
+			certEntity, err := entity.NewCertificateWithCertificateKey(param.Certificate.Certificate, param.Certificate.Key)
+			if err != nil {
+				return err
+			}
+
+			certEntity.Name = param.Name
+			if cert, err := s.rc.Create(ctx, certEntity); err != nil {
+				return err
+			} else {
+				certificateId = cert.Id
+				certificate = dto.NewCertificate(certEntity)
+			}
+		}
+
+		err := s.r.Update(ctx, id, &entity.ServerName{
+			Name:          param.Name,
+			Protocol:      param.Protocol,
+			CertificateId: certificateId,
+		})
+		if err != nil {
+			return err
+		}
+
+		entity, err := s.r.Get(ctx, identity.Parse(constant.ServerNamePrefix, param.Id))
+		if err != nil {
+			return err
+		}
+
+		name = dto.NewServerName(entity)
+		name.Certificate = certificate
+		return nil
+	})
+
+	return name, err
 }
 
 func (r *serverName) dataSource(ctx context.Context) *gorm.DB {
