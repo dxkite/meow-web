@@ -20,6 +20,7 @@ type GetServerNameParam struct {
 type ServerName interface {
 	Create(ctx context.Context, param *CreateServerNameParam) (*dto.ServerName, error)
 	Get(ctx context.Context, param *GetServerNameParam) (*dto.ServerName, error)
+	List(ctx context.Context, param *ListServerNameParam) (*ListServerNameResult, error)
 }
 
 func NewServerName(r repository.ServerName, rc repository.Certificate, db *gorm.DB) ServerName {
@@ -103,6 +104,79 @@ func (s *serverName) Get(ctx context.Context, param *GetServerNameParam) (*dto.S
 	}
 
 	return name, nil
+}
+
+type ListServerNameParam struct {
+	Name          string   `form:"name"`
+	Limit         int      `form:"limit" binding:"max=1000"`
+	StartingAfter string   `form:"starting_after"`
+	EndingBefore  string   `form:"ending_before"`
+	Expand        []string `json:"expand" form:"expand"`
+}
+
+type ListServerNameResult struct {
+	HasMore bool              `json:"has_more"`
+	Data    []*dto.ServerName `json:"data"`
+}
+
+func (s *serverName) List(ctx context.Context, param *ListServerNameParam) (*ListServerNameResult, error) {
+	if param.Limit == 0 {
+		param.Limit = 10
+	}
+
+	entities, err := s.r.List(ctx, &repository.ListServerNameParam{
+		Name:          param.Name,
+		Limit:         param.Limit,
+		StartingAfter: identity.Parse(constant.CollectionPrefix, param.StartingAfter),
+		EndingBefore:  identity.Parse(constant.CollectionPrefix, param.EndingBefore),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	n := len(entities)
+
+	items := make([]*dto.ServerName, n)
+
+	for i, v := range entities {
+		items[i] = dto.NewServerName(v)
+	}
+
+	if utils.InStringSlice("certificate", param.Expand) {
+		err := utils.ExpandStruct(
+			n,
+			func(i int) ([]uint64, error) {
+				return []uint64{entities[i].CertificateId}, nil
+			},
+			func(i int, v []interface{}) error {
+				if len(v) > 0 {
+					if vv, ok := v[0].(*entity.Certificate); ok {
+						items[i].Certificate = dto.NewCertificate(vv)
+					}
+				}
+				return nil
+			},
+			func(ids []uint64) (map[uint64]interface{}, error) {
+				v := map[uint64]interface{}{}
+				entities, err := s.rc.BatchGet(ctx, ids)
+				if err != nil {
+					return nil, err
+				}
+				for _, e := range entities {
+					v[e.Id] = e
+				}
+				return v, nil
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	rst := &ListServerNameResult{}
+	rst.Data = items
+	rst.HasMore = n == param.Limit
+	return rst, nil
 }
 
 func (r *serverName) dataSource(ctx context.Context) *gorm.DB {
