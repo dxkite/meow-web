@@ -24,16 +24,20 @@ type ServerName struct {
 	Protocol      string       `json:"protocol"`                 // 协议
 	CertificateId string       `json:"certificate_id,omitempty"` // 证书
 	Certificate   *Certificate `json:"certificate,omitempty"`    // 证书
+	CreatedAt     time.Time    `json:"created_at"`
+	UpdatedAt     time.Time    `json:"updated_at"`
 }
 
-func NewServerName(cert *entity.ServerName) *ServerName {
-	rst := &ServerName{
-		Id: identity.Format(constant.ServerNamePrefix, cert.Id),
+func NewServerName(item *entity.ServerName) *ServerName {
+	obj := &ServerName{
+		Id: identity.Format(constant.ServerNamePrefix, item.Id),
 	}
-	rst.Name = cert.Name
-	rst.Protocol = cert.Protocol
-	rst.CertificateId = identity.Format(constant.CertificatePrefix, cert.CertificateId)
-	return rst
+	obj.Name = item.Name
+	obj.Protocol = item.Protocol
+	obj.CertificateId = identity.Format(constant.CertificatePrefix, item.CertificateId)
+	obj.CreatedAt = item.CreatedAt
+	obj.UpdatedAt = item.UpdatedAt
+	return obj
 }
 
 // SSL证书
@@ -45,17 +49,21 @@ type Certificate struct {
 	EndTime     time.Time `json:"end_time"`
 	Key         string    `json:"key,omitempty"`
 	Certificate string    `json:"certificate,omitempty"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-func NewCertificate(cert *entity.Certificate) *Certificate {
-	rst := &Certificate{
-		Id: identity.Format(constant.CertificatePrefix, cert.Id),
+func NewCertificate(item *entity.Certificate) *Certificate {
+	obj := &Certificate{
+		Id: identity.Format(constant.CertificatePrefix, item.Id),
 	}
-	rst.Name = cert.Name
-	rst.StartTime = cert.StartTime
-	rst.EndTime = cert.EndTime
-	rst.Domain = cert.Domain
-	return rst
+	obj.Name = item.Name
+	obj.StartTime = item.StartTime
+	obj.EndTime = item.EndTime
+	obj.Domain = item.Domain
+	obj.CreatedAt = item.CreatedAt
+	obj.UpdatedAt = item.UpdatedAt
+	return obj
 }
 
 // 路由信息
