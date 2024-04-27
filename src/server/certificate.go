@@ -7,19 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Certificate interface {
-	Create(c *gin.Context)
+func NewCertificate(s service.Certificate) *Certificate {
+	return &Certificate{s: s}
 }
 
-func NewCertificate(s service.Certificate) Certificate {
-	return &certificate{s: s}
-}
-
-type certificate struct {
+type Certificate struct {
 	s service.Certificate
 }
 
-func (s *certificate) Create(c *gin.Context) {
+func (s *Certificate) Create(c *gin.Context) {
 	var param service.CreateCertificateParam
 
 	if err := c.ShouldBind(&param); err != nil {
@@ -36,7 +32,7 @@ func (s *certificate) Create(c *gin.Context) {
 	Result(c, http.StatusCreated, rst)
 }
 
-func WithCertificate(path string, server Certificate) func(s *HttpServer) {
+func WithCertificate(path string, server *Certificate) func(s *HttpServer) {
 	return func(s *HttpServer) {
 		group := s.engine.Group(path)
 		{

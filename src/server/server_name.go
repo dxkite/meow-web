@@ -7,20 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ServerName interface {
-	Create(c *gin.Context)
-	Get(c *gin.Context)
+func NewServerName(s service.ServerName) *ServerName {
+	return &ServerName{s: s}
 }
 
-func NewServerName(s service.ServerName) ServerName {
-	return &serverName{s: s}
-}
-
-type serverName struct {
+type ServerName struct {
 	s service.ServerName
 }
 
-func (s *serverName) Create(c *gin.Context) {
+func (s *ServerName) Create(c *gin.Context) {
 	var param service.CreateServerNameParam
 
 	if err := c.ShouldBind(&param); err != nil {
@@ -37,7 +32,7 @@ func (s *serverName) Create(c *gin.Context) {
 	Result(c, http.StatusCreated, rst)
 }
 
-func (s *serverName) Get(c *gin.Context) {
+func (s *ServerName) Get(c *gin.Context) {
 	var param service.GetServerNameParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
@@ -58,7 +53,7 @@ func (s *serverName) Get(c *gin.Context) {
 	Result(c, http.StatusCreated, rst)
 }
 
-func WithServerName(path string, server ServerName) func(s *HttpServer) {
+func WithServerName(path string, server *ServerName) func(s *HttpServer) {
 	return func(s *HttpServer) {
 		group := s.engine.Group(path)
 		{
