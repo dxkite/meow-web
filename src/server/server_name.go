@@ -57,3 +57,13 @@ func (s *serverName) Get(c *gin.Context) {
 	}
 	Result(c, http.StatusCreated, rst)
 }
+
+func WithServerName(path string, server ServerName) func(s *HttpServer) {
+	return func(s *HttpServer) {
+		group := s.engine.Group(path)
+		{
+			group.POST("", server.Create)
+			group.GET("/:id", server.Get)
+		}
+	}
+}

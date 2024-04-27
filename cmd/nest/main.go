@@ -13,7 +13,6 @@ import (
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/server"
 	"dxkite.cn/meownest/src/service"
-	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/glebarez/sqlite"
 	"github.com/go-playground/validator/v10"
@@ -73,19 +72,9 @@ func main() {
 	serverNameService := service.NewServerName(nameServerRepo, certificateRepository)
 	serverNameServer := server.NewServerName(serverNameService)
 
-	httpServer := gin.Default()
-	apiV1 := httpServer.Group("/api/v1")
-
-	serverNameApi := apiV1.Group("/server_name")
-	{
-		serverNameApi.POST("", serverNameServer.Create)
-		serverNameApi.GET("/:id", serverNameServer.Get)
-	}
-
-	certificateApi := apiV1.Group("/certificate")
-	{
-		certificateApi.POST("", certificateServer.Create)
-	}
-
+	httpServer := server.New(
+		server.WithServerName("/api/v1/server_name", serverNameServer),
+		server.WithCertificate("/api/v1/certificate", certificateServer),
+	)
 	httpServer.Run(":2333")
 }

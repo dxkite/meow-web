@@ -35,3 +35,12 @@ func (s *certificate) Create(c *gin.Context) {
 
 	Result(c, http.StatusCreated, rst)
 }
+
+func WithCertificate(path string, server Certificate) func(s *HttpServer) {
+	return func(s *HttpServer) {
+		group := s.engine.Group(path)
+		{
+			group.POST("", server.Create)
+		}
+	}
+}
