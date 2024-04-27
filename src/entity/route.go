@@ -8,5 +8,5 @@ type Route struct {
 	Description string                       `json:"description"`
 	Method      []string                     `json:"method" gorm:"serializer:json"`
 	Path        string                       `json:"path"`
-	Matcher     []*valueobject.MatcherConfig `json:"matcher" gorm:"serializer:json"`
+	Matcher     []*valueobject.MatcherOption `json:"matcher" gorm:"serializer:json"`
 }

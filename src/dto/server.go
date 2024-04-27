@@ -65,7 +65,7 @@ type Route struct {
 	Description string                       `json:"description"`
 	Method      []string                     `json:"method"`
 	Path        string                       `json:"path"`
-	Matcher     []*valueobject.MatcherConfig `json:"matcher"`
+	Matcher     []*valueobject.MatcherOption `json:"matcher"`
 	Endpoint    []*Endpoint                  `json:"endpoints,omitempty"`
 	CreatedAt   time.Time                    `json:"created_at"`
 	UpdatedAt   time.Time                    `json:"updated_at"`
@@ -113,25 +113,29 @@ type Endpoint struct {
 	Name string `json:"name"`
 	// 服务类型
 	Type string `json:"type"`
-	// 转发正则
-	ForwardRegex string `json:"forward_regex"`
-	// 转发配置
-	ForwardReplace string `json:"forward_replace"`
+	// 重写配置
+	ForwardRewrite *valueobject.ForwardRewriteOption `json:"forward_rewrite"`
 	// 请求头转发配置
-	ForwardHeader []*ForwardHeaderOption `json:"forward_header"`
+	ForwardHeader []*valueobject.ForwardHeaderOption `json:"forward_header"`
 	// 匹配规则
-	MatchFilter []*MatchOption `json:"match_filter"`
+	Matcher []*valueobject.MatcherOption `json:"matcher"`
+	// 远程服务
+	Endpoint *valueobject.ForwardEndpoint `gorm:"serializer:json" json:"endpoint"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type ForwardHeaderOption struct {
-	Type  string `json:"type"`
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-type MatchOption struct {
-	Source string `json:"source"` // 匹配源
-	Name   string `json:"name"`   // 匹配值
-	Type   string `json:"type"`   // 匹配方式
-	Value  string `json:"value"`  // 匹配内容
+func NewEndpoint(item *entity.Endpoint) *Endpoint {
+	obj := &Endpoint{Id: identity.Format(constant.CollectionPrefix, item.Id)}
+	obj.Name = item.Name
+	obj.Type = item.Type
+	obj.ForwardRewrite = item.ForwardRewrite
+	obj.ForwardHeader = item.ForwardHeader
+	obj.ForwardRewrite = item.ForwardRewrite
+	obj.Endpoint = item.Endpoint
+	obj.Matcher = item.Matcher
+	obj.CreatedAt = item.CreatedAt
+	obj.UpdatedAt = item.UpdatedAt
+	return obj
 }

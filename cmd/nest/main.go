@@ -64,7 +64,8 @@ func main() {
 	}
 
 	db = db.Debug()
-	db.AutoMigrate(entity.ServerName{}, entity.Certificate{}, entity.Collection{}, entity.Route{})
+	db.AutoMigrate(entity.ServerName{}, entity.Certificate{},
+		entity.Collection{}, entity.Route{}, entity.Endpoint{})
 
 	certificateRepository := repository.NewCertificate(db)
 	certificateService := service.NewCertificate(certificateRepository)
@@ -82,11 +83,16 @@ func main() {
 	routeService := service.NewRoute(routeRepository)
 	routeServer := server.NewRoute(routeService)
 
+	endpointRepository := repository.NewEndpoint(db)
+	endpointService := service.NewEndpoint(endpointRepository)
+	endpointServer := server.NewEndpoint(endpointService)
+
 	httpServer := server.New(
 		server.WithServerName("/api/v1/server_name", serverNameServer),
 		server.WithCertificate("/api/v1/certificate", certificateServer),
 		server.WithCollection("/api/v1/collection", collectionServer),
 		server.WithRoute("/api/v1/route", routeServer),
+		server.WithEndpoint("/api/v1/endpoint", endpointServer),
 	)
 	httpServer.Run(":2333")
 }

@@ -16,7 +16,7 @@ type CreateRouteParam struct {
 	Description string                       `json:"description" form:"description"`
 	Method      []string                     `json:"method" form:"method" binding:"required"`
 	Path        string                       `json:"path" form:"path" binding:"required"`
-	Matcher     []*valueobject.MatcherConfig `json:"matcher" form:"matcher"`
+	Matcher     []*valueobject.MatcherOption `json:"matcher" form:"matcher"`
 }
 
 type GetRouteParam struct {
