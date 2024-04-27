@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"dxkite.cn/log"
-	"dxkite.cn/meownest/src/utils"
+	"dxkite.cn/meownest/pkg/gateway/utils"
 )
 
 type AuthorizationHandler interface {

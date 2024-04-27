@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"dxkite.cn/log"
-	"dxkite.cn/meownest/src/utils"
+	"dxkite.cn/meownest/pkg/gateway/utils"
 )
 
 const DefaultHostname = ""

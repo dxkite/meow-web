@@ -8,9 +8,9 @@ import (
 
 	"dxkite.cn/log"
 	"dxkite.cn/meownest/pkg/executer"
-	"dxkite.cn/meownest/src/config"
-	"dxkite.cn/meownest/src/gateway"
-	"dxkite.cn/meownest/src/utils"
+	"dxkite.cn/meownest/pkg/gateway/config"
+	"dxkite.cn/meownest/pkg/gateway/gateway"
+	"dxkite.cn/meownest/pkg/gateway/utils"
 	"gopkg.in/yaml.v3"
 )
 

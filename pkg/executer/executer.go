@@ -7,7 +7,7 @@ import (
 
 	"dxkite.cn/log"
 
-	"dxkite.cn/meownest/src/utils"
+	"dxkite.cn/meownest/pkg/gateway/utils"
 )
 
 func ExecCommandWithName(name string, command []string) error {

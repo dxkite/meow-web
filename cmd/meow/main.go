@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"dxkite.cn/log"
-	"dxkite.cn/meownest/src/bootstrap"
+	"dxkite.cn/meownest/pkg/gateway/bootstrap"
 )
 
 func init() {
