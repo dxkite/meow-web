@@ -50,7 +50,7 @@ func (s *ServerName) Get(c *gin.Context) {
 		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
 		return
 	}
-	Result(c, http.StatusCreated, rst)
+	Result(c, http.StatusOK, rst)
 }
 
 func WithServerName(path string, server *ServerName) func(s *HttpServer) {

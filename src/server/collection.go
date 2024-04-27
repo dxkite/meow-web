@@ -50,7 +50,7 @@ func (s *Collection) Get(c *gin.Context) {
 		Error(c, http.StatusInternalServerError, "internal_error", err.Error())
 		return
 	}
-	Result(c, http.StatusCreated, rst)
+	Result(c, http.StatusOK, rst)
 }
 
 func WithCollection(path string, server *Collection) func(s *HttpServer) {
