@@ -2,8 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 
 	"dxkite.cn/meownest/src/dto"
 	"dxkite.cn/meownest/src/entity"
@@ -29,25 +27,12 @@ type certificate struct {
 }
 
 func (s *certificate) Create(ctx context.Context, param *CreateCertificateParam) (*dto.Certificate, error) {
-	cert, err := tls.X509KeyPair([]byte(param.Certificate), []byte(param.Key))
+	entity, err := entity.NewCertificateWithCertificateKey(param.Certificate, param.Key)
 	if err != nil {
 		return nil, err
 	}
 
-	leaf, err := x509.ParseCertificate(cert.Certificate[0])
-	if err != nil {
-		return nil, err
-	}
-
-	val := &entity.Certificate{}
-	val.Name = param.Name
-	val.Key = param.Key
-	val.Certificate = param.Certificate
-	val.StartTime = leaf.NotBefore
-	val.EndTime = leaf.NotAfter
-	val.Domain = leaf.DNSNames
-
-	resp, err := s.r.Create(ctx, val)
+	resp, err := s.r.Create(ctx, entity)
 	if err != nil {
 		return nil, err
 	}

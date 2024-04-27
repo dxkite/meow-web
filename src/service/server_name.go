@@ -22,14 +22,13 @@ type ServerName interface {
 	Get(ctx context.Context, param *GetServerNameParam) (*dto.ServerName, error)
 }
 
-func NewServerName(r repository.ServerName, rc repository.Certificate, sc Certificate, db *gorm.DB) ServerName {
-	return &serverName{r: r, rc: rc, sc: sc, db: db}
+func NewServerName(r repository.ServerName, rc repository.Certificate, db *gorm.DB) ServerName {
+	return &serverName{r: r, rc: rc, db: db}
 }
 
 type serverName struct {
 	r  repository.ServerName
 	rc repository.Certificate
-	sc Certificate
 	db *gorm.DB
 }
 
@@ -53,26 +52,28 @@ func (s *serverName) Create(ctx context.Context, param *CreateServerNameParam) (
 	err := s.dataSource(ctx).Transaction(func(tx *gorm.DB) error {
 		ctx := repository.WithDataSource(ctx, tx)
 
-		var certificateId = param.CertificateId
+		var certificateId = identity.Parse(constant.CertificatePrefix, param.CertificateId)
 		var certificate *dto.Certificate
 
 		if param.Certificate != nil {
-			if cert, err := s.sc.Create(ctx, &CreateCertificateParam{
-				Name:        param.Name,
-				Key:         param.Certificate.Key,
-				Certificate: param.Certificate.Certificate,
-			}); err != nil {
+			certEntity, err := entity.NewCertificateWithCertificateKey(param.Certificate.Certificate, param.Certificate.Key)
+			if err != nil {
+				return err
+			}
+
+			certEntity.Name = param.Name
+			if cert, err := s.rc.Create(ctx, certEntity); err != nil {
 				return err
 			} else {
 				certificateId = cert.Id
-				certificate = cert
+				certificate = dto.NewCertificate(certEntity)
 			}
 		}
 
 		entity, err := s.r.Create(ctx, &entity.ServerName{
 			Name:          param.Name,
 			Protocol:      param.Protocol,
-			CertificateId: identity.Parse(constant.CertificatePrefix, certificateId),
+			CertificateId: certificateId,
 		})
 		if err != nil {
 			return err

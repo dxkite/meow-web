@@ -75,7 +75,7 @@ func main() {
 	certificateServer := server.NewCertificate(certificateService)
 
 	nameServerRepository := repository.NewServerName(db)
-	serverNameService := service.NewServerName(nameServerRepository, certificateRepository, certificateService, db)
+	serverNameService := service.NewServerName(nameServerRepository, certificateRepository, db)
 	serverNameServer := server.NewServerName(serverNameService)
 
 	routeRepository := repository.NewRoute(db)
