@@ -15,10 +15,10 @@ type Collection interface {
 	Create(ctx context.Context, param *CreateCollectionParam) (*dto.Collection, error)
 	Get(ctx context.Context, param *GetCollectionParam) (*dto.Collection, error)
 	List(ctx context.Context, param *ListCollectionParam) (*ListCollectionResult, error)
-	LinkRoute(ctx context.Context, param *LinkRouteParam) error
-	DeleteRoute(ctx context.Context, param *DeleteRouteParam) error
-	LinkEndpoint(ctx context.Context, param *LinkEndpointParam) error
-	DeleteEndpoint(ctx context.Context, param *DeleteEndpointParam) error
+	LinkRoute(ctx context.Context, param *LinkCollectionRouteParam) error
+	DeleteRoute(ctx context.Context, param *DeleteCollectionRouteParam) error
+	LinkEndpoint(ctx context.Context, param *LinkCollectionEndpointParam) error
+	DeleteEndpoint(ctx context.Context, param *DeleteCollectionEndpointParam) error
 }
 
 func NewCollection(r repository.Collection, rl repository.Link, rr repository.Route, re repository.Endpoint) Collection {
@@ -116,12 +116,12 @@ func (s *collection) Get(ctx context.Context, param *GetCollectionParam) (*dto.C
 	return collection, nil
 }
 
-type LinkRouteParam struct {
+type LinkCollectionRouteParam struct {
 	Id      string   `json:"id" uri:"id" binding:"required"`
 	RouteId []string `json:"route_id" form:"route_id" binding:"required"`
 }
 
-func (s *collection) LinkRoute(ctx context.Context, param *LinkRouteParam) error {
+func (s *collection) LinkRoute(ctx context.Context, param *LinkCollectionRouteParam) error {
 	item, err := s.r.Get(ctx, identity.Parse(constant.CollectionPrefix, param.Id))
 	if err != nil {
 		return err
@@ -140,12 +140,12 @@ func (s *collection) LinkRoute(ctx context.Context, param *LinkRouteParam) error
 	return s.rl.BatchLink(ctx, constant.LinkDirectCollectionRoute, item.Id, linkIds)
 }
 
-type DeleteRouteParam struct {
+type DeleteCollectionRouteParam struct {
 	Id      string   `json:"id" uri:"id" binding:"required"`
 	RouteId []string `json:"route_id" form:"route_id" binding:"required,max=1000"`
 }
 
-func (s *collection) DeleteRoute(ctx context.Context, param *DeleteRouteParam) error {
+func (s *collection) DeleteRoute(ctx context.Context, param *DeleteCollectionRouteParam) error {
 	item, err := s.r.Get(ctx, identity.Parse(constant.CollectionPrefix, param.Id))
 	if err != nil {
 		return err
@@ -164,12 +164,12 @@ func (s *collection) DeleteRoute(ctx context.Context, param *DeleteRouteParam) e
 	return s.rl.BatchDeleteLink(ctx, constant.LinkDirectCollectionRoute, item.Id, linkIds)
 }
 
-type LinkEndpointParam struct {
+type LinkCollectionEndpointParam struct {
 	Id         string   `json:"id" uri:"id" binding:"required"`
 	EndpointId []string `json:"endpoint_id" form:"endpoint_id" binding:"required"`
 }
 
-func (s *collection) LinkEndpoint(ctx context.Context, param *LinkEndpointParam) error {
+func (s *collection) LinkEndpoint(ctx context.Context, param *LinkCollectionEndpointParam) error {
 	item, err := s.r.Get(ctx, identity.Parse(constant.CollectionPrefix, param.Id))
 	if err != nil {
 		return err
@@ -188,12 +188,12 @@ func (s *collection) LinkEndpoint(ctx context.Context, param *LinkEndpointParam)
 	return s.rl.BatchLink(ctx, constant.LinkDirectCollectionEndpoint, item.Id, linkIds)
 }
 
-type DeleteEndpointParam struct {
+type DeleteCollectionEndpointParam struct {
 	Id         string   `json:"id" uri:"id" binding:"required"`
 	EndpointId []string `json:"endpoint_id" form:"endpoint_id" binding:"required,max=1000"`
 }
 
-func (s *collection) DeleteEndpoint(ctx context.Context, param *DeleteEndpointParam) error {
+func (s *collection) DeleteEndpoint(ctx context.Context, param *DeleteCollectionEndpointParam) error {
 	item, err := s.r.Get(ctx, identity.Parse(constant.CollectionPrefix, param.Id))
 	if err != nil {
 		return err

@@ -68,7 +68,7 @@ func (s *Collection) List(c *gin.Context) {
 }
 
 func (s *Collection) LinkRoute(c *gin.Context) {
-	var param service.LinkRouteParam
+	var param service.LinkCollectionRouteParam
 
 	param.Id = c.Param("id")
 
@@ -87,7 +87,7 @@ func (s *Collection) LinkRoute(c *gin.Context) {
 }
 
 func (s *Collection) DeleteRoute(c *gin.Context) {
-	var param service.DeleteRouteParam
+	var param service.DeleteCollectionRouteParam
 
 	param.Id = c.Param("id")
 
@@ -106,7 +106,7 @@ func (s *Collection) DeleteRoute(c *gin.Context) {
 }
 
 func (s *Collection) LinkEndpoint(c *gin.Context) {
-	var param service.LinkEndpointParam
+	var param service.LinkCollectionEndpointParam
 
 	param.Id = c.Param("id")
 
@@ -125,7 +125,7 @@ func (s *Collection) LinkEndpoint(c *gin.Context) {
 }
 
 func (s *Collection) DeleteEndpoint(c *gin.Context) {
-	var param service.DeleteEndpointParam
+	var param service.DeleteCollectionEndpointParam
 
 	param.Id = c.Param("id")
 
