@@ -73,5 +73,6 @@ func main() {
 	httpServer.RegisterPrefix("/api/v1", routeServer)
 	httpServer.RegisterPrefix("/api/v1", endpointServer)
 	httpServer.RegisterPrefix("/api/v1", collectionServer)
+	httpServer.Register(server.NewSwagger())
 	httpServer.Run(":2333")
 }
