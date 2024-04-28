@@ -143,17 +143,12 @@ func (s *Collection) DeleteEndpoint(c *gin.Context) {
 	ResultEmpty(c, http.StatusOK)
 }
 
-func WithCollection(path string, server *Collection) func(s *HttpServer) {
-	return func(s *HttpServer) {
-		group := s.engine.Group(path)
-		{
-			group.GET("", server.List)
-			group.POST("", server.Create)
-			group.GET("/:id", server.Get)
-			group.POST("/:id/route", server.LinkRoute)
-			group.DELETE("/:id/route", server.DeleteRoute)
-			group.POST("/:id/endpoint", server.LinkEndpoint)
-			group.DELETE("/:id/endpoint", server.DeleteEndpoint)
-		}
-	}
+func (s *Collection) RegisterToHttp(group gin.IRouter) {
+	group.GET("/collection", s.List)
+	group.POST("/collection", s.Create)
+	group.GET("/collection/:id", s.Get)
+	group.POST("/collection/:id/route", s.LinkRoute)
+	group.DELETE("/collection/:id/route", s.DeleteRoute)
+	group.POST("/collection/:id/endpoint", s.LinkEndpoint)
+	group.DELETE("/collection/:id/endpoint", s.DeleteEndpoint)
 }

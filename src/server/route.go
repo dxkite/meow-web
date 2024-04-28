@@ -103,15 +103,10 @@ func (s *Route) Delete(c *gin.Context) {
 	ResultEmpty(c, http.StatusOK)
 }
 
-func WithRoute(path string, server *Route) func(s *HttpServer) {
-	return func(s *HttpServer) {
-		group := s.engine.Group(path)
-		{
-			group.POST("", server.Create)
-			group.GET("", server.List)
-			group.GET("/:id", server.Get)
-			group.POST("/:id", server.Update)
-			group.DELETE("/:id", server.Delete)
-		}
-	}
+func (s *Route) RegisterToHttp(group gin.IRouter) {
+	group.GET("/route", s.List)
+	group.POST("/route", s.Create)
+	group.GET("/route/:id", s.Get)
+	group.DELETE("/route/:id", s.Delete)
+	group.POST("/route/:id", s.Update)
 }

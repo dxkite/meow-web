@@ -1,14 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"os"
 	"reflect"
-	"runtime"
 	"strings"
-	"time"
 
-	"dxkite.cn/log"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
@@ -21,16 +16,8 @@ import (
 )
 
 func init() {
-	initLogger()
 	initBinding()
 	identity.DefaultMask = 1234627081864056831
-}
-
-func initLogger() {
-	log.SetOutput(log.NewColorWriter(os.Stdout))
-	log.SetLogCaller(true)
-	log.SetAsync(false)
-	log.SetLevel(log.LMaxLevel)
 }
 
 func initBinding() {
@@ -48,18 +35,6 @@ func initBinding() {
 }
 
 func main() {
-	defer func() {
-		if r := recover(); r != nil {
-			buf := make([]byte, 2048)
-			n := runtime.Stack(buf, false)
-			log.Error("[panic error]", r)
-			log.Error(string(buf[:n]))
-			name := fmt.Sprintf("crash-%s.log", time.Now().Format("20060102150405"))
-			panicErr := string(buf[:n])
-			_ = os.WriteFile(name, []byte(panicErr), os.ModePerm)
-		}
-	}()
-
 	db, err := gorm.Open(sqlite.Open("data.db"))
 	if err != nil {
 		panic(err)
@@ -92,12 +67,11 @@ func main() {
 	collectionService := service.NewCollection(collectionRepository, linkRepository, routeRepository, endpointRepository)
 	collectionServer := server.NewCollection(collectionService)
 
-	httpServer := server.New(
-		server.WithServerName("/api/v1/server_name", serverNameServer),
-		server.WithCertificate("/api/v1/certificate", certificateServer),
-		server.WithCollection("/api/v1/collection", collectionServer),
-		server.WithRoute("/api/v1/route", routeServer),
-		server.WithEndpoint("/api/v1/endpoint", endpointServer),
-	)
+	httpServer := server.New()
+	httpServer.RegisterPrefix("/api/v1", certificateServer)
+	httpServer.RegisterPrefix("/api/v1", serverNameServer)
+	httpServer.RegisterPrefix("/api/v1", routeServer)
+	httpServer.RegisterPrefix("/api/v1", endpointServer)
+	httpServer.RegisterPrefix("/api/v1", collectionServer)
 	httpServer.Run(":2333")
 }

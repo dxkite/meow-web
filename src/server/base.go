@@ -12,11 +12,13 @@ import (
 
 type WithOption func(s *HttpServer)
 
-func New(opts ...WithOption) *HttpServer {
-	s := &HttpServer{engine: gin.Default()}
-	for _, opt := range opts {
-		opt(s)
-	}
+type RegisterHandler interface {
+	RegisterToHttp(c gin.IRouter)
+}
+
+func New() *HttpServer {
+	g := gin.Default()
+	s := &HttpServer{engine: g}
 	return s
 }
 
@@ -26,6 +28,14 @@ type HttpServer struct {
 
 func (s *HttpServer) Run(addr ...string) {
 	s.engine.Run(addr...)
+}
+
+func (s *HttpServer) Register(h RegisterHandler) {
+	h.RegisterToHttp(s.engine)
+}
+
+func (s *HttpServer) RegisterPrefix(prefix string, h RegisterHandler) {
+	h.RegisterToHttp(s.engine.Group(prefix))
 }
 
 func Error(c *gin.Context, status int, code, message string) {

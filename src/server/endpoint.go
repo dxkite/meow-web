@@ -53,12 +53,7 @@ func (s *Endpoint) Get(c *gin.Context) {
 	Result(c, http.StatusOK, rst)
 }
 
-func WithEndpoint(path string, server *Endpoint) func(s *HttpServer) {
-	return func(s *HttpServer) {
-		group := s.engine.Group(path)
-		{
-			group.POST("", server.Create)
-			group.GET("/:id", server.Get)
-		}
-	}
+func (s *Endpoint) RegisterToHttp(group gin.IRouter) {
+	group.POST("/endpoint", s.Create)
+	group.GET("/endpoint/:id", s.Get)
 }
