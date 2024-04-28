@@ -10,10 +10,27 @@ import (
 	"gorm.io/gorm"
 )
 
-type WithOption func(s *HttpServer)
-
 type RegisterHandler interface {
 	RegisterToHttp(c gin.IRouter)
+}
+
+type HttpError struct {
+	status int
+	Error  *HttpErrorDetail `json:"error"`
+}
+
+type HttpErrorDetail struct {
+	Code    string   `json:"code"`
+	Message string   `json:"message"`
+	Details []string `json:"details"`
+}
+
+func NewHttpError(status int, details *HttpErrorDetail) *HttpError {
+	return &HttpError{status: status, Error: details}
+}
+
+func (e *HttpError) Respond(c *gin.Context) {
+	c.JSON(e.status, e)
 }
 
 func New() *HttpServer {
@@ -39,12 +56,10 @@ func (s *HttpServer) RegisterPrefix(prefix string, h RegisterHandler) {
 }
 
 func Error(c *gin.Context, status int, code, message string) {
-	c.JSON(status, gin.H{
-		"error": gin.H{
-			"error":         code,
-			"error_message": message,
-		},
-	})
+	NewHttpError(status, &HttpErrorDetail{
+		Code:    code,
+		Message: message,
+	}).Respond(c)
 }
 
 func Result(c *gin.Context, status int, data interface{}) {
@@ -66,24 +81,19 @@ func ResultError(c *gin.Context, err error) {
 func ResultErrorBind(c *gin.Context, err error) {
 	if e, ok := err.(validator.ValidationErrors); ok {
 		errorList := []string{}
-
 		for _, v := range e {
 			customErr := fmt.Sprintf("invalid key %s (%s) by validate rule %s (%s)", v.Field(), v.Namespace(), v.Tag(), v.Param())
 			errorList = append(errorList, customErr)
 		}
-
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": gin.H{
-				"error":         "invalid_parameter",
-				"error_details": errorList,
-			},
-		})
+		NewHttpError(http.StatusBadRequest, &HttpErrorDetail{
+			Code:    "invalid_parameter",
+			Message: "validate_error",
+			Details: errorList,
+		}).Respond(c)
 	} else {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": gin.H{
-				"error":         "invalid_parameter",
-				"error_message": err.Error(),
-			},
-		})
+		NewHttpError(http.StatusBadRequest, &HttpErrorDetail{
+			Code:    "invalid_parameter",
+			Message: err.Error(),
+		}).Respond(c)
 	}
 }
