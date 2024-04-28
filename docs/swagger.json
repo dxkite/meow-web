@@ -3,5 +3,958 @@
     "info": {
         "contact": {}
     },
-    "paths": {}
+    "paths": {
+        "/route": {
+            "get": {
+                "description": "路由列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "路由"
+                ],
+                "summary": "路由列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "搜索名称",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "搜索路径",
+                        "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "限制",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "从当前ID开始",
+                        "name": "starting_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "从当前ID结束",
+                        "name": "ending_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "展开数据",
+                        "name": "expand",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.ListRouteResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建路由",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "路由"
+                ],
+                "summary": "创建路由",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateRouteParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ServerName"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/route/{id}": {
+            "get": {
+                "description": "获取路由",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "路由"
+                ],
+                "summary": "获取路由",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "路由ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "展开数据",
+                        "name": "expand",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Route"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "更新路由",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "路由"
+                ],
+                "summary": "更新路由",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "路由ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "数据",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UpdateRouteParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Route"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除路由",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "路由"
+                ],
+                "summary": "删除路由",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "路由ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/server_name": {
+            "get": {
+                "description": "域名列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "域名"
+                ],
+                "summary": "域名列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "域名",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "限制",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "从当前ID开始",
+                        "name": "starting_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "从当前ID结束",
+                        "name": "ending_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "展开数据",
+                        "name": "expand",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.ListServerNameResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建域名",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "域名"
+                ],
+                "summary": "创建域名",
+                "parameters": [
+                    {
+                        "description": "请求体",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateServerNameParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ServerName"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/server_name/{id}": {
+            "get": {
+                "description": "获取域名",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "域名"
+                ],
+                "summary": "获取域名",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "域名ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "展开数据",
+                        "name": "expand",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ServerName"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "更新域名",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "域名"
+                ],
+                "summary": "更新域名",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "域名ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "数据",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UpdateServerNameParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除域名",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "域名"
+                ],
+                "summary": "删除域名",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "域名ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/server.HttpError"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.Certificate": {
+            "type": "object",
+            "properties": {
+                "certificate": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.Endpoint": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "endpoint": {
+                    "description": "远程服务",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/value.ForwardEndpoint"
+                        }
+                    ]
+                },
+                "forward_header": {
+                    "description": "请求头转发配置",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/value.ForwardHeaderOption"
+                    }
+                },
+                "forward_rewrite": {
+                    "description": "重写配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/value.ForwardRewriteOption"
+                        }
+                    ]
+                },
+                "id": {
+                    "type": "string"
+                },
+                "matcher": {
+                    "description": "匹配规则",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/value.MatcherOption"
+                    }
+                },
+                "name": {
+                    "description": "后端名",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "服务类型",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.Route": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "endpoints": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Endpoint"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "matcher": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/value.MatcherOption"
+                    }
+                },
+                "method": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ServerName": {
+            "type": "object",
+            "properties": {
+                "certificate": {
+                    "description": "证书",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.Certificate"
+                        }
+                    ]
+                },
+                "certificate_id": {
+                    "description": "证书",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "域名",
+                    "type": "string"
+                },
+                "protocol": {
+                    "description": "协议",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "server.HttpError": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/server.HttpErrorDetail"
+                }
+            }
+        },
+        "server.HttpErrorDetail": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.CreateRouteParam": {
+            "type": "object",
+            "required": [
+                "matcher",
+                "method",
+                "name",
+                "path"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "matcher": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/value.MatcherOption"
+                    }
+                },
+                "method": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.CreateServerNameCertificateParam": {
+            "type": "object",
+            "required": [
+                "certificate",
+                "key"
+            ],
+            "properties": {
+                "certificate": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.CreateServerNameParam": {
+            "type": "object",
+            "required": [
+                "name",
+                "protocol"
+            ],
+            "properties": {
+                "certificate": {
+                    "$ref": "#/definitions/service.CreateServerNameCertificateParam"
+                },
+                "certificate_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "protocol": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.ListRouteResult": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Route"
+                    }
+                },
+                "has_more": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "service.ListServerNameResult": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ServerName"
+                    }
+                },
+                "has_more": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "service.UpdateRouteParam": {
+            "type": "object",
+            "required": [
+                "id",
+                "matcher",
+                "method",
+                "name",
+                "path"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "matcher": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/value.MatcherOption"
+                    }
+                },
+                "method": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.UpdateServerNameParam": {
+            "type": "object",
+            "required": [
+                "id",
+                "name",
+                "protocol"
+            ],
+            "properties": {
+                "certificate": {
+                    "$ref": "#/definitions/service.CreateServerNameCertificateParam"
+                },
+                "certificate_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "protocol": {
+                    "type": "string"
+                }
+            }
+        },
+        "value.ForwardEndpoint": {
+            "type": "object",
+            "properties": {
+                "static": {
+                    "$ref": "#/definitions/value.ForwardEndpointStatic"
+                }
+            }
+        },
+        "value.ForwardEndpointStatic": {
+            "type": "object",
+            "required": [
+                "address"
+            ],
+            "properties": {
+                "address": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "value.ForwardHeaderOption": {
+            "type": "object",
+            "required": [
+                "name",
+                "type"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "value.ForwardRewriteOption": {
+            "type": "object",
+            "required": [
+                "regex",
+                "replace"
+            ],
+            "properties": {
+                "regex": {
+                    "description": "转发正则",
+                    "type": "string"
+                },
+                "replace": {
+                    "description": "转发配置",
+                    "type": "string"
+                }
+            }
+        },
+        "value.MatcherOption": {
+            "type": "object",
+            "required": [
+                "name",
+                "source",
+                "type",
+                "value"
+            ],
+            "properties": {
+                "name": {
+                    "description": "匹配值",
+                    "type": "string"
+                },
+                "source": {
+                    "description": "匹配源",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "匹配方式",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "匹配内容",
+                    "type": "string"
+                }
+            }
+        }
+    }
 }

@@ -1,4 +1,637 @@
+definitions:
+  dto.Certificate:
+    properties:
+      certificate:
+        type: string
+      created_at:
+        type: string
+      domain:
+        items:
+          type: string
+        type: array
+      end_time:
+        type: string
+      id:
+        type: string
+      key:
+        type: string
+      name:
+        type: string
+      start_time:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.Endpoint:
+    properties:
+      created_at:
+        type: string
+      endpoint:
+        allOf:
+        - $ref: '#/definitions/value.ForwardEndpoint'
+        description: 远程服务
+      forward_header:
+        description: 请求头转发配置
+        items:
+          $ref: '#/definitions/value.ForwardHeaderOption'
+        type: array
+      forward_rewrite:
+        allOf:
+        - $ref: '#/definitions/value.ForwardRewriteOption'
+        description: 重写配置
+      id:
+        type: string
+      matcher:
+        description: 匹配规则
+        items:
+          $ref: '#/definitions/value.MatcherOption'
+        type: array
+      name:
+        description: 后端名
+        type: string
+      type:
+        description: 服务类型
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.Route:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      endpoints:
+        items:
+          $ref: '#/definitions/dto.Endpoint'
+        type: array
+      id:
+        type: string
+      matcher:
+        items:
+          $ref: '#/definitions/value.MatcherOption'
+        type: array
+      method:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      path:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.ServerName:
+    properties:
+      certificate:
+        allOf:
+        - $ref: '#/definitions/dto.Certificate'
+        description: 证书
+      certificate_id:
+        description: 证书
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        description: 域名
+        type: string
+      protocol:
+        description: 协议
+        type: string
+      updated_at:
+        type: string
+    type: object
+  server.HttpError:
+    properties:
+      error:
+        $ref: '#/definitions/server.HttpErrorDetail'
+    type: object
+  server.HttpErrorDetail:
+    properties:
+      code:
+        type: string
+      details:
+        items:
+          type: string
+        type: array
+      message:
+        type: string
+    type: object
+  service.CreateRouteParam:
+    properties:
+      description:
+        type: string
+      matcher:
+        items:
+          $ref: '#/definitions/value.MatcherOption'
+        type: array
+      method:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      path:
+        type: string
+    required:
+    - matcher
+    - method
+    - name
+    - path
+    type: object
+  service.CreateServerNameCertificateParam:
+    properties:
+      certificate:
+        type: string
+      key:
+        type: string
+    required:
+    - certificate
+    - key
+    type: object
+  service.CreateServerNameParam:
+    properties:
+      certificate:
+        $ref: '#/definitions/service.CreateServerNameCertificateParam'
+      certificate_id:
+        type: string
+      name:
+        type: string
+      protocol:
+        type: string
+    required:
+    - name
+    - protocol
+    type: object
+  service.ListRouteResult:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.Route'
+        type: array
+      has_more:
+        type: boolean
+    type: object
+  service.ListServerNameResult:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.ServerName'
+        type: array
+      has_more:
+        type: boolean
+    type: object
+  service.UpdateRouteParam:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      matcher:
+        items:
+          $ref: '#/definitions/value.MatcherOption'
+        type: array
+      method:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      path:
+        type: string
+    required:
+    - id
+    - matcher
+    - method
+    - name
+    - path
+    type: object
+  service.UpdateServerNameParam:
+    properties:
+      certificate:
+        $ref: '#/definitions/service.CreateServerNameCertificateParam'
+      certificate_id:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      protocol:
+        type: string
+    required:
+    - id
+    - name
+    - protocol
+    type: object
+  value.ForwardEndpoint:
+    properties:
+      static:
+        $ref: '#/definitions/value.ForwardEndpointStatic'
+    type: object
+  value.ForwardEndpointStatic:
+    properties:
+      address:
+        items:
+          type: string
+        type: array
+    required:
+    - address
+    type: object
+  value.ForwardHeaderOption:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      value:
+        type: string
+    required:
+    - name
+    - type
+    type: object
+  value.ForwardRewriteOption:
+    properties:
+      regex:
+        description: 转发正则
+        type: string
+      replace:
+        description: 转发配置
+        type: string
+    required:
+    - regex
+    - replace
+    type: object
+  value.MatcherOption:
+    properties:
+      name:
+        description: 匹配值
+        type: string
+      source:
+        description: 匹配源
+        type: string
+      type:
+        description: 匹配方式
+        type: string
+      value:
+        description: 匹配内容
+        type: string
+    required:
+    - name
+    - source
+    - type
+    - value
+    type: object
 info:
   contact: {}
-paths: {}
+paths:
+  /route:
+    get:
+      consumes:
+      - application/json
+      description: 路由列表
+      parameters:
+      - description: 搜索名称
+        in: query
+        name: name
+        type: string
+      - description: 搜索路径
+        in: query
+        name: path
+        type: string
+      - description: 限制
+        in: query
+        name: limit
+        type: integer
+      - description: 从当前ID开始
+        in: query
+        name: starting_after
+        type: string
+      - description: 从当前ID结束
+        in: query
+        name: ending_before
+        type: string
+      - collectionFormat: csv
+        description: 展开数据
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.ListRouteResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.HttpError'
+      summary: 路由列表
+      tags:
+      - 路由
+    post:
+      consumes:
+      - application/json
+      description: 创建路由
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateRouteParam'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.ServerName'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.HttpError'
+      summary: 创建路由
+      tags:
+      - 路由
+  /route/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除路由
+      parameters:
+      - description: 路由ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.HttpError'
+      summary: 删除路由
+      tags:
+      - 路由
+    get:
+      consumes:
+      - application/json
+      description: 获取路由
+      parameters:
+      - description: 路由ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: 展开数据
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Route'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.HttpError'
+      summary: 获取路由
+      tags:
+      - 路由
+    post:
+      consumes:
+      - application/json
+      description: 更新路由
+      parameters:
+      - description: 路由ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 数据
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateRouteParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Route'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.HttpError'
+      summary: 更新路由
+      tags:
+      - 路由
+  /server_name:
+    get:
+      consumes:
+      - application/json
+      description: 域名列表
+      parameters:
+      - description: 域名
+        in: query
+        name: name
+        type: string
+      - description: 限制
+        in: query
+        name: limit
+        type: integer
+      - description: 从当前ID开始
+        in: query
+        name: starting_after
+        type: string
+      - description: 从当前ID结束
+        in: query
+        name: ending_before
+        type: string
+      - collectionFormat: csv
+        description: 展开数据
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.ListServerNameResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.HttpError'
+      summary: 域名列表
+      tags:
+      - 域名
+    post:
+      consumes:
+      - application/json
+      description: 创建域名
+      parameters:
+      - description: 请求体
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateServerNameParam'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.ServerName'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.HttpError'
+      summary: 创建域名
+      tags:
+      - 域名
+  /server_name/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除域名
+      parameters:
+      - description: 域名ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.HttpError'
+      summary: 删除域名
+      tags:
+      - 域名
+    get:
+      consumes:
+      - application/json
+      description: 获取域名
+      parameters:
+      - description: 域名ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: 展开数据
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ServerName'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.HttpError'
+      summary: 获取域名
+      tags:
+      - 域名
+    post:
+      consumes:
+      - application/json
+      description: 更新域名
+      parameters:
+      - description: 域名ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 数据
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateServerNameParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/server.HttpError'
+      summary: 更新域名
+      tags:
+      - 域名
 swagger: "2.0"
