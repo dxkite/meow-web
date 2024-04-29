@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"dxkite.cn/meownest/pkg/httpserver"
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-gonic/gin"
 )
@@ -31,17 +32,17 @@ func (s *ServerName) Create(c *gin.Context) {
 	var param service.CreateServerNameParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Create(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
 
-	Result(c, http.StatusCreated, rst)
+	httpserver.Result(c, http.StatusCreated, rst)
 }
 
 // 获取域名
@@ -61,21 +62,21 @@ func (s *ServerName) Get(c *gin.Context) {
 	var param service.GetServerNameParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Get(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
-	Result(c, http.StatusOK, rst)
+	httpserver.Result(c, http.StatusOK, rst)
 }
 
 // 域名列表
@@ -90,7 +91,7 @@ func (s *ServerName) Get(c *gin.Context) {
 // @Param        starting_after query string false "从当前ID开始"
 // @Param        ending_before query string false "从当前ID结束"
 // @Param        expand query []string false "展开数据"
-// @Success      200  {object} service.ListServerNameResult
+// @Success      200  {object} service.ListServerNameserver.Result
 // @Failure      400  {object} HttpError
 // @Failure      500  {object} HttpError
 // @Router       /server_name [get]
@@ -98,17 +99,17 @@ func (s *ServerName) List(c *gin.Context) {
 	var param service.ListServerNameParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.List(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
 
-	Result(c, http.StatusOK, rst)
+	httpserver.Result(c, http.StatusOK, rst)
 }
 
 // 更新域名
@@ -129,16 +130,16 @@ func (s *ServerName) Update(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Update(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
-	Result(c, http.StatusOK, rst)
+	httpserver.Result(c, http.StatusOK, rst)
 }
 
 // 删除域名
@@ -157,16 +158,16 @@ func (s *ServerName) Delete(c *gin.Context) {
 	var param service.DeleteServerNameParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 	err := s.s.Delete(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
 
-	ResultEmpty(c, http.StatusOK)
+	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
 func (s *ServerName) RegisterToHttp(group gin.IRouter) {

@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strings"
 
+	"dxkite.cn/meownest/pkg/httpserver"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
@@ -67,7 +68,7 @@ func main() {
 	collectionService := service.NewCollection(collectionRepository, linkRepository, routeRepository, endpointRepository)
 	collectionServer := server.NewCollection(collectionService)
 
-	httpServer := server.New()
+	httpServer := httpserver.New()
 	httpServer.RegisterPrefix("/api/v1", certificateServer)
 	httpServer.RegisterPrefix("/api/v1", serverNameServer)
 	httpServer.RegisterPrefix("/api/v1", routeServer)

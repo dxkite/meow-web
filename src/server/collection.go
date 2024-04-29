@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"dxkite.cn/meownest/pkg/httpserver"
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-gonic/gin"
 )
@@ -19,17 +20,17 @@ func (s *Collection) Create(c *gin.Context) {
 	var param service.CreateCollectionParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Create(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
 
-	Result(c, http.StatusCreated, rst)
+	httpserver.Result(c, http.StatusCreated, rst)
 }
 
 func (s *Collection) Get(c *gin.Context) {
@@ -38,33 +39,33 @@ func (s *Collection) Get(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Get(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
-	Result(c, http.StatusOK, rst)
+	httpserver.Result(c, http.StatusOK, rst)
 }
 
 func (s *Collection) List(c *gin.Context) {
 	var param service.ListCollectionParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.List(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
 
-	Result(c, http.StatusOK, rst)
+	httpserver.Result(c, http.StatusOK, rst)
 }
 
 func (s *Collection) LinkRoute(c *gin.Context) {
@@ -73,17 +74,17 @@ func (s *Collection) LinkRoute(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	err := s.s.LinkRoute(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
 
-	ResultEmpty(c, http.StatusOK)
+	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
 func (s *Collection) DeleteRoute(c *gin.Context) {
@@ -92,17 +93,17 @@ func (s *Collection) DeleteRoute(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	err := s.s.DeleteRoute(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
 
-	ResultEmpty(c, http.StatusOK)
+	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
 func (s *Collection) LinkEndpoint(c *gin.Context) {
@@ -111,17 +112,17 @@ func (s *Collection) LinkEndpoint(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	err := s.s.LinkEndpoint(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
 
-	ResultEmpty(c, http.StatusOK)
+	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
 func (s *Collection) DeleteEndpoint(c *gin.Context) {
@@ -130,17 +131,17 @@ func (s *Collection) DeleteEndpoint(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	err := s.s.DeleteEndpoint(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
 
-	ResultEmpty(c, http.StatusOK)
+	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
 func (s *Collection) RegisterToHttp(group gin.IRouter) {

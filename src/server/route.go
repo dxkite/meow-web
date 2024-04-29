@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 
+	"dxkite.cn/meownest/pkg/httpserver"
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-gonic/gin"
 )
@@ -31,17 +32,17 @@ func (s *Route) Create(c *gin.Context) {
 	var param service.CreateRouteParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Create(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
 
-	Result(c, http.StatusCreated, rst)
+	httpserver.Result(c, http.StatusCreated, rst)
 }
 
 // 获取路由
@@ -61,21 +62,21 @@ func (s *Route) Get(c *gin.Context) {
 	var param service.GetRouteParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Get(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
-	Result(c, http.StatusOK, rst)
+	httpserver.Result(c, http.StatusOK, rst)
 }
 
 // 路由列表
@@ -91,7 +92,7 @@ func (s *Route) Get(c *gin.Context) {
 // @Param        starting_after query string false "从当前ID开始"
 // @Param        ending_before query string false "从当前ID结束"
 // @Param        expand query []string false "展开数据"
-// @Success      200  {object} service.ListRouteResult
+// @Success      200  {object} service.ListRouteserver.Result
 // @Failure      400  {object} HttpError
 // @Failure      500  {object} HttpError
 // @Router       /route [get]
@@ -99,17 +100,17 @@ func (s *Route) List(c *gin.Context) {
 	var param service.ListRouteParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.List(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
 
-	Result(c, http.StatusOK, rst)
+	httpserver.Result(c, http.StatusOK, rst)
 }
 
 // 更新路由
@@ -130,16 +131,16 @@ func (s *Route) Update(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Update(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
-	Result(c, http.StatusOK, rst)
+	httpserver.Result(c, http.StatusOK, rst)
 }
 
 // 删除路由
@@ -158,16 +159,16 @@ func (s *Route) Delete(c *gin.Context) {
 	var param service.DeleteRouteParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		ResultErrorBind(c, err)
+		httpserver.ResultErrorBind(c, err)
 		return
 	}
 	err := s.s.Delete(c, &param)
 	if err != nil {
-		ResultError(c, err)
+		httpserver.ResultError(c, err)
 		return
 	}
 
-	ResultEmpty(c, http.StatusOK)
+	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
 func (s *Route) RegisterToHttp(group gin.IRouter) {
