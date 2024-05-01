@@ -26,14 +26,15 @@ type Route interface {
 	Delete(ctx context.Context, param *DeleteRouteParam) error
 }
 
-func NewRoute(r repository.Route, rl repository.Link) Route {
-	return &route{r: r, rl: rl}
+func NewRoute(r repository.Route, rl repository.Link, re repository.Endpoint, rc repository.Collection) Route {
+	return &route{r: r, rl: rl, re: re, rc: rc}
 }
 
 type route struct {
 	r  repository.Route
 	rl repository.Link
 	re repository.Endpoint
+	rc repository.Collection
 }
 
 type CreateRouteParam struct {
@@ -96,7 +97,7 @@ func (s *route) Get(ctx context.Context, param *GetRouteParam) (*dto.Route, erro
 	if utils.InStringSlice("endpoints", param.Expand) {
 		entityIds := []uint64{}
 
-		linked, err := s.rl.LinkOf(ctx, constant.LinkDirectRouteEndpoint, rst.Id)
+		linked, err := s.rl.LinkOf(ctx, constant.LinkDirectRouteEndpoint, []uint64{rst.Id})
 		if err != nil {
 			return nil, err
 		}
@@ -122,11 +123,12 @@ func (s *route) Get(ctx context.Context, param *GetRouteParam) (*dto.Route, erro
 }
 
 type ListRouteParam struct {
-	Name          string `form:"name"`
-	Path          string `form:"path"`
-	Limit         int    `form:"limit" binding:"max=1000"`
-	StartingAfter string `form:"starting_after"`
-	EndingBefore  string `form:"ending_before"`
+	Name          string `json:"name" form:"name"`
+	Path          string `json:"path" form:"path"`
+	Limit         int    `json:"limit" form:"limit" binding:"max=1000"`
+	CollectionId  string `json:"collection_id" form:"collection_id"`
+	StartingAfter string `json:"starting_after" form:"starting_after"`
+	EndingBefore  string `json:"ending_before" form:"ending_before"`
 }
 
 type ListRouteResult struct {
@@ -139,13 +141,40 @@ func (s *route) List(ctx context.Context, param *ListRouteParam) (*ListRouteResu
 		param.Limit = 10
 	}
 
-	entities, err := s.r.List(ctx, &repository.ListRouteParam{
+	listParam := &repository.ListRouteParam{
 		Name:          param.Name,
 		Path:          param.Path,
 		Limit:         param.Limit,
 		StartingAfter: identity.Parse(constant.CollectionPrefix, param.StartingAfter),
 		EndingBefore:  identity.Parse(constant.CollectionPrefix, param.EndingBefore),
-	})
+	}
+
+	if param.CollectionId != "" {
+		collId := identity.Parse(constant.CollectionPrefix, param.CollectionId)
+		collList, err := s.rc.GetChildren(ctx, collId)
+		if err != nil {
+			return nil, err
+		}
+
+		collIdList := []uint64{collId}
+
+		for _, v := range collList {
+			collIdList = append(collIdList, v.Id)
+		}
+
+		routeLink, err := s.rl.LinkOf(ctx, constant.LinkDirectCollectionRoute, collIdList)
+		if err != nil {
+			return nil, err
+		}
+
+		routeIdList := []uint64{}
+		for _, v := range routeLink {
+			routeIdList = append(routeIdList, v.LinkedId)
+		}
+		listParam.IdIn = routeIdList
+	}
+
+	entities, err := s.r.List(ctx, listParam)
 	if err != nil {
 		return nil, err
 	}

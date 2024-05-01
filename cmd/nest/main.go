@@ -59,16 +59,17 @@ func main() {
 	serverNameService := service.NewServerName(nameServerRepository, certificateRepository)
 	serverNameServer := server.NewServerName(serverNameService)
 
-	routeRepository := repository.NewRoute()
-	routeService := service.NewRoute(routeRepository, linkRepository)
-	routeServer := server.NewRoute(routeService)
-
 	endpointRepository := repository.NewEndpoint()
 	endpointService := service.NewEndpoint(endpointRepository)
 	endpointServer := server.NewEndpoint(endpointService)
 
+	routeRepository := repository.NewRoute()
 	collectionRepository := repository.NewCollection()
 	collectionService := service.NewCollection(collectionRepository, linkRepository, routeRepository, endpointRepository, nameServerRepository)
+
+	routeService := service.NewRoute(routeRepository, linkRepository, endpointRepository, collectionRepository)
+	routeServer := server.NewRoute(routeService)
+
 	collectionServer := server.NewCollection(collectionService)
 
 	httpServer := httpserver.New()

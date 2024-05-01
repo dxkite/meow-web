@@ -14,6 +14,7 @@ type Collection interface {
 	Get(ctx context.Context, id uint64) (*entity.Collection, error)
 	List(ctx context.Context, param *ListCollectionParam) ([]*entity.Collection, error)
 	Update(ctx context.Context, id uint64, ent *entity.Collection) error
+	GetChildren(ctx context.Context, id uint64) ([]*entity.Collection, error)
 }
 
 func NewCollection() Collection {
@@ -52,6 +53,23 @@ func (r *collection) Get(ctx context.Context, id uint64) (*entity.Collection, er
 		return nil, err
 	}
 	return &item, nil
+}
+
+// 获取所有子级，包括子集的子集
+func (r *collection) GetChildren(ctx context.Context, id uint64) ([]*entity.Collection, error) {
+	var items []*entity.Collection
+
+	item, err := r.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	index := item.Index + strconv.FormatUint(item.Id, 10) + "."
+	if err := r.dataSource(ctx).Where("`index` like CONCAT(?, '%')", index).Find(&items).Error; err != nil {
+		return nil, err
+	}
+
+	return items, nil
 }
 
 type ListCollectionParam struct {

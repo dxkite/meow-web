@@ -67,6 +67,7 @@ type ListRouteParam struct {
 	Limit         int
 	StartingAfter uint64
 	EndingBefore  uint64
+	IdIn          []uint64
 }
 
 func (r *route) List(ctx context.Context, param *ListRouteParam) ([]*entity.Route, error) {
@@ -83,6 +84,10 @@ func (r *route) List(ctx context.Context, param *ListRouteParam) ([]*entity.Rout
 
 	if param.StartingAfter != 0 {
 		db = db.Where("id > ?", param.StartingAfter)
+	}
+
+	if len(param.IdIn) > 0 {
+		db = db.Where("id in ?", param.IdIn)
 	}
 
 	if param.EndingBefore != 0 {
