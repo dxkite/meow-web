@@ -32,12 +32,18 @@ func NewServerName(item *entity.ServerName) *ServerName {
 
 // SSL证书
 type Certificate struct {
-	Id          string    `json:"id"`
-	Name        string    `json:"name"`
-	Domain      []string  `json:"domain"`
-	StartTime   time.Time `json:"start_time"`
-	EndTime     time.Time `json:"end_time"`
-	Key         string    `json:"key,omitempty"`
+	Id string `json:"id"`
+	// 证书备注名
+	Name string `json:"name"`
+	// 证书支持的域名
+	DNSNames []string `json:"dns_names"`
+	// 证书开启时间
+	NotBefore time.Time `json:"not_before"`
+	// 证书有效期
+	NotAfter time.Time `json:"not_after"`
+	// 私钥
+	Key string `json:"key,omitempty"`
+	// 证书
 	Certificate string    `json:"certificate,omitempty"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
@@ -48,9 +54,9 @@ func NewCertificate(item *entity.Certificate) *Certificate {
 		Id: identity.Format(constant.CertificatePrefix, item.Id),
 	}
 	obj.Name = item.Name
-	obj.StartTime = item.StartTime
-	obj.EndTime = item.EndTime
-	obj.Domain = item.Domain
+	obj.NotBefore = item.NotBefore
+	obj.NotAfter = item.NotAfter
+	obj.DNSNames = item.DNSNames
 	obj.CreatedAt = item.CreatedAt
 	obj.UpdatedAt = item.UpdatedAt
 	return obj
@@ -58,15 +64,17 @@ func NewCertificate(item *entity.Certificate) *Certificate {
 
 // 路由信息
 type Route struct {
-	Id          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Description string                 `json:"description"`
-	Method      []string               `json:"method"`
-	Path        string                 `json:"path"`
-	Matcher     []*value.MatcherOption `json:"matcher"`
-	Endpoints   []*Endpoint            `json:"endpoints,omitempty"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
+	Id          string   `json:"id"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Method      []string `json:"method"`
+	Path        string   `json:"path"`
+	// 路由的特殊匹配规则
+	Matcher []*value.MatcherOption `json:"matcher"`
+	// 路由自定义的后端路由
+	Endpoints []*Endpoint `json:"endpoints,omitempty"`
+	CreatedAt time.Time   `json:"created_at"`
+	UpdatedAt time.Time   `json:"updated_at"`
 }
 
 func NewRoute(item *entity.Route) *Route {
@@ -87,11 +95,13 @@ type Collection struct {
 	ParentId    string `json:"parent_id,omitempty"` // 父级ID
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	// 路由信息
+	// 服务域名
+	// 外部服务访问路由的入口
 	ServerNames []*ServerName `json:"server_names,omitempty"`
 	// 路由信息
 	Routes []*Route `json:"routes,omitempty"`
 	// 后端服务
+	// 集合中没有设置后端服务的路由默认继承集合的后端服务信息
 	Endpoints []*Endpoint `json:"endpoints,omitempty"`
 	CreatedAt time.Time   `json:"created_at"`
 	UpdatedAt time.Time   `json:"updated_at"`

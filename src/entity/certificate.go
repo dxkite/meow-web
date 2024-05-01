@@ -10,9 +10,9 @@ type Certificate struct {
 	Base
 
 	Name        string    `json:"name"`
-	Domain      []string  `json:"domain" gorm:"serializer:json"`
-	StartTime   time.Time `json:"start_time"`
-	EndTime     time.Time `json:"end_time"`
+	DNSNames    []string  `json:"dns_names" gorm:"serializer:json"`
+	NotBefore   time.Time `json:"not_before"`
+	NotAfter    time.Time `json:"not_after"`
 	Key         string    `json:"key"`
 	Certificate string    `json:"certificate"`
 }
@@ -31,11 +31,11 @@ func NewCertificateWithCertificateKey(certStr, keyStr string) (*Certificate, err
 	entity := &Certificate{}
 	entity.Key = keyStr
 	entity.Certificate = certStr
-	entity.StartTime = leaf.NotBefore
-	entity.EndTime = leaf.NotAfter
-	entity.Domain = leaf.DNSNames
-	if len(entity.Domain) > 0 {
-		entity.Name = entity.Domain[0]
+	entity.NotBefore = leaf.NotBefore
+	entity.NotAfter = leaf.NotAfter
+	entity.DNSNames = leaf.DNSNames
+	if len(entity.DNSNames) > 0 {
+		entity.Name = entity.DNSNames[0]
 	}
 	return entity, nil
 }
