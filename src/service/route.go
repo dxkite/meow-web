@@ -96,7 +96,7 @@ func (s *route) Get(ctx context.Context, param *GetRouteParam) (*dto.Route, erro
 	if utils.InStringSlice("endpoints", param.Expand) {
 		entityIds := []uint64{}
 
-		linked, err := s.rl.LinkOf(ctx, constant.LinkDirectCollectionEndpoint, rst.Id)
+		linked, err := s.rl.LinkOf(ctx, constant.LinkDirectRouteEndpoint, rst.Id)
 		if err != nil {
 			return nil, err
 		}
