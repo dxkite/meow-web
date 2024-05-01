@@ -4,9 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
@@ -38,16 +36,6 @@ func (e *HttpError) Respond(c *gin.Context) {
 func New() *HttpServer {
 	g := gin.Default()
 	s := &HttpServer{engine: g}
-	g.Use(cors.New(cors.Config{
-		AllowMethods:     []string{"GET", "POST", "DELETE"},
-		AllowHeaders:     []string{"Origin"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		AllowOriginFunc: func(origin string) bool {
-			return true
-		},
-		MaxAge: 12 * time.Hour,
-	}))
 	return s
 }
 
@@ -56,8 +44,11 @@ type HttpServer struct {
 }
 
 func (s *HttpServer) Run(addr ...string) {
-
 	s.engine.Run(addr...)
+}
+
+func (s *HttpServer) Use(middleware ...gin.HandlerFunc) {
+	s.engine.Use(middleware...)
 }
 
 func (s *HttpServer) Register(h RegisterHandler) {

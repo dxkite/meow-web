@@ -3,13 +3,17 @@ package main
 import (
 	"reflect"
 	"strings"
+	"time"
 
+	"dxkite.cn/meownest/pkg/datasource"
 	"dxkite.cn/meownest/pkg/httpserver"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/server"
 	"dxkite.cn/meownest/src/service"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/glebarez/sqlite"
 	"github.com/go-playground/validator/v10"
@@ -69,6 +73,22 @@ func main() {
 	collectionServer := server.NewCollection(collectionService)
 
 	httpServer := httpserver.New()
+
+	httpServer.Use(cors.New(cors.Config{
+		AllowMethods:     []string{"GET", "POST", "DELETE"},
+		AllowHeaders:     []string{"Origin"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		AllowOriginFunc: func(origin string) bool {
+			return true
+		},
+		MaxAge: 12 * time.Hour,
+	}))
+
+	httpServer.Use(func(ctx *gin.Context) {
+		datasource.RegisterToGin(ctx, datasource.New(db))
+	})
+
 	httpServer.RegisterPrefix("/api/v1", certificateServer)
 	httpServer.RegisterPrefix("/api/v1", serverNameServer)
 	httpServer.RegisterPrefix("/api/v1", routeServer)

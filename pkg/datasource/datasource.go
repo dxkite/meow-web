@@ -1,11 +1,51 @@
 package datasource
 
-import "gorm.io/gorm"
+import (
+	"context"
+	"errors"
 
-type DataSource struct {
-	Raw *gorm.DB
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+)
+
+type dataSourceKey string
+
+var DataSourceKey dataSourceKey = "pkg/data_source"
+
+var ErrMissSource = errors.New("missing data source")
+
+type DataSource interface {
+	DB() *gorm.DB
 }
 
-func New() *DataSource {
-	return &DataSource{}
+type dataSource struct {
+	db *gorm.DB
+}
+
+func (dataSource *dataSource) DB() *gorm.DB {
+	return dataSource.db
+}
+
+func New(db *gorm.DB) DataSource {
+	return &dataSource{db: db}
+}
+
+func Get(ctx context.Context) DataSource {
+	d := GetDefault(ctx, nil)
+	if d == nil {
+		panic(ErrMissSource)
+	}
+	return d
+}
+
+func GetDefault(ctx context.Context, defaultSource DataSource) DataSource {
+	if v, ok := ctx.Value(DataSourceKey).(DataSource); ok {
+		return v
+	}
+	return defaultSource
+}
+
+func RegisterToGin(c *gin.Context, ds DataSource) *gin.Context {
+	c.Set(string(DataSourceKey), ds)
+	return c
 }
