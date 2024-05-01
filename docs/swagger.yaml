@@ -98,18 +98,15 @@ definitions:
       name:
         description: 域名
         type: string
-      protocol:
-        description: 协议
-        type: string
       updated_at:
         type: string
     type: object
-  server.HttpError:
+  httpserver.HttpError:
     properties:
       error:
-        $ref: '#/definitions/server.HttpErrorDetail'
+        $ref: '#/definitions/httpserver.HttpErrorDetail'
     type: object
-  server.HttpErrorDetail:
+  httpserver.HttpErrorDetail:
     properties:
       code:
         type: string
@@ -122,49 +119,71 @@ definitions:
     type: object
   service.CreateRouteParam:
     properties:
-      description:
+      collection_id:
+        description: 路由分组ID
         type: string
+      description:
+        description: 路由描述
+        type: string
+      endpoint_id:
+        description: 绑定的后端服务
+        items:
+          type: string
+        type: array
       matcher:
+        description: 特殊匹配规则
         items:
           $ref: '#/definitions/value.MatcherOption'
         type: array
       method:
+        description: 支持方法
         items:
           type: string
         type: array
       name:
+        description: 路由名称
         type: string
       path:
+        description: 匹配路径
         type: string
     required:
+    - collection_id
     - matcher
     - method
     - name
     - path
     type: object
-  service.CreateServerNameCertificateParam:
-    properties:
-      certificate:
-        type: string
-      key:
-        type: string
-    required:
-    - certificate
-    - key
-    type: object
   service.CreateServerNameParam:
     properties:
       certificate:
-        $ref: '#/definitions/service.CreateServerNameCertificateParam'
+        allOf:
+        - $ref: '#/definitions/value.Certificate'
+        description: 证书信息，直接创建新证书
       certificate_id:
+        description: 证书ID，使用现有的证书
         type: string
       name:
         type: string
-      protocol:
-        type: string
     required:
     - name
-    - protocol
+    type: object
+  service.ListCertificateResult:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.Certificate'
+        type: array
+      has_more:
+        type: boolean
+    type: object
+  service.ListEndpointResult:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.Endpoint'
+        type: array
+      has_more:
+        type: boolean
     type: object
   service.ListRouteResult:
     properties:
@@ -184,25 +203,90 @@ definitions:
       has_more:
         type: boolean
     type: object
-  service.UpdateRouteParam:
+  service.UpdateCertificateParam:
     properties:
-      description:
+      certificate:
         type: string
       id:
         type: string
+      key:
+        type: string
+      name:
+        type: string
+    required:
+    - certificate
+    - id
+    - key
+    - name
+    type: object
+  service.UpdateEndpointParam:
+    properties:
+      endpoint:
+        allOf:
+        - $ref: '#/definitions/value.ForwardEndpoint'
+        description: 远程服务
+      forward_header:
+        description: 请求头转发配置
+        items:
+          $ref: '#/definitions/value.ForwardHeaderOption'
+        type: array
+      forward_rewrite:
+        allOf:
+        - $ref: '#/definitions/value.ForwardRewriteOption'
+        description: 重写配置
+      id:
+        type: string
       matcher:
+        description: 匹配规则
+        items:
+          $ref: '#/definitions/value.MatcherOption'
+        type: array
+      name:
+        type: string
+      type:
+        description: 服务类型
+        type: string
+    required:
+    - endpoint
+    - forward_header
+    - id
+    - matcher
+    - name
+    - type
+    type: object
+  service.UpdateRouteParam:
+    properties:
+      collection_id:
+        description: 路由分组ID
+        type: string
+      description:
+        description: 路由描述
+        type: string
+      endpoint_id:
+        description: 绑定的后端服务
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      matcher:
+        description: 特殊匹配规则
         items:
           $ref: '#/definitions/value.MatcherOption'
         type: array
       method:
+        description: 支持方法
         items:
           type: string
         type: array
       name:
+        description: 路由名称
         type: string
       path:
+        description: 匹配路径
         type: string
     required:
+    - collection_id
     - id
     - matcher
     - method
@@ -212,19 +296,29 @@ definitions:
   service.UpdateServerNameParam:
     properties:
       certificate:
-        $ref: '#/definitions/service.CreateServerNameCertificateParam'
+        allOf:
+        - $ref: '#/definitions/value.Certificate'
+        description: 证书信息，直接创建新证书
       certificate_id:
+        description: 证书ID，使用现有的证书
         type: string
       id:
         type: string
       name:
         type: string
-      protocol:
-        type: string
     required:
     - id
     - name
-    - protocol
+    type: object
+  value.Certificate:
+    properties:
+      certificate:
+        type: string
+      key:
+        type: string
+    required:
+    - certificate
+    - key
     type: object
   value.ForwardEndpoint:
     properties:
@@ -287,7 +381,291 @@ definitions:
 info:
   contact: {}
 paths:
-  /route:
+  /certificates:
+    get:
+      consumes:
+      - application/json
+      description: 证书列表
+      parameters:
+      - description: 证书
+        in: query
+        name: name
+        type: string
+      - description: 限制
+        in: query
+        name: limit
+        type: integer
+      - description: 从当前ID开始
+        in: query
+        name: starting_after
+        type: string
+      - description: 从当前ID结束
+        in: query
+        name: ending_before
+        type: string
+      - collectionFormat: csv
+        description: 展开数据
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.ListCertificateResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: 证书列表
+      tags:
+      - 证书
+    post:
+      consumes:
+      - application/json
+      description: 创建证书
+      parameters:
+      - description: 证书ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: 展开数据
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Certificate'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: 创建证书
+      tags:
+      - 证书
+  /certificates/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除证书
+      parameters:
+      - description: 证书ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: 删除证书
+      tags:
+      - 证书
+    get:
+      consumes:
+      - application/json
+      description: 获取证书
+      parameters:
+      - description: 证书ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: 展开数据
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Certificate'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: 获取证书
+      tags:
+      - 证书
+    post:
+      consumes:
+      - application/json
+      description: 更新证书
+      parameters:
+      - description: 证书ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 数据
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateCertificateParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: 更新证书
+      tags:
+      - 证书
+  /endpoints:
+    get:
+      consumes:
+      - application/json
+      description: 证书列表
+      parameters:
+      - description: 证书
+        in: query
+        name: name
+        type: string
+      - description: 限制
+        in: query
+        name: limit
+        type: integer
+      - description: 从当前ID开始
+        in: query
+        name: starting_after
+        type: string
+      - description: 从当前ID结束
+        in: query
+        name: ending_before
+        type: string
+      - collectionFormat: csv
+        description: 展开数据
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.ListEndpointResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: 证书列表
+      tags:
+      - 证书
+  /endpoints/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除证书
+      parameters:
+      - description: 证书ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: 删除证书
+      tags:
+      - 证书
+    post:
+      consumes:
+      - application/json
+      description: 更新证书
+      parameters:
+      - description: 证书ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 数据
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateEndpointParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: 更新证书
+      tags:
+      - 证书
+  /routes:
     get:
       consumes:
       - application/json
@@ -330,11 +708,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
       summary: 路由列表
       tags:
       - 路由
@@ -359,15 +737,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
       summary: 创建路由
       tags:
       - 路由
-  /route/{id}:
+  /routes/{id}:
     delete:
       consumes:
       - application/json
@@ -386,11 +764,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
       summary: 删除路由
       tags:
       - 路由
@@ -421,11 +799,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
       summary: 获取路由
       tags:
       - 路由
@@ -455,15 +833,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
       summary: 更新路由
       tags:
       - 路由
-  /server_name:
+  /server_names:
     get:
       consumes:
       - application/json
@@ -502,11 +880,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
       summary: 域名列表
       tags:
       - 域名
@@ -531,15 +909,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
       summary: 创建域名
       tags:
       - 域名
-  /server_name/{id}:
+  /server_names/{id}:
     delete:
       consumes:
       - application/json
@@ -558,11 +936,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
       summary: 删除域名
       tags:
       - 域名
@@ -593,11 +971,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
       summary: 获取域名
       tags:
       - 域名
@@ -626,11 +1004,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/server.HttpError'
+            $ref: '#/definitions/httpserver.HttpError'
       summary: 更新域名
       tags:
       - 域名

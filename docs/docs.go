@@ -15,7 +15,433 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/route": {
+        "/certificates": {
+            "get": {
+                "description": "证书列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "证书"
+                ],
+                "summary": "证书列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "证书",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "限制",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "从当前ID开始",
+                        "name": "starting_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "从当前ID结束",
+                        "name": "ending_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "展开数据",
+                        "name": "expand",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.ListCertificateResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "创建证书",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "证书"
+                ],
+                "summary": "创建证书",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "证书ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "展开数据",
+                        "name": "expand",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Certificate"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/certificates/{id}": {
+            "get": {
+                "description": "获取证书",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "证书"
+                ],
+                "summary": "获取证书",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "证书ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "展开数据",
+                        "name": "expand",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Certificate"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "更新证书",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "证书"
+                ],
+                "summary": "更新证书",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "证书ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "数据",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UpdateCertificateParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除证书",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "证书"
+                ],
+                "summary": "删除证书",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "证书ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/endpoints": {
+            "get": {
+                "description": "证书列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "证书"
+                ],
+                "summary": "证书列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "证书",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "限制",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "从当前ID开始",
+                        "name": "starting_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "从当前ID结束",
+                        "name": "ending_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "展开数据",
+                        "name": "expand",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.ListEndpointResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/endpoints/{id}": {
+            "post": {
+                "description": "更新证书",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "证书"
+                ],
+                "summary": "更新证书",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "证书ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "数据",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UpdateEndpointParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除证书",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "证书"
+                ],
+                "summary": "删除证书",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "证书ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/routes": {
             "get": {
                 "description": "路由列表",
                 "consumes": [
@@ -80,13 +506,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     }
                 }
@@ -124,19 +550,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     }
                 }
             }
         },
-        "/route/{id}": {
+        "/routes/{id}": {
             "get": {
                 "description": "获取路由",
                 "consumes": [
@@ -178,13 +604,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     }
                 }
@@ -229,13 +655,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     }
                 }
@@ -268,19 +694,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     }
                 }
             }
         },
-        "/server_name": {
+        "/server_names": {
             "get": {
                 "description": "域名列表",
                 "consumes": [
@@ -339,13 +765,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     }
                 }
@@ -383,19 +809,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     }
                 }
             }
         },
-        "/server_name/{id}": {
+        "/server_names/{id}": {
             "get": {
                 "description": "获取域名",
                 "consumes": [
@@ -437,13 +863,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     }
                 }
@@ -486,13 +912,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     }
                 }
@@ -525,13 +951,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/server.HttpError"
+                            "$ref": "#/definitions/httpserver.HttpError"
                         }
                     }
                 }
@@ -692,24 +1118,20 @@ const docTemplate = `{
                     "description": "域名",
                     "type": "string"
                 },
-                "protocol": {
-                    "description": "协议",
-                    "type": "string"
-                },
                 "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "server.HttpError": {
+        "httpserver.HttpError": {
             "type": "object",
             "properties": {
                 "error": {
-                    "$ref": "#/definitions/server.HttpErrorDetail"
+                    "$ref": "#/definitions/httpserver.HttpErrorDetail"
                 }
             }
         },
-        "server.HttpErrorDetail": {
+        "httpserver.HttpErrorDetail": {
             "type": "object",
             "properties": {
                 "code": {
@@ -729,46 +1151,48 @@ const docTemplate = `{
         "service.CreateRouteParam": {
             "type": "object",
             "required": [
+                "collection_id",
                 "matcher",
                 "method",
                 "name",
                 "path"
             ],
             "properties": {
-                "description": {
+                "collection_id": {
+                    "description": "路由分组ID",
                     "type": "string"
                 },
+                "description": {
+                    "description": "路由描述",
+                    "type": "string"
+                },
+                "endpoint_id": {
+                    "description": "绑定的后端服务",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "matcher": {
+                    "description": "特殊匹配规则",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/value.MatcherOption"
                     }
                 },
                 "method": {
+                    "description": "支持方法",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "name": {
+                    "description": "路由名称",
                     "type": "string"
                 },
                 "path": {
-                    "type": "string"
-                }
-            }
-        },
-        "service.CreateServerNameCertificateParam": {
-            "type": "object",
-            "required": [
-                "certificate",
-                "key"
-            ],
-            "properties": {
-                "certificate": {
-                    "type": "string"
-                },
-                "key": {
+                    "description": "匹配路径",
                     "type": "string"
                 }
             }
@@ -776,21 +1200,51 @@ const docTemplate = `{
         "service.CreateServerNameParam": {
             "type": "object",
             "required": [
-                "name",
-                "protocol"
+                "name"
             ],
             "properties": {
                 "certificate": {
-                    "$ref": "#/definitions/service.CreateServerNameCertificateParam"
+                    "description": "证书信息，直接创建新证书",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/value.Certificate"
+                        }
+                    ]
                 },
                 "certificate_id": {
+                    "description": "证书ID，使用现有的证书",
                     "type": "string"
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "service.ListCertificateResult": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Certificate"
+                    }
                 },
-                "protocol": {
-                    "type": "string"
+                "has_more": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "service.ListEndpointResult": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Endpoint"
+                    }
+                },
+                "has_more": {
+                    "type": "boolean"
                 }
             }
         },
@@ -822,9 +1276,86 @@ const docTemplate = `{
                 }
             }
         },
+        "service.UpdateCertificateParam": {
+            "type": "object",
+            "required": [
+                "certificate",
+                "id",
+                "key",
+                "name"
+            ],
+            "properties": {
+                "certificate": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.UpdateEndpointParam": {
+            "type": "object",
+            "required": [
+                "endpoint",
+                "forward_header",
+                "id",
+                "matcher",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "endpoint": {
+                    "description": "远程服务",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/value.ForwardEndpoint"
+                        }
+                    ]
+                },
+                "forward_header": {
+                    "description": "请求头转发配置",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/value.ForwardHeaderOption"
+                    }
+                },
+                "forward_rewrite": {
+                    "description": "重写配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/value.ForwardRewriteOption"
+                        }
+                    ]
+                },
+                "id": {
+                    "type": "string"
+                },
+                "matcher": {
+                    "description": "匹配规则",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/value.MatcherOption"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "服务类型",
+                    "type": "string"
+                }
+            }
+        },
         "service.UpdateRouteParam": {
             "type": "object",
             "required": [
+                "collection_id",
                 "id",
                 "matcher",
                 "method",
@@ -832,28 +1363,44 @@ const docTemplate = `{
                 "path"
             ],
             "properties": {
-                "description": {
+                "collection_id": {
+                    "description": "路由分组ID",
                     "type": "string"
+                },
+                "description": {
+                    "description": "路由描述",
+                    "type": "string"
+                },
+                "endpoint_id": {
+                    "description": "绑定的后端服务",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "id": {
                     "type": "string"
                 },
                 "matcher": {
+                    "description": "特殊匹配规则",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/value.MatcherOption"
                     }
                 },
                 "method": {
+                    "description": "支持方法",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
                 "name": {
+                    "description": "路由名称",
                     "type": "string"
                 },
                 "path": {
+                    "description": "匹配路径",
                     "type": "string"
                 }
             }
@@ -862,14 +1409,19 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "id",
-                "name",
-                "protocol"
+                "name"
             ],
             "properties": {
                 "certificate": {
-                    "$ref": "#/definitions/service.CreateServerNameCertificateParam"
+                    "description": "证书信息，直接创建新证书",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/value.Certificate"
+                        }
+                    ]
                 },
                 "certificate_id": {
+                    "description": "证书ID，使用现有的证书",
                     "type": "string"
                 },
                 "id": {
@@ -877,8 +1429,20 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "value.Certificate": {
+            "type": "object",
+            "required": [
+                "certificate",
+                "key"
+            ],
+            "properties": {
+                "certificate": {
+                    "type": "string"
                 },
-                "protocol": {
+                "key": {
                     "type": "string"
                 }
             }

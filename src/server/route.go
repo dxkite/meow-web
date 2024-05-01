@@ -92,7 +92,7 @@ func (s *Route) Get(c *gin.Context) {
 // @Param        starting_after query string false "从当前ID开始"
 // @Param        ending_before query string false "从当前ID结束"
 // @Param        expand query []string false "展开数据"
-// @Success      200  {object} service.ListRouteserver.Result
+// @Success      200  {object} service.ListRouteResult
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /routes [get]
