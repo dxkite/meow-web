@@ -55,6 +55,6 @@ func (s *Endpoint) Get(c *gin.Context) {
 }
 
 func (s *Endpoint) RegisterToHttp(group gin.IRouter) {
-	group.POST("/endpoint", s.Create)
-	group.GET("/endpoint/:id", s.Get)
+	group.POST("/endpoints", s.Create)
+	group.GET("/endpoints/:id", s.Get)
 }

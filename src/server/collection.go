@@ -145,11 +145,11 @@ func (s *Collection) DeleteEndpoint(c *gin.Context) {
 }
 
 func (s *Collection) RegisterToHttp(group gin.IRouter) {
-	group.GET("/collection", s.List)
-	group.POST("/collection", s.Create)
-	group.GET("/collection/:id", s.Get)
-	group.POST("/collection/:id/route", s.LinkRoute)
-	group.DELETE("/collection/:id/route", s.DeleteRoute)
-	group.POST("/collection/:id/endpoint", s.LinkEndpoint)
-	group.DELETE("/collection/:id/endpoint", s.DeleteEndpoint)
+	group.GET("/collections", s.List)
+	group.POST("/collections", s.Create)
+	group.GET("/collections/:id", s.Get)
+	group.POST("/collections/:id/route", s.LinkRoute)
+	group.DELETE("/collections/:id/route", s.DeleteRoute)
+	group.POST("/collections/:id/endpoint", s.LinkEndpoint)
+	group.DELETE("/collections/:id/endpoint", s.DeleteEndpoint)
 }

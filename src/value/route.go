@@ -27,3 +27,9 @@ type ForwardEndpoint struct {
 type ForwardEndpointStatic struct {
 	Address []string `json:"address" binding:"required"`
 }
+
+// 证书对象
+type Certificate struct {
+	Key         string `json:"key" form:"key" binding:"required"`
+	Certificate string `json:"certificate" form:"key" binding:"required"`
+}

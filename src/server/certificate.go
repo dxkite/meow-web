@@ -34,5 +34,5 @@ func (s *Certificate) Create(c *gin.Context) {
 }
 
 func (s *Certificate) RegisterToHttp(group gin.IRouter) {
-	group.POST("/certificate", s.Create)
+	group.POST("/certificates", s.Create)
 }

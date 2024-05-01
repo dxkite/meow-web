@@ -9,14 +9,6 @@ import (
 	"dxkite.cn/meownest/src/value"
 )
 
-// 服务
-type Server struct {
-	Id          string        `json:"id"`
-	ServerName  []*ServerName `json:"server_name"`
-	Collections []*Collection `json:"collections"`
-	Endpoint    []*Endpoint   `json:"endpoint,omitempty"`
-}
-
 // 域名
 type ServerName struct {
 	Id            string       `json:"id"`
@@ -33,7 +25,6 @@ func NewServerName(item *entity.ServerName) *ServerName {
 		Id: identity.Format(constant.ServerNamePrefix, item.Id),
 	}
 	obj.Name = item.Name
-	obj.Protocol = item.Protocol
 	obj.CertificateId = identity.Format(constant.CertificatePrefix, item.CertificateId)
 	obj.CreatedAt = item.CreatedAt
 	obj.UpdatedAt = item.UpdatedAt
@@ -93,14 +84,16 @@ func NewRoute(item *entity.Route) *Route {
 
 // 路由组
 type Collection struct {
-	Id          string      `json:"id"`
-	ParentId    string      `json:"parent_id,omitempty"` // 父级ID
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	Routes      []*Route    `json:"routes,omitempty"`
-	Endpoints   []*Endpoint `json:"endpoints,omitempty"`
-	CreatedAt   time.Time   `json:"created_at"`
-	UpdatedAt   time.Time   `json:"updated_at"`
+	Id          string `json:"id"`
+	ParentId    string `json:"parent_id,omitempty"` // 父级ID
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	// 路由信息
+	Routes []*Route `json:"routes,omitempty"`
+	// 后端服务
+	Endpoints []*Endpoint `json:"endpoints,omitempty"`
+	CreatedAt time.Time   `json:"created_at"`
+	UpdatedAt time.Time   `json:"updated_at"`
 }
 
 func NewCollection(item *entity.Collection) *Collection {

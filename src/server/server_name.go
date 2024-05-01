@@ -25,9 +25,9 @@ type ServerName struct {
 // @Produce      json
 // @Param        body body service.CreateServerNameParam true "请求体"
 // @Success      201  {object} dto.ServerName
-// @Failure      400  {object} HttpError
-// @Failure      500  {object} HttpError
-// @Router       /server_name [post]
+// @Failure      400  {object} httpserver.HttpError
+// @Failure      500  {object} httpserver.HttpError
+// @Router       /server_names [post]
 func (s *ServerName) Create(c *gin.Context) {
 	var param service.CreateServerNameParam
 
@@ -55,9 +55,9 @@ func (s *ServerName) Create(c *gin.Context) {
 // @Param        id path string true "域名ID"
 // @Param        expand query []string false "展开数据"
 // @Success      200  {object} dto.ServerName
-// @Failure      400  {object} HttpError
-// @Failure      500  {object} HttpError
-// @Router       /server_name/{id} [get]
+// @Failure      400  {object} httpserver.HttpError
+// @Failure      500  {object} httpserver.HttpError
+// @Router       /server_names/{id} [get]
 func (s *ServerName) Get(c *gin.Context) {
 	var param service.GetServerNameParam
 
@@ -92,9 +92,9 @@ func (s *ServerName) Get(c *gin.Context) {
 // @Param        ending_before query string false "从当前ID结束"
 // @Param        expand query []string false "展开数据"
 // @Success      200  {object} service.ListServerNameserver.Result
-// @Failure      400  {object} HttpError
-// @Failure      500  {object} HttpError
-// @Router       /server_name [get]
+// @Failure      400  {object} httpserver.HttpError
+// @Failure      500  {object} httpserver.HttpError
+// @Router       /server_names [get]
 func (s *ServerName) List(c *gin.Context) {
 	var param service.ListServerNameParam
 
@@ -122,9 +122,9 @@ func (s *ServerName) List(c *gin.Context) {
 // @Param        id path string true "域名ID"
 // @Param        body body service.UpdateServerNameParam true "数据"
 // @Success      200  {object} service.ServerName
-// @Failure      400  {object} HttpError
-// @Failure      500  {object} HttpError
-// @Router       /server_name/{id} [post]
+// @Failure      400  {object} httpserver.HttpError
+// @Failure      500  {object} httpserver.HttpError
+// @Router       /server_names/{id} [post]
 func (s *ServerName) Update(c *gin.Context) {
 	var param service.UpdateServerNameParam
 	param.Id = c.Param("id")
@@ -151,9 +151,9 @@ func (s *ServerName) Update(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "域名ID"
 // @Success      200
-// @Failure      400  {object} HttpError
-// @Failure      500  {object} HttpError
-// @Router       /server_name/{id} [delete]
+// @Failure      400  {object} httpserver.HttpError
+// @Failure      500  {object} httpserver.HttpError
+// @Router       /server_names/{id} [delete]
 func (s *ServerName) Delete(c *gin.Context) {
 	var param service.DeleteServerNameParam
 
@@ -171,9 +171,9 @@ func (s *ServerName) Delete(c *gin.Context) {
 }
 
 func (s *ServerName) RegisterToHttp(group gin.IRouter) {
-	group.GET("/server_name", s.List)
-	group.POST("/server_name", s.Create)
-	group.GET("/server_name/:id", s.Get)
-	group.DELETE("/server_name/:id", s.Delete)
-	group.POST("/server_name/:id", s.Update)
+	group.GET("/server_names", s.List)
+	group.POST("/server_names", s.Create)
+	group.GET("/server_names/:id", s.Get)
+	group.DELETE("/server_names/:id", s.Delete)
+	group.POST("/server_names/:id", s.Update)
 }

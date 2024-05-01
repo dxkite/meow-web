@@ -9,6 +9,7 @@ import (
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/utils"
+	"dxkite.cn/meownest/src/value"
 	"gorm.io/gorm"
 )
 
@@ -31,15 +32,11 @@ type serverName struct {
 }
 
 type CreateServerNameParam struct {
-	Name          string                            `json:"name" form:"name" binding:"required"`
-	Protocol      string                            `json:"protocol" form:"protocol" binding:"required"`
-	CertificateId string                            `json:"certificate_id" form:"certificate_id"`
-	Certificate   *CreateServerNameCertificateParam `json:"certificate" form:"certificate"`
-}
-
-type CreateServerNameCertificateParam struct {
-	Key         string `json:"key" form:"key" binding:"required"`
-	Certificate string `json:"certificate" form:"key" binding:"required"`
+	Name string `json:"name" form:"name" binding:"required"`
+	// 证书ID，使用现有的证书
+	CertificateId string `json:"certificate_id" form:"certificate_id"`
+	// 证书信息，直接创建新证书
+	Certificate *value.Certificate `json:"certificate" form:"certificate"`
 }
 
 // 创建域名
@@ -70,7 +67,6 @@ func (s *serverName) Create(ctx context.Context, param *CreateServerNameParam) (
 
 		entity, err := s.r.Create(ctx, &entity.ServerName{
 			Name:          param.Name,
-			Protocol:      param.Protocol,
 			CertificateId: certificateId,
 		})
 		if err != nil {
@@ -226,7 +222,6 @@ func (s *serverName) Update(ctx context.Context, param *UpdateServerNameParam) (
 
 		err := s.r.Update(ctx, id, &entity.ServerName{
 			Name:          param.Name,
-			Protocol:      param.Protocol,
 			CertificateId: certificateId,
 		})
 		if err != nil {
