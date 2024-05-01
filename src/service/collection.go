@@ -60,11 +60,11 @@ func (s *collection) Create(ctx context.Context, param *CreateCollectionParam) (
 			return err
 		}
 
-		if err := s.batchLink(ctx, constant.LinkDirectCollectionServerName, item.Id, identity.ParseSlice(constant.ServerNamePrefix, param.ServerNameId)); err != nil {
+		if err := s.batchLinkOnce(ctx, constant.LinkDirectCollectionServerName, item.Id, identity.ParseSlice(constant.ServerNamePrefix, param.ServerNameId)); err != nil {
 			return err
 		}
 
-		if err := s.batchLink(ctx, constant.LinkDirectCollectionEndpoint, item.Id, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
+		if err := s.batchLinkOnce(ctx, constant.LinkDirectCollectionEndpoint, item.Id, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
 			return err
 		}
 
@@ -75,9 +75,13 @@ func (s *collection) Create(ctx context.Context, param *CreateCollectionParam) (
 	return obj, nil
 }
 
-func (s *collection) batchLink(ctx context.Context, direct string, id uint64, idArray []uint64) error {
+func (s *collection) batchLinkOnce(ctx context.Context, direct string, id uint64, linkedId []uint64) error {
+	return s.batchLink(ctx, direct, id, linkedId, true)
+}
+
+func (s *collection) batchLink(ctx context.Context, direct string, id uint64, linkedId []uint64, once bool) error {
 	linkIds := []uint64{}
-	routes, err := s.rr.BatchGet(ctx, idArray)
+	routes, err := s.rr.BatchGet(ctx, linkedId)
 
 	if err != nil {
 		return err
@@ -87,8 +91,10 @@ func (s *collection) batchLink(ctx context.Context, direct string, id uint64, id
 		linkIds = append(linkIds, v.Id)
 	}
 
-	if err := s.rl.DeleteAllLink(ctx, direct, id); err != nil {
-		return err
+	if once {
+		if err := s.rl.DeleteAllLink(ctx, direct, id); err != nil {
+			return err
+		}
 	}
 
 	if err := s.rl.BatchLink(ctx, direct, id, linkIds); err != nil {
@@ -321,11 +327,11 @@ func (s *collection) Update(ctx context.Context, param *UpdateCollectionParam) (
 			return err
 		}
 
-		if err := s.batchLink(ctx, constant.LinkDirectCollectionServerName, id, identity.ParseSlice(constant.ServerNamePrefix, param.ServerNameId)); err != nil {
+		if err := s.batchLinkOnce(ctx, constant.LinkDirectCollectionServerName, id, identity.ParseSlice(constant.ServerNamePrefix, param.ServerNameId)); err != nil {
 			return err
 		}
 
-		if err := s.batchLink(ctx, constant.LinkDirectCollectionEndpoint, id, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
+		if err := s.batchLinkOnce(ctx, constant.LinkDirectCollectionEndpoint, id, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
 			return err
 		}
 
