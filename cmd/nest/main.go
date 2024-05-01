@@ -57,7 +57,7 @@ func main() {
 	serverNameServer := server.NewServerName(serverNameService)
 
 	routeRepository := repository.NewRoute(db)
-	routeService := service.NewRoute(routeRepository)
+	routeService := service.NewRoute(routeRepository, linkRepository, db)
 	routeServer := server.NewRoute(routeService)
 
 	endpointRepository := repository.NewEndpoint(db)

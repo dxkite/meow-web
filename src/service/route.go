@@ -9,6 +9,7 @@ import (
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/value"
+	"gorm.io/gorm"
 )
 
 type GetRouteParam struct {
@@ -24,34 +25,58 @@ type Route interface {
 	Delete(ctx context.Context, param *DeleteRouteParam) error
 }
 
-func NewRoute(r repository.Route) Route {
-	return &route{r: r}
+func NewRoute(r repository.Route, rl repository.Link, db *gorm.DB) Route {
+	return &route{r: r, rl: rl, db: db}
 }
 
 type route struct {
-	r repository.Route
+	r  repository.Route
+	rl repository.Link
+	db *gorm.DB
 }
 
 type CreateRouteParam struct {
-	Name        string                 `json:"name" form:"name" binding:"required"`
-	Description string                 `json:"description" form:"description"`
-	Method      []string               `json:"method" form:"method" binding:"required"`
-	Path        string                 `json:"path" form:"path" binding:"required"`
-	Matcher     []*value.MatcherOption `json:"matcher" form:"matcher" binding:"dive,required"`
+	// 路由名称
+	Name string `json:"name" form:"name" binding:"required"`
+	// 路由描述
+	Description string `json:"description" form:"description"`
+	// 路由分组ID
+	CollectionId string `json:"collection_id" form:"collection_id" binding:"required"`
+	// 支持方法
+	Method []string `json:"method" form:"method" binding:"required"`
+	// 匹配路径
+	Path string `json:"path" form:"path" binding:"required"`
+	// 特殊匹配规则
+	Matcher []*value.MatcherOption `json:"matcher" form:"matcher" binding:"dive,required"`
 }
 
 func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route, error) {
-	rst, err := s.r.Create(ctx, &entity.Route{
-		Name:        param.Name,
-		Description: param.Description,
-		Method:      param.Method,
-		Path:        param.Path,
-		Matcher:     param.Matcher,
+	var obj *dto.Route
+	err := s.dataSource(ctx).Transaction(func(tx *gorm.DB) error {
+		ctx := repository.WithDataSource(ctx, tx)
+		collId := identity.Parse(constant.CollectionPrefix, param.CollectionId)
+
+		ent, err := s.r.Create(ctx, &entity.Route{
+			Name:        param.Name,
+			Description: param.Description,
+			Method:      param.Method,
+			Path:        param.Path,
+			Matcher:     param.Matcher,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		err = s.rl.LinkOnce(ctx, constant.LinkDirectCollectionRoute, collId, ent.Id)
+		if err != nil {
+			return err
+		}
+
+		obj = dto.NewRoute(ent)
+		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-	return dto.NewRoute(rst), nil
+	return obj, err
 }
 
 func (s *route) Get(ctx context.Context, param *GetRouteParam) (*dto.Route, error) {
@@ -123,12 +148,30 @@ type UpdateRouteParam struct {
 }
 
 func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route, error) {
-	err := s.r.Update(ctx, identity.Parse(constant.RoutePrefix, param.Id), &entity.Route{
-		Name:        param.Name,
-		Description: param.Description,
-		Method:      param.Method,
-		Path:        param.Path,
-		Matcher:     param.Matcher,
+	err := s.dataSource(ctx).Transaction(func(tx *gorm.DB) error {
+		ctx := repository.WithDataSource(ctx, tx)
+		entId := identity.Parse(constant.RoutePrefix, param.Id)
+
+		err := s.r.Update(ctx, entId, &entity.Route{
+			Name:        param.Name,
+			Description: param.Description,
+			Method:      param.Method,
+			Path:        param.Path,
+			Matcher:     param.Matcher,
+		})
+		if err != nil {
+			return err
+		}
+
+		if param.CollectionId != "" {
+			collId := identity.Parse(constant.CollectionPrefix, param.CollectionId)
+			err = s.rl.LinkOnce(ctx, constant.LinkDirectCollectionRoute, collId, entId)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
 	})
 	if err != nil {
 		return nil, err
@@ -139,4 +182,8 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 		return nil, err
 	}
 	return dto.NewRoute(obj), nil
+}
+
+func (r *route) dataSource(ctx context.Context) *gorm.DB {
+	return repository.DataSource(ctx, r.db)
 }
