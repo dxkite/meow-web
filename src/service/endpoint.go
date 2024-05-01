@@ -137,11 +137,5 @@ func (s *endpoint) Update(ctx context.Context, param *UpdateEndpointParam) (*dto
 		return nil, err
 	}
 
-	entity, err := s.r.Get(ctx, identity.Parse(constant.EndpointPrefix, param.Id))
-	if err != nil {
-		return nil, err
-	}
-
-	obj := dto.NewEndpoint(entity)
-	return obj, nil
+	return s.Get(ctx, &GetEndpointParam{Id: param.Id})
 }

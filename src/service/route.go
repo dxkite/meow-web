@@ -175,9 +175,5 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 		return nil, err
 	}
 
-	obj, err := s.r.Get(ctx, identity.Parse(constant.RoutePrefix, param.Id))
-	if err != nil {
-		return nil, err
-	}
-	return dto.NewRoute(obj), nil
+	return s.Get(ctx, &GetRouteParam{Id: param.Id})
 }

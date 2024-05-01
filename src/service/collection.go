@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"dxkite.cn/meownest/pkg/data_source"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/dto"
@@ -33,21 +34,68 @@ type collection struct {
 }
 
 type CreateCollectionParam struct {
-	Name        string `json:"name" form:"name" binding:"required"`
+	// 分组名
+	Name string `json:"name" form:"name" binding:"required"`
+	// 分组描述
 	Description string `json:"description" form:"description"`
-	ParentId    string `json:"parent_id" form:"parent_id"`
+	// 父级节点
+	ParentId string `json:"parent_id" form:"parent_id"`
+	// 绑定的域名
+	ServerNameId []string `json:"server_name_id" form:"server_name"`
+	// 绑定的后端服务
+	EndpointId []string `json:"endpoint_id" form:"endpoint_id"`
 }
 
 func (s *collection) Create(ctx context.Context, param *CreateCollectionParam) (*dto.Collection, error) {
-	rst, err := s.r.Create(ctx, &entity.Collection{
-		Name:        param.Name,
-		Description: param.Description,
-		ParentId:    identity.Parse(constant.CollectionPrefix, param.ParentId),
+	var obj *dto.Collection
+
+	data_source.Transaction(ctx, func(txCtx context.Context) error {
+		item, err := s.r.Create(ctx, &entity.Collection{
+			Name:        param.Name,
+			Description: param.Description,
+			ParentId:    identity.Parse(constant.CollectionPrefix, param.ParentId),
+		})
+
+		if err != nil {
+			return err
+		}
+
+		if err := s.batchLink(ctx, constant.LinkDirectCollectionServerName, item.Id, identity.ParseSlice(constant.ServerNamePrefix, param.ServerNameId)); err != nil {
+			return err
+		}
+
+		if err := s.batchLink(ctx, constant.LinkDirectCollectionEndpoint, item.Id, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
+			return err
+		}
+
+		obj = dto.NewCollection(item)
+		return nil
 	})
+
+	return obj, nil
+}
+
+func (s *collection) batchLink(ctx context.Context, direct string, id uint64, idArray []uint64) error {
+	linkIds := []uint64{}
+	routes, err := s.rr.BatchGet(ctx, idArray)
+
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return dto.NewCollection(rst), nil
+
+	for _, v := range routes {
+		linkIds = append(linkIds, v.Id)
+	}
+
+	if err := s.rl.DeleteAllLink(ctx, direct, id); err != nil {
+		return err
+	}
+
+	if err := s.rl.BatchLink(ctx, direct, id, linkIds); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type GetCollectionParam struct {
@@ -254,4 +302,35 @@ func (s *collection) List(ctx context.Context, param *ListCollectionParam) (*Lis
 	rst.Data = items
 	rst.HasMore = n == param.Limit
 	return rst, nil
+}
+
+type UpdateCollectionParam struct {
+	Id string `json:"id" uri:"id" binding:"required"`
+	CreateCollectionParam
+}
+
+func (s *collection) Update(ctx context.Context, param *UpdateCollectionParam) (*dto.Collection, error) {
+	data_source.Transaction(ctx, func(txCtx context.Context) error {
+		id := identity.Parse(constant.ServerNamePrefix, param.Id)
+
+		err := s.r.Update(ctx, id, &entity.Collection{
+			Name: param.Name,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		if err := s.batchLink(ctx, constant.LinkDirectCollectionServerName, id, identity.ParseSlice(constant.ServerNamePrefix, param.ServerNameId)); err != nil {
+			return err
+		}
+
+		if err := s.batchLink(ctx, constant.LinkDirectCollectionEndpoint, id, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return s.Get(ctx, &GetCollectionParam{Id: param.Id})
 }

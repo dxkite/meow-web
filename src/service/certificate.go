@@ -128,11 +128,5 @@ func (s *certificate) Update(ctx context.Context, param *UpdateCertificateParam)
 		return nil, err
 	}
 
-	entity, err := s.r.Get(ctx, identity.Parse(constant.CertificatePrefix, param.Id))
-	if err != nil {
-		return nil, err
-	}
-
-	obj := dto.NewCertificate(entity)
-	return obj, nil
+	return s.Get(ctx, &GetCertificateParam{Id: param.Id})
 }
