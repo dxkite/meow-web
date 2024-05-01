@@ -13,6 +13,7 @@ type Collection interface {
 	Create(ctx context.Context, param *entity.Collection) (*entity.Collection, error)
 	Get(ctx context.Context, id uint64) (*entity.Collection, error)
 	List(ctx context.Context, param *ListCollectionParam) ([]*entity.Collection, error)
+	Update(ctx context.Context, id uint64, ent *entity.Collection) error
 }
 
 func NewCollection() Collection {
@@ -105,6 +106,13 @@ func (r *collection) List(ctx context.Context, param *ListCollectionParam) ([]*e
 		return nil, err
 	}
 	return items, nil
+}
+
+func (r *collection) Update(ctx context.Context, id uint64, ent *entity.Collection) error {
+	if err := r.dataSource(ctx).Where("id = ?", id).Updates(&ent).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *collection) dataSource(ctx context.Context) *gorm.DB {

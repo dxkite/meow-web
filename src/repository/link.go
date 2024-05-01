@@ -14,6 +14,7 @@ type Link interface {
 	LinkOnce(ctx context.Context, direct string, sourceId, linkedId uint64) error
 	LinkOf(ctx context.Context, direct string, sourceId uint64) ([]*entity.Link, error)
 	BatchDeleteLink(ctx context.Context, direct string, sourceId uint64, linkedIds []uint64) error
+	DeleteAllLink(ctx context.Context, direct string, sourceId uint64) error
 }
 
 func NewLink() Link {
@@ -65,6 +66,13 @@ func (r *link) LinkOf(ctx context.Context, direct string, sourceId uint64) ([]*e
 
 func (r *link) BatchDeleteLink(ctx context.Context, direct string, sourceId uint64, linkedIds []uint64) error {
 	if err := r.dataSource(ctx).Where(entity.Link{Direct: direct, SourceId: sourceId}).Where("linked_id in ?", linkedIds).Delete(entity.Link{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *link) DeleteAllLink(ctx context.Context, direct string, sourceId uint64) error {
+	if err := r.dataSource(ctx).Where(entity.Link{Direct: direct, SourceId: sourceId}).Delete(entity.Link{}).Error; err != nil {
 		return err
 	}
 	return nil
