@@ -89,6 +89,8 @@ type Collection struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	// 路由信息
+	ServerNames []*ServerName `json:"server_names,omitempty"`
+	// 路由信息
 	Routes []*Route `json:"routes,omitempty"`
 	// 后端服务
 	Endpoints []*Endpoint `json:"endpoints,omitempty"`

@@ -22,13 +22,14 @@ type Collection interface {
 	DeleteEndpoint(ctx context.Context, param *DeleteCollectionEndpointParam) error
 }
 
-func NewCollection(r repository.Collection, rl repository.Link, rr repository.Route, re repository.Endpoint) Collection {
-	return &collection{r: r, rr: rr, rl: rl, re: re}
+func NewCollection(r repository.Collection, rl repository.Link, rr repository.Route, re repository.Endpoint, rs repository.ServerName) Collection {
+	return &collection{r: r, rr: rr, rl: rl, re: re, rs: rs}
 }
 
 type collection struct {
 	r  repository.Collection
 	rl repository.Link
+	rs repository.ServerName
 	rr repository.Route
 	re repository.Endpoint
 }
@@ -80,24 +81,13 @@ func (s *collection) batchLinkOnce(ctx context.Context, direct string, id uint64
 }
 
 func (s *collection) batchLink(ctx context.Context, direct string, id uint64, linkedId []uint64, once bool) error {
-	linkIds := []uint64{}
-	routes, err := s.rr.BatchGet(ctx, linkedId)
-
-	if err != nil {
-		return err
-	}
-
-	for _, v := range routes {
-		linkIds = append(linkIds, v.Id)
-	}
-
 	if once {
 		if err := s.rl.DeleteAllLink(ctx, direct, id); err != nil {
 			return err
 		}
 	}
 
-	if err := s.rl.BatchLink(ctx, direct, id, linkIds); err != nil {
+	if err := s.rl.BatchLink(ctx, direct, id, linkedId); err != nil {
 		return err
 	}
 
@@ -116,6 +106,31 @@ func (s *collection) Get(ctx context.Context, param *GetCollectionParam) (*dto.C
 	}
 
 	collection := dto.NewCollection(rst)
+
+	if utils.InStringSlice("server_names", param.Expand) {
+		entityIds := []uint64{}
+
+		linked, err := s.rl.LinkOf(ctx, constant.LinkDirectCollectionServerName, rst.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, v := range linked {
+			entityIds = append(entityIds, v.LinkedId)
+		}
+
+		entities, err := s.rs.BatchGet(ctx, entityIds)
+		if err != nil {
+			return nil, err
+		}
+
+		items := make([]*dto.ServerName, len(entities))
+		for i, v := range entities {
+			items[i] = dto.NewServerName(v)
+		}
+
+		collection.ServerNames = items
+	}
 
 	if utils.InStringSlice("routes", param.Expand) {
 		entityIds := []uint64{}

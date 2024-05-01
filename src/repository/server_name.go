@@ -11,6 +11,7 @@ import (
 type ServerName interface {
 	Create(ctx context.Context, serverName *entity.ServerName) (*entity.ServerName, error)
 	Get(ctx context.Context, id uint64) (*entity.ServerName, error)
+	BatchGet(ctx context.Context, ids []uint64) ([]*entity.ServerName, error)
 	List(ctx context.Context, param *ListServerNameParam) ([]*entity.ServerName, error)
 	Update(ctx context.Context, id uint64, ent *entity.ServerName) error
 	Delete(ctx context.Context, id uint64) error
@@ -36,6 +37,14 @@ func (r *serverName) Get(ctx context.Context, id uint64) (*entity.ServerName, er
 		return nil, err
 	}
 	return &cert, nil
+}
+
+func (r *serverName) BatchGet(ctx context.Context, ids []uint64) ([]*entity.ServerName, error) {
+	var items []*entity.ServerName
+	if err := r.dataSource(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 func (r *serverName) Delete(ctx context.Context, id uint64) error {

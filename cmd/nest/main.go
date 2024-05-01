@@ -68,7 +68,7 @@ func main() {
 	endpointServer := server.NewEndpoint(endpointService)
 
 	collectionRepository := repository.NewCollection()
-	collectionService := service.NewCollection(collectionRepository, linkRepository, routeRepository, endpointRepository)
+	collectionService := service.NewCollection(collectionRepository, linkRepository, routeRepository, endpointRepository, nameServerRepository)
 	collectionServer := server.NewCollection(collectionService)
 
 	httpServer := httpserver.New()
