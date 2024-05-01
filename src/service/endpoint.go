@@ -33,6 +33,9 @@ type GetEndpointParam struct {
 type Endpoint interface {
 	Create(ctx context.Context, param *CreateEndpointParam) (*dto.Endpoint, error)
 	Get(ctx context.Context, param *GetEndpointParam) (*dto.Endpoint, error)
+	Delete(ctx context.Context, param *DeleteEndpointParam) error
+	List(ctx context.Context, param *ListEndpointParam) (*ListEndpointResult, error)
+	Update(ctx context.Context, param *UpdateEndpointParam) (*dto.Endpoint, error)
 }
 
 func NewEndpoint(r repository.Endpoint) Endpoint {
@@ -64,4 +67,81 @@ func (s *endpoint) Get(ctx context.Context, param *GetEndpointParam) (*dto.Endpo
 		return nil, err
 	}
 	return dto.NewEndpoint(rst), nil
+}
+
+type DeleteEndpointParam struct {
+	Id string `json:"id" uri:"id" binding:"required"`
+}
+
+func (s *endpoint) Delete(ctx context.Context, param *DeleteEndpointParam) error {
+	err := s.r.Delete(ctx, identity.Parse(constant.EndpointPrefix, param.Id))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+type ListEndpointParam struct {
+	Name          string   `form:"name"`
+	Limit         int      `form:"limit" binding:"max=1000"`
+	StartingAfter string   `form:"starting_after"`
+	EndingBefore  string   `form:"ending_before"`
+	Expand        []string `json:"expand" form:"expand"`
+}
+
+type ListEndpointResult struct {
+	HasMore bool            `json:"has_more"`
+	Data    []*dto.Endpoint `json:"data"`
+}
+
+func (s *endpoint) List(ctx context.Context, param *ListEndpointParam) (*ListEndpointResult, error) {
+	if param.Limit == 0 {
+		param.Limit = 10
+	}
+
+	entities, err := s.r.List(ctx, &repository.ListEndpointParam{
+		Name:          param.Name,
+		Limit:         param.Limit,
+		StartingAfter: identity.Parse(constant.CollectionPrefix, param.StartingAfter),
+		EndingBefore:  identity.Parse(constant.CollectionPrefix, param.EndingBefore),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	n := len(entities)
+
+	items := make([]*dto.Endpoint, n)
+
+	for i, v := range entities {
+		items[i] = dto.NewEndpoint(v)
+	}
+
+	rst := &ListEndpointResult{}
+	rst.Data = items
+	rst.HasMore = n == param.Limit
+	return rst, nil
+}
+
+type UpdateEndpointParam struct {
+	Id string `json:"id" uri:"id" binding:"required"`
+	CreateEndpointParam
+}
+
+func (s *endpoint) Update(ctx context.Context, param *UpdateEndpointParam) (*dto.Endpoint, error) {
+	id := identity.Parse(constant.ServerNamePrefix, param.Id)
+	err := s.r.Update(ctx, id, &entity.Endpoint{
+		Name: param.Name,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	entity, err := s.r.Get(ctx, identity.Parse(constant.EndpointPrefix, param.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	obj := dto.NewEndpoint(entity)
+	return obj, nil
 }
