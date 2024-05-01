@@ -9,6 +9,7 @@ import (
 	"dxkite.cn/meownest/src/dto"
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
+	"dxkite.cn/meownest/src/utils"
 	"dxkite.cn/meownest/src/value"
 )
 
@@ -32,6 +33,7 @@ func NewRoute(r repository.Route, rl repository.Link) Route {
 type route struct {
 	r  repository.Route
 	rl repository.Link
+	re repository.Endpoint
 }
 
 type CreateRouteParam struct {
@@ -47,6 +49,8 @@ type CreateRouteParam struct {
 	Path string `json:"path" form:"path" binding:"required"`
 	// 特殊匹配规则
 	Matcher []*value.MatcherOption `json:"matcher" form:"matcher" binding:"dive,required"`
+	// 绑定的后端服务
+	EndpointId []string `json:"endpoint_id" form:"endpoint_id"`
 }
 
 func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route, error) {
@@ -71,6 +75,10 @@ func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route
 			return err
 		}
 
+		if err := s.batchLinkOnce(ctx, constant.LinkDirectRouteEndpoint, ent.Id, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
+			return err
+		}
+
 		obj = dto.NewRoute(ent)
 		return nil
 	})
@@ -82,7 +90,35 @@ func (s *route) Get(ctx context.Context, param *GetRouteParam) (*dto.Route, erro
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewRoute(rst), nil
+
+	obj := dto.NewRoute(rst)
+
+	if utils.InStringSlice("endpoints", param.Expand) {
+		entityIds := []uint64{}
+
+		linked, err := s.rl.LinkOf(ctx, constant.LinkDirectCollectionEndpoint, rst.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, v := range linked {
+			entityIds = append(entityIds, v.LinkedId)
+		}
+
+		entities, err := s.re.BatchGet(ctx, entityIds)
+		if err != nil {
+			return nil, err
+		}
+
+		items := make([]*dto.Endpoint, len(entities))
+		for i, v := range entities {
+			items[i] = dto.NewEndpoint(v)
+		}
+
+		obj.Endpoints = items
+	}
+
+	return obj, nil
 }
 
 type ListRouteParam struct {
@@ -169,6 +205,10 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 			}
 		}
 
+		if err := s.batchLinkOnce(ctx, constant.LinkDirectRouteEndpoint, entId, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
+			return err
+		}
+
 		return nil
 	})
 	if err != nil {
@@ -176,4 +216,22 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 	}
 
 	return s.Get(ctx, &GetRouteParam{Id: param.Id})
+}
+
+func (s *route) batchLinkOnce(ctx context.Context, direct string, id uint64, linkedId []uint64) error {
+	return s.batchLink(ctx, direct, id, linkedId, true)
+}
+
+func (s *route) batchLink(ctx context.Context, direct string, id uint64, linkedId []uint64, once bool) error {
+	if once {
+		if err := s.rl.DeleteAllLink(ctx, direct, id); err != nil {
+			return err
+		}
+	}
+
+	if err := s.rl.BatchLink(ctx, direct, id, linkedId); err != nil {
+		return err
+	}
+
+	return nil
 }

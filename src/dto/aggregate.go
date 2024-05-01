@@ -13,7 +13,6 @@ import (
 type ServerName struct {
 	Id            string       `json:"id"`
 	Name          string       `json:"name"`                     // 域名
-	Protocol      string       `json:"protocol"`                 // 协议
 	CertificateId string       `json:"certificate_id,omitempty"` // 证书
 	Certificate   *Certificate `json:"certificate,omitempty"`    // 证书
 	CreatedAt     time.Time    `json:"created_at"`
@@ -65,7 +64,7 @@ type Route struct {
 	Method      []string               `json:"method"`
 	Path        string                 `json:"path"`
 	Matcher     []*value.MatcherOption `json:"matcher"`
-	Endpoint    []*Endpoint            `json:"endpoints,omitempty"`
+	Endpoints   []*Endpoint            `json:"endpoints,omitempty"`
 	CreatedAt   time.Time              `json:"created_at"`
 	UpdatedAt   time.Time              `json:"updated_at"`
 }
