@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 
+	"dxkite.cn/meownest/pkg/datasource"
 	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
@@ -14,12 +15,11 @@ type Collection interface {
 	List(ctx context.Context, param *ListCollectionParam) ([]*entity.Collection, error)
 }
 
-func NewCollection(db *gorm.DB) Collection {
-	return &collection{db: db}
+func NewCollection() Collection {
+	return &collection{}
 }
 
 type collection struct {
-	db *gorm.DB
 }
 
 func (r *collection) Create(ctx context.Context, param *entity.Collection) (*entity.Collection, error) {
@@ -108,5 +108,5 @@ func (r *collection) List(ctx context.Context, param *ListCollectionParam) ([]*e
 }
 
 func (r *collection) dataSource(ctx context.Context) *gorm.DB {
-	return DataSource(ctx, r.db)
+	return datasource.Get(ctx).DB()
 }

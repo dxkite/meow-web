@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"dxkite.cn/meownest/pkg/datasource"
 	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
@@ -16,12 +17,11 @@ type Route interface {
 	Update(ctx context.Context, id uint64, ent *entity.Route) error
 }
 
-func NewRoute(db *gorm.DB) Route {
-	return &route{db: db}
+func NewRoute() Route {
+	return &route{}
 }
 
 type route struct {
-	db *gorm.DB
 }
 
 func (r *route) Create(ctx context.Context, route *entity.Route) (*entity.Route, error) {
@@ -100,5 +100,5 @@ func (r *route) List(ctx context.Context, param *ListRouteParam) ([]*entity.Rout
 }
 
 func (r *route) dataSource(ctx context.Context) *gorm.DB {
-	return DataSource(ctx, r.db)
+	return datasource.Get(ctx).DB()
 }

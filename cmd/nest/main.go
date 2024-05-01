@@ -13,7 +13,6 @@ import (
 	"dxkite.cn/meownest/src/server"
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/glebarez/sqlite"
 	"github.com/go-playground/validator/v10"
@@ -50,25 +49,25 @@ func main() {
 		entity.Link{},
 		entity.Collection{}, entity.Route{}, entity.Endpoint{})
 
-	linkRepository := repository.NewLink(db)
+	linkRepository := repository.NewLink()
 
-	certificateRepository := repository.NewCertificate(db)
+	certificateRepository := repository.NewCertificate()
 	certificateService := service.NewCertificate(certificateRepository)
 	certificateServer := server.NewCertificate(certificateService)
 
-	nameServerRepository := repository.NewServerName(db)
-	serverNameService := service.NewServerName(nameServerRepository, certificateRepository, db)
+	nameServerRepository := repository.NewServerName()
+	serverNameService := service.NewServerName(nameServerRepository, certificateRepository)
 	serverNameServer := server.NewServerName(serverNameService)
 
-	routeRepository := repository.NewRoute(db)
-	routeService := service.NewRoute(routeRepository, linkRepository, db)
+	routeRepository := repository.NewRoute()
+	routeService := service.NewRoute(routeRepository, linkRepository)
 	routeServer := server.NewRoute(routeService)
 
-	endpointRepository := repository.NewEndpoint(db)
+	endpointRepository := repository.NewEndpoint()
 	endpointService := service.NewEndpoint(endpointRepository)
 	endpointServer := server.NewEndpoint(endpointService)
 
-	collectionRepository := repository.NewCollection(db)
+	collectionRepository := repository.NewCollection()
 	collectionService := service.NewCollection(collectionRepository, linkRepository, routeRepository, endpointRepository)
 	collectionServer := server.NewCollection(collectionService)
 
@@ -85,9 +84,7 @@ func main() {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	httpServer.Use(func(ctx *gin.Context) {
-		datasource.RegisterToGin(ctx, datasource.New(db))
-	})
+	httpServer.Use(datasource.RegisterToGin(datasource.New(db)))
 
 	httpServer.RegisterPrefix("/api/v1", certificateServer)
 	httpServer.RegisterPrefix("/api/v1", serverNameServer)

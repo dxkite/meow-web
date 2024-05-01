@@ -3,13 +3,13 @@ package service
 import (
 	"context"
 
+	"dxkite.cn/meownest/pkg/datasource"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/dto"
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/value"
-	"gorm.io/gorm"
 )
 
 type GetRouteParam struct {
@@ -25,14 +25,13 @@ type Route interface {
 	Delete(ctx context.Context, param *DeleteRouteParam) error
 }
 
-func NewRoute(r repository.Route, rl repository.Link, db *gorm.DB) Route {
-	return &route{r: r, rl: rl, db: db}
+func NewRoute(r repository.Route, rl repository.Link) Route {
+	return &route{r: r, rl: rl}
 }
 
 type route struct {
 	r  repository.Route
 	rl repository.Link
-	db *gorm.DB
 }
 
 type CreateRouteParam struct {
@@ -52,10 +51,9 @@ type CreateRouteParam struct {
 
 func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route, error) {
 	var obj *dto.Route
-	err := s.dataSource(ctx).Transaction(func(tx *gorm.DB) error {
-		ctx := repository.WithDataSource(ctx, tx)
-		collId := identity.Parse(constant.CollectionPrefix, param.CollectionId)
+	err := datasource.Transaction(ctx, func(ctx context.Context) error {
 
+		collId := identity.Parse(constant.CollectionPrefix, param.CollectionId)
 		ent, err := s.r.Create(ctx, &entity.Route{
 			Name:        param.Name,
 			Description: param.Description,
@@ -148,8 +146,8 @@ type UpdateRouteParam struct {
 }
 
 func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route, error) {
-	err := s.dataSource(ctx).Transaction(func(tx *gorm.DB) error {
-		ctx := repository.WithDataSource(ctx, tx)
+	err := datasource.Transaction(ctx, func(ctx context.Context) error {
+
 		entId := identity.Parse(constant.RoutePrefix, param.Id)
 
 		err := s.r.Update(ctx, entId, &entity.Route{
@@ -182,8 +180,4 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 		return nil, err
 	}
 	return dto.NewRoute(obj), nil
-}
-
-func (r *route) dataSource(ctx context.Context) *gorm.DB {
-	return repository.DataSource(ctx, r.db)
 }

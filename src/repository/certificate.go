@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"dxkite.cn/meownest/pkg/datasource"
 	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
@@ -16,12 +17,11 @@ type Certificate interface {
 	BatchGet(ctx context.Context, ids []uint64) ([]*entity.Certificate, error)
 }
 
-func NewCertificate(db *gorm.DB) Certificate {
-	return &certificate{db: db}
+func NewCertificate() Certificate {
+	return &certificate{}
 }
 
 type certificate struct {
-	db *gorm.DB
 }
 
 func (r *certificate) Get(ctx context.Context, id uint64) (*entity.Certificate, error) {
@@ -95,5 +95,5 @@ func (r *certificate) Delete(ctx context.Context, id uint64) error {
 }
 
 func (r *certificate) dataSource(ctx context.Context) *gorm.DB {
-	return DataSource(ctx, r.db)
+	return datasource.Get(ctx).DB()
 }

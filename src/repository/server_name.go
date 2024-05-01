@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"dxkite.cn/meownest/pkg/datasource"
 	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
@@ -15,12 +16,11 @@ type ServerName interface {
 	Delete(ctx context.Context, id uint64) error
 }
 
-func NewServerName(db *gorm.DB) ServerName {
-	return &serverName{db: db}
+func NewServerName() ServerName {
+	return &serverName{}
 }
 
 type serverName struct {
-	db *gorm.DB
 }
 
 func (r *serverName) Create(ctx context.Context, serverName *entity.ServerName) (*entity.ServerName, error) {
@@ -86,5 +86,5 @@ func (r *serverName) List(ctx context.Context, param *ListServerNameParam) ([]*e
 }
 
 func (r *serverName) dataSource(ctx context.Context) *gorm.DB {
-	return DataSource(ctx, r.db)
+	return datasource.Get(ctx).DB()
 }

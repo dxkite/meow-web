@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"dxkite.cn/meownest/pkg/datasource"
 	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
@@ -15,12 +16,11 @@ type Link interface {
 	BatchDeleteLink(ctx context.Context, direct string, sourceId uint64, linkedIds []uint64) error
 }
 
-func NewLink(db *gorm.DB) Link {
-	return &link{db: db}
+func NewLink() Link {
+	return &link{}
 }
 
 type link struct {
-	db *gorm.DB
 }
 
 func (r *link) Link(ctx context.Context, direct string, sourceId, linkedId uint64) error {
@@ -71,5 +71,5 @@ func (r *link) BatchDeleteLink(ctx context.Context, direct string, sourceId uint
 }
 
 func (r *link) dataSource(ctx context.Context) *gorm.DB {
-	return DataSource(ctx, r.db)
+	return datasource.Get(ctx).DB()
 }

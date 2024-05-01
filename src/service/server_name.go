@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"dxkite.cn/meownest/pkg/datasource"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/dto"
@@ -10,7 +11,6 @@ import (
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/utils"
 	"dxkite.cn/meownest/src/value"
-	"gorm.io/gorm"
 )
 
 type ServerName interface {
@@ -21,14 +21,13 @@ type ServerName interface {
 	List(ctx context.Context, param *ListServerNameParam) (*ListServerNameResult, error)
 }
 
-func NewServerName(r repository.ServerName, rc repository.Certificate, db *gorm.DB) ServerName {
-	return &serverName{r: r, rc: rc, db: db}
+func NewServerName(r repository.ServerName, rc repository.Certificate) ServerName {
+	return &serverName{r: r, rc: rc}
 }
 
 type serverName struct {
 	r  repository.ServerName
 	rc repository.Certificate
-	db *gorm.DB
 }
 
 type CreateServerNameParam struct {
@@ -44,8 +43,7 @@ type CreateServerNameParam struct {
 func (s *serverName) Create(ctx context.Context, param *CreateServerNameParam) (*dto.ServerName, error) {
 	var name *dto.ServerName
 
-	err := s.dataSource(ctx).Transaction(func(tx *gorm.DB) error {
-		ctx := repository.WithDataSource(ctx, tx)
+	err := datasource.Transaction(ctx, func(ctx context.Context) error {
 
 		var certificateId = identity.Parse(constant.CertificatePrefix, param.CertificateId)
 		var certificate *dto.Certificate
@@ -199,8 +197,7 @@ func (s *serverName) Update(ctx context.Context, param *UpdateServerNameParam) (
 	var name *dto.ServerName
 	id := identity.Parse(constant.ServerNamePrefix, param.Id)
 
-	err := s.dataSource(ctx).Transaction(func(tx *gorm.DB) error {
-		ctx := repository.WithDataSource(ctx, tx)
+	err := datasource.Transaction(ctx, func(ctx context.Context) error {
 
 		var certificateId = identity.Parse(constant.CertificatePrefix, param.CertificateId)
 		var certificate *dto.Certificate
@@ -239,8 +236,4 @@ func (s *serverName) Update(ctx context.Context, param *UpdateServerNameParam) (
 	})
 
 	return name, err
-}
-
-func (r *serverName) dataSource(ctx context.Context) *gorm.DB {
-	return repository.DataSource(ctx, r.db)
 }

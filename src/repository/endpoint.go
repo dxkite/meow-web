@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"dxkite.cn/meownest/pkg/datasource"
 	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
@@ -16,12 +17,11 @@ type Endpoint interface {
 	Delete(ctx context.Context, id uint64) error
 }
 
-func NewEndpoint(db *gorm.DB) Endpoint {
-	return &endpoint{db: db}
+func NewEndpoint() Endpoint {
+	return &endpoint{}
 }
 
 type endpoint struct {
-	db *gorm.DB
 }
 
 func (r *endpoint) Create(ctx context.Context, endpoint *entity.Endpoint) (*entity.Endpoint, error) {
@@ -95,5 +95,5 @@ func (r *endpoint) Delete(ctx context.Context, id uint64) error {
 }
 
 func (r *endpoint) dataSource(ctx context.Context) *gorm.DB {
-	return DataSource(ctx, r.db)
+	return datasource.Get(ctx).DB()
 }
