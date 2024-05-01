@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"dxkite.cn/meownest/pkg/datasource"
+	"dxkite.cn/meownest/pkg/data_source"
 	"dxkite.cn/meownest/pkg/httpserver"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/entity"
@@ -84,7 +84,7 @@ func main() {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	httpServer.Use(datasource.RegisterToGin(datasource.New(db)))
+	httpServer.Use(data_source.RegisterToGin(data_source.New(db)))
 
 	httpServer.RegisterPrefix("/api/v1", certificateServer)
 	httpServer.RegisterPrefix("/api/v1", serverNameServer)

@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"dxkite.cn/meownest/pkg/datasource"
+	"dxkite.cn/meownest/pkg/data_source"
 	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
@@ -108,5 +108,5 @@ func (r *collection) List(ctx context.Context, param *ListCollectionParam) ([]*e
 }
 
 func (r *collection) dataSource(ctx context.Context) *gorm.DB {
-	return datasource.Get(ctx).DB()
+	return data_source.Get(ctx).DB()
 }

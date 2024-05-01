@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"dxkite.cn/meownest/pkg/datasource"
+	"dxkite.cn/meownest/pkg/data_source"
 	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
@@ -95,5 +95,5 @@ func (r *certificate) Delete(ctx context.Context, id uint64) error {
 }
 
 func (r *certificate) dataSource(ctx context.Context) *gorm.DB {
-	return datasource.Get(ctx).DB()
+	return data_source.Get(ctx).DB()
 }

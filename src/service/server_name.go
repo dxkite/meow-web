@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"dxkite.cn/meownest/pkg/datasource"
+	"dxkite.cn/meownest/pkg/data_source"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/dto"
@@ -43,7 +43,7 @@ type CreateServerNameParam struct {
 func (s *serverName) Create(ctx context.Context, param *CreateServerNameParam) (*dto.ServerName, error) {
 	var name *dto.ServerName
 
-	err := datasource.Transaction(ctx, func(ctx context.Context) error {
+	err := data_source.Transaction(ctx, func(ctx context.Context) error {
 
 		var certificateId = identity.Parse(constant.CertificatePrefix, param.CertificateId)
 		var certificate *dto.Certificate
@@ -197,7 +197,7 @@ func (s *serverName) Update(ctx context.Context, param *UpdateServerNameParam) (
 	var name *dto.ServerName
 	id := identity.Parse(constant.ServerNamePrefix, param.Id)
 
-	err := datasource.Transaction(ctx, func(ctx context.Context) error {
+	err := data_source.Transaction(ctx, func(ctx context.Context) error {
 
 		var certificateId = identity.Parse(constant.CertificatePrefix, param.CertificateId)
 		var certificate *dto.Certificate

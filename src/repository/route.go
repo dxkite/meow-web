@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"dxkite.cn/meownest/pkg/datasource"
+	"dxkite.cn/meownest/pkg/data_source"
 	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
@@ -100,5 +100,5 @@ func (r *route) List(ctx context.Context, param *ListRouteParam) ([]*entity.Rout
 }
 
 func (r *route) dataSource(ctx context.Context) *gorm.DB {
-	return datasource.Get(ctx).DB()
+	return data_source.Get(ctx).DB()
 }
