@@ -13,19 +13,12 @@ var DataSourceKey = "pkg/data_source"
 var ErrMissSource = errors.New("missing data source")
 
 type DataSource interface {
-	DB() *gorm.DB
+	RawSource() interface{}
+	Transaction(func(s DataSource) error) error
 }
 
-type dataSource struct {
-	db *gorm.DB
-}
-
-func (dataSource *dataSource) DB() *gorm.DB {
-	return dataSource.db
-}
-
-func New(db *gorm.DB) DataSource {
-	return &dataSource{db: db}
+type GormDataSource interface {
+	Gorm() *gorm.DB
 }
 
 func Get(ctx context.Context) DataSource {
@@ -43,7 +36,7 @@ func GetDefault(ctx context.Context, defaultSource DataSource) DataSource {
 	return defaultSource
 }
 
-func RegisterToGin(ds DataSource) gin.HandlerFunc {
+func GinDataSource(ds DataSource) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Set(DataSourceKey, ds)
 	}
@@ -59,8 +52,8 @@ func With(ctx context.Context, ds DataSource) context.Context {
 
 func Transaction(ctx context.Context, txFn func(txCtx context.Context) error) error {
 	ds := Get(ctx)
-	return ds.DB().Transaction(func(tx *gorm.DB) error {
-		txCtx := With(ctx, New(tx))
+	return ds.Transaction(func(s DataSource) error {
+		txCtx := With(ctx, s)
 		return txFn(txCtx)
 	})
 }

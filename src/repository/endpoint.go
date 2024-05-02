@@ -95,5 +95,5 @@ func (r *endpoint) Delete(ctx context.Context, id uint64) error {
 }
 
 func (r *endpoint) dataSource(ctx context.Context) *gorm.DB {
-	return data_source.Get(ctx).DB()
+	return data_source.Get(ctx).(data_source.GormDataSource).Gorm()
 }

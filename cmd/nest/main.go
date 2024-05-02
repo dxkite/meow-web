@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"dxkite.cn/meownest/pkg/data_source"
+	"dxkite.cn/meownest/pkg/data_source/sqlite"
 	"dxkite.cn/meownest/pkg/httpserver"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/entity"
@@ -14,9 +15,7 @@ import (
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/glebarez/sqlite"
 	"github.com/go-playground/validator/v10"
-	"gorm.io/gorm"
 )
 
 func init() {
@@ -39,12 +38,12 @@ func initBinding() {
 }
 
 func main() {
-	db, err := gorm.Open(sqlite.Open("data.db"))
+	ds, err := sqlite.Open("data.db")
 	if err != nil {
 		panic(err)
 	}
 
-	db = db.Debug()
+	db := ds.Gorm()
 	db.AutoMigrate(entity.ServerName{}, entity.Certificate{},
 		entity.Link{},
 		entity.Collection{}, entity.Route{}, entity.Endpoint{})
@@ -85,7 +84,7 @@ func main() {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	httpServer.Use(data_source.RegisterToGin(data_source.New(db)))
+	httpServer.Use(data_source.GinDataSource(ds))
 
 	httpServer.RegisterPrefix("/api/v1", certificateServer)
 	httpServer.RegisterPrefix("/api/v1", serverNameServer)

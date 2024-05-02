@@ -95,5 +95,5 @@ func (r *serverName) List(ctx context.Context, param *ListServerNameParam) ([]*e
 }
 
 func (r *serverName) dataSource(ctx context.Context) *gorm.DB {
-	return data_source.Get(ctx).DB()
+	return data_source.Get(ctx).(data_source.GormDataSource).Gorm()
 }

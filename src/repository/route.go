@@ -105,5 +105,5 @@ func (r *route) List(ctx context.Context, param *ListRouteParam) ([]*entity.Rout
 }
 
 func (r *route) dataSource(ctx context.Context) *gorm.DB {
-	return data_source.Get(ctx).DB()
+	return data_source.Get(ctx).(data_source.GormDataSource).Gorm()
 }

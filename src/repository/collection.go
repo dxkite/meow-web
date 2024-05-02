@@ -134,5 +134,5 @@ func (r *collection) Update(ctx context.Context, id uint64, ent *entity.Collecti
 }
 
 func (r *collection) dataSource(ctx context.Context) *gorm.DB {
-	return data_source.Get(ctx).DB()
+	return data_source.Get(ctx).(data_source.GormDataSource).Gorm()
 }
