@@ -70,7 +70,7 @@ type Route struct {
 	Method      []string `json:"method"`
 	Path        string   `json:"path"`
 	// 路由的特殊匹配规则
-	Matcher []*value.MatcherOption `json:"matcher"`
+	Matcher []*value.MatchOption `json:"matcher"`
 	// 路由自定义的后端路由
 	Endpoints []*Endpoint `json:"endpoints,omitempty"`
 	CreatedAt time.Time   `json:"created_at"`
@@ -83,7 +83,7 @@ func NewRoute(item *entity.Route) *Route {
 	obj.Description = item.Description
 	obj.Method = item.Method
 	obj.Path = item.Path
-	obj.Matcher = item.Matcher
+	obj.Matcher = item.MatchOptions
 	obj.CreatedAt = item.CreatedAt
 	obj.UpdatedAt = item.UpdatedAt
 	return obj
@@ -129,7 +129,7 @@ type Endpoint struct {
 	// 请求头转发配置
 	ForwardHeader []*value.ForwardHeaderOption `json:"forward_header"`
 	// 匹配规则
-	Matcher []*value.MatcherOption `json:"matcher"`
+	Matcher []*value.MatchOption `json:"matcher"`
 	// 远程服务
 	Endpoint *value.ForwardEndpoint `gorm:"serializer:json" json:"endpoint"`
 

@@ -49,7 +49,7 @@ type CreateRouteParam struct {
 	// 匹配路径
 	Path string `json:"path" form:"path" binding:"required"`
 	// 特殊匹配规则
-	Matcher []*value.MatcherOption `json:"matcher" form:"matcher" binding:"dive,required"`
+	MatchOptions []*value.MatchOption `json:"match_options" form:"match_options" binding:"dive,required"`
 	// 绑定的后端服务
 	EndpointId []string `json:"endpoint_id" form:"endpoint_id"`
 }
@@ -60,11 +60,11 @@ func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route
 
 		collId := identity.Parse(constant.CollectionPrefix, param.CollectionId)
 		ent, err := s.r.Create(ctx, &entity.Route{
-			Name:        param.Name,
-			Description: param.Description,
-			Method:      param.Method,
-			Path:        param.Path,
-			Matcher:     param.Matcher,
+			Name:         param.Name,
+			Description:  param.Description,
+			Method:       param.Method,
+			Path:         param.Path,
+			MatchOptions: param.MatchOptions,
 		})
 
 		if err != nil {
@@ -216,11 +216,11 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 		entId := identity.Parse(constant.RoutePrefix, param.Id)
 
 		err := s.r.Update(ctx, entId, &entity.Route{
-			Name:        param.Name,
-			Description: param.Description,
-			Method:      param.Method,
-			Path:        param.Path,
-			Matcher:     param.Matcher,
+			Name:         param.Name,
+			Description:  param.Description,
+			Method:       param.Method,
+			Path:         param.Path,
+			MatchOptions: param.MatchOptions,
 		})
 		if err != nil {
 			return err

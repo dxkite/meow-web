@@ -1,6 +1,6 @@
 package value
 
-type MatcherOption struct {
+type MatchOption struct {
 	Source string `json:"source" binding:"required"` // 匹配源
 	Name   string `json:"name" binding:"required"`   // 匹配值
 	Type   string `json:"type" binding:"required"`   // 匹配方式

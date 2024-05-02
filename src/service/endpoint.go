@@ -20,7 +20,7 @@ type CreateEndpointParam struct {
 	// 请求头转发配置
 	ForwardHeader []*value.ForwardHeaderOption `json:"forward_header" binding:"dive,required"`
 	// 匹配规则
-	Matcher []*value.MatcherOption `json:"matcher" binding:"dive,required"`
+	Matcher []*value.MatchOption `json:"matcher" binding:"dive,required"`
 	// 远程服务
 	Endpoint *value.ForwardEndpoint `json:"endpoint" binding:"required"`
 }
