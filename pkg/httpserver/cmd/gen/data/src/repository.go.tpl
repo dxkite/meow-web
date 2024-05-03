@@ -41,7 +41,6 @@ func (r *{{ .PrivateName }}) BatchGet(ctx context.Context, ids []uint64) ([]*ent
 }
 
 type List{{ .Name }}Param struct {
-	Name          string
 	Limit         int
 	StartingAfter uint64
 	EndingBefore  uint64
@@ -50,10 +49,6 @@ type List{{ .Name }}Param struct {
 func (r *{{ .PrivateName }}) List(ctx context.Context, param *List{{ .Name }}Param) ([]*entity.{{ .Name }}, error) {
 	var items []*entity.{{ .Name }}
 	db := r.dataSource(ctx).Model(entity.{{ .Name }}{})
-
-	if param.Name != "" {
-		db = db.Where("name like ?", "%"+param.Name+"%")
-	}
 
 	if param.StartingAfter != 0 {
 		db = db.Where("id > ?", param.StartingAfter)
