@@ -15,6 +15,7 @@ type Route interface {
 	List(ctx context.Context, param *ListRouteParam) ([]*entity.Route, error)
 	Delete(ctx context.Context, id uint64) error
 	Update(ctx context.Context, id uint64, ent *entity.Route) error
+	Batch(ctx context.Context, batchFn func(item *entity.Route) error) error
 }
 
 func NewRoute() Route {
@@ -102,6 +103,21 @@ func (r *route) List(ctx context.Context, param *ListRouteParam) ([]*entity.Rout
 		return nil, err
 	}
 	return items, nil
+}
+
+func (r *route) Batch(ctx context.Context, batchFn func(item *entity.Route) error) error {
+	var items []*entity.Route
+	if err := r.dataSource(ctx).FindInBatches(&items, 100, func(tx *gorm.DB, batch int) error {
+		for i := range items {
+			if err := batchFn(items[i]); err != nil {
+				return err
+			}
+		}
+		return nil
+	}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *route) dataSource(ctx context.Context) *gorm.DB {

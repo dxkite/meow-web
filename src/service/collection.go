@@ -110,7 +110,7 @@ func (s *collection) Get(ctx context.Context, param *GetCollectionParam) (*dto.C
 	if utils.InStringSlice("server_names", param.Expand) {
 		entityIds := []uint64{}
 
-		linked, err := s.rl.LinkOf(ctx, constant.LinkDirectCollectionServerName, []uint64{rst.Id})
+		linked, err := s.rl.Linked(ctx, constant.LinkDirectCollectionServerName, []uint64{rst.Id})
 		if err != nil {
 			return nil, err
 		}
@@ -135,7 +135,7 @@ func (s *collection) Get(ctx context.Context, param *GetCollectionParam) (*dto.C
 	if utils.InStringSlice("routes", param.Expand) {
 		entityIds := []uint64{}
 
-		linked, err := s.rl.LinkOf(ctx, constant.LinkDirectCollectionRoute, []uint64{rst.Id})
+		linked, err := s.rl.Linked(ctx, constant.LinkDirectCollectionRoute, []uint64{rst.Id})
 		if err != nil {
 			return nil, err
 		}
@@ -160,7 +160,7 @@ func (s *collection) Get(ctx context.Context, param *GetCollectionParam) (*dto.C
 	if utils.InStringSlice("endpoints", param.Expand) {
 		entityIds := []uint64{}
 
-		linked, err := s.rl.LinkOf(ctx, constant.LinkDirectCollectionEndpoint, []uint64{rst.Id})
+		linked, err := s.rl.Linked(ctx, constant.LinkDirectCollectionEndpoint, []uint64{rst.Id})
 		if err != nil {
 			return nil, err
 		}

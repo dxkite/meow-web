@@ -97,7 +97,7 @@ func (s *route) Get(ctx context.Context, param *GetRouteParam) (*dto.Route, erro
 	if utils.InStringSlice("endpoints", param.Expand) {
 		entityIds := []uint64{}
 
-		linked, err := s.rl.LinkOf(ctx, constant.LinkDirectRouteEndpoint, []uint64{rst.Id})
+		linked, err := s.rl.Linked(ctx, constant.LinkDirectRouteEndpoint, []uint64{rst.Id})
 		if err != nil {
 			return nil, err
 		}
@@ -162,7 +162,7 @@ func (s *route) List(ctx context.Context, param *ListRouteParam) (*ListRouteResu
 			collIdList = append(collIdList, v.Id)
 		}
 
-		routeLink, err := s.rl.LinkOf(ctx, constant.LinkDirectCollectionRoute, collIdList)
+		routeLink, err := s.rl.Linked(ctx, constant.LinkDirectCollectionRoute, collIdList)
 		if err != nil {
 			return nil, err
 		}
