@@ -26,8 +26,8 @@ type Route interface {
 	Delete(ctx context.Context, param *DeleteRouteParam) error
 }
 
-func NewRoute(r repository.Route, rl repository.Link, re repository.Endpoint, rc repository.Collection) Route {
-	return &route{r: r, rl: rl, re: re, rc: rc}
+func NewRoute(r repository.Route, rl repository.Link, re repository.Endpoint, rc repository.Collection, ra repository.Authorize) Route {
+	return &route{r: r, rl: rl, re: re, rc: rc, ra: ra}
 }
 
 type route struct {
@@ -35,6 +35,7 @@ type route struct {
 	rl repository.Link
 	re repository.Endpoint
 	rc repository.Collection
+	ra repository.Authorize
 }
 
 type CreateRouteParam struct {
@@ -52,6 +53,8 @@ type CreateRouteParam struct {
 	MatchOptions []*value.MatchOption `json:"match_options" form:"match_options" binding:"dive,required"`
 	// 绑定的后端服务
 	EndpointId []string `json:"endpoint_id" form:"endpoint_id"`
+	// 鉴权配置
+	AuthorizeId string `json:"authorize_id" form:"authorize_id"`
 }
 
 func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route, error) {
@@ -74,6 +77,13 @@ func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route
 		err = s.rl.LinkOnce(ctx, constant.LinkDirectCollectionRoute, collId, ent.Id)
 		if err != nil {
 			return err
+		}
+
+		if param.AuthorizeId != "" {
+			err = s.rl.LinkOnce(ctx, constant.LinkDirectRouteAuthorize, ent.Id, identity.Parse(constant.AuthorizePrefix, param.AuthorizeId))
+			if err != nil {
+				return err
+			}
 		}
 
 		if err := s.batchLinkOnce(ctx, constant.LinkDirectRouteEndpoint, ent.Id, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
@@ -117,6 +127,21 @@ func (s *route) Get(ctx context.Context, param *GetRouteParam) (*dto.Route, erro
 		}
 
 		obj.Endpoints = items
+	}
+
+	if utils.InStringSlice("authorize", param.Expand) {
+		linked, err := s.rl.Linked(ctx, constant.LinkDirectRouteAuthorize, []uint64{rst.Id})
+		if err != nil {
+			return nil, err
+		}
+
+		if len(linked) > 0 {
+			ent, err := s.ra.Get(ctx, linked[0].Id)
+			if err != nil {
+				return nil, err
+			}
+			obj.Authorize = dto.NewAuthorize(ent)
+		}
 	}
 
 	return obj, nil
@@ -229,6 +254,13 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 		if param.CollectionId != "" {
 			collId := identity.Parse(constant.CollectionPrefix, param.CollectionId)
 			err = s.rl.LinkOnce(ctx, constant.LinkDirectCollectionRoute, collId, entId)
+			if err != nil {
+				return err
+			}
+		}
+
+		if param.AuthorizeId != "" {
+			err = s.rl.LinkOnce(ctx, constant.LinkDirectRouteAuthorize, entId, identity.Parse(constant.AuthorizePrefix, param.AuthorizeId))
 			if err != nil {
 				return err
 			}

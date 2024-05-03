@@ -73,8 +73,10 @@ type Route struct {
 	Matcher []*value.MatchOption `json:"matcher"`
 	// 路由自定义的后端路由
 	Endpoints []*Endpoint `json:"endpoints,omitempty"`
-	CreatedAt time.Time   `json:"created_at"`
-	UpdatedAt time.Time   `json:"updated_at"`
+	// 鉴权信息
+	Authorize *Authorize `json:"authorize,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
 }
 
 func NewRoute(item *entity.Route) *Route {
@@ -103,8 +105,10 @@ type Collection struct {
 	// 后端服务
 	// 集合中没有设置后端服务的路由默认继承集合的后端服务信息
 	Endpoints []*Endpoint `json:"endpoints,omitempty"`
-	CreatedAt time.Time   `json:"created_at"`
-	UpdatedAt time.Time   `json:"updated_at"`
+	// 鉴权信息
+	Authorize *Authorize `json:"authorize,omitempty"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
 }
 
 func NewCollection(item *entity.Collection) *Collection {

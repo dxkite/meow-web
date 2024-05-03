@@ -70,9 +70,15 @@ func main() {
 
 	routeRepository := repository.NewRoute()
 	collectionRepository := repository.NewCollection()
-	collectionService := service.NewCollection(collectionRepository, linkRepository, routeRepository, endpointRepository, nameServerRepository)
+	collectionService := service.NewCollection(
+		collectionRepository, linkRepository, routeRepository,
+		endpointRepository, nameServerRepository, authorizeRepository,
+	)
 
-	routeService := service.NewRoute(routeRepository, linkRepository, endpointRepository, collectionRepository)
+	routeService := service.NewRoute(
+		routeRepository, linkRepository, endpointRepository,
+		collectionRepository, authorizeRepository,
+	)
 	routeServer := server.NewRoute(routeService)
 
 	collectionServer := server.NewCollection(collectionService)

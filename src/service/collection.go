@@ -22,8 +22,8 @@ type Collection interface {
 	DeleteEndpoint(ctx context.Context, param *DeleteCollectionEndpointParam) error
 }
 
-func NewCollection(r repository.Collection, rl repository.Link, rr repository.Route, re repository.Endpoint, rs repository.ServerName) Collection {
-	return &collection{r: r, rr: rr, rl: rl, re: re, rs: rs}
+func NewCollection(r repository.Collection, rl repository.Link, rr repository.Route, re repository.Endpoint, rs repository.ServerName, ra repository.Authorize) Collection {
+	return &collection{r: r, rr: rr, rl: rl, re: re, rs: rs, ra: ra}
 }
 
 type collection struct {
@@ -32,6 +32,7 @@ type collection struct {
 	rs repository.ServerName
 	rr repository.Route
 	re repository.Endpoint
+	ra repository.Authorize
 }
 
 type CreateCollectionParam struct {
@@ -45,6 +46,8 @@ type CreateCollectionParam struct {
 	ServerNameId []string `json:"server_name_id" form:"server_name"`
 	// 绑定的后端服务
 	EndpointId []string `json:"endpoint_id" form:"endpoint_id"`
+	// 鉴权配置
+	AuthorizeId string `json:"authorize_id" form:"authorize_id"`
 }
 
 func (s *collection) Create(ctx context.Context, param *CreateCollectionParam) (*dto.Collection, error) {
@@ -67,6 +70,13 @@ func (s *collection) Create(ctx context.Context, param *CreateCollectionParam) (
 
 		if err := s.batchLinkOnce(ctx, constant.LinkDirectCollectionEndpoint, item.Id, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
 			return err
+		}
+
+		if param.AuthorizeId != "" {
+			err = s.rl.LinkOnce(ctx, constant.LinkDirectCollectionAuthorize, item.Id, identity.Parse(constant.AuthorizePrefix, param.AuthorizeId))
+			if err != nil {
+				return err
+			}
 		}
 
 		obj = dto.NewCollection(item)
@@ -180,6 +190,21 @@ func (s *collection) Get(ctx context.Context, param *GetCollectionParam) (*dto.C
 		}
 
 		collection.Endpoints = items
+	}
+
+	if utils.InStringSlice("authorize", param.Expand) {
+		linked, err := s.rl.Linked(ctx, constant.LinkDirectRouteAuthorize, []uint64{rst.Id})
+		if err != nil {
+			return nil, err
+		}
+
+		if len(linked) > 0 {
+			ent, err := s.ra.Get(ctx, linked[0].Id)
+			if err != nil {
+				return nil, err
+			}
+			collection.Authorize = dto.NewAuthorize(ent)
+		}
 	}
 
 	return collection, nil
@@ -348,6 +373,13 @@ func (s *collection) Update(ctx context.Context, param *UpdateCollectionParam) (
 
 		if err := s.batchLinkOnce(ctx, constant.LinkDirectCollectionEndpoint, id, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
 			return err
+		}
+
+		if param.AuthorizeId != "" {
+			err = s.rl.LinkOnce(ctx, constant.LinkDirectCollectionAuthorize, id, identity.Parse(constant.AuthorizePrefix, param.AuthorizeId))
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
