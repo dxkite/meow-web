@@ -84,6 +84,15 @@ func NewForwardItem(item *entity.Route, endpoint *entity.Endpoint) ag.ForwardIte
 	matcher := ag.NewBasicMatcher()
 	matcher.Path = item.Path
 	matcher.Method = item.Method
+	matcher.Extra = []*ag.ExtraMatchOption{}
+	for _, v := range item.MatchOptions {
+		matcher.Extra = append(matcher.Extra, &ag.ExtraMatchOption{
+			Source: v.Source,
+			Type:   v.Type,
+			Name:   v.Name,
+			Value:  v.Value,
+		})
+	}
 	handler := ag.NewStaticForwardHandler(targets, endpoint.Endpoint.Static.Timeout)
 	return ag.NewForwardItem(matcher, handler, nil)
 }
