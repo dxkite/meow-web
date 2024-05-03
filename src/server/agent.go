@@ -1,21 +1,25 @@
 package server
 
 import (
-	"dxkite.cn/meownest/pkg/agent"
+	"net/http"
+
+	"dxkite.cn/meownest/src/service"
 	"github.com/gin-gonic/gin"
 )
 
 type Agent struct {
-	svr *agent.Server
+	s service.Agent
 }
 
-func NewAgent(svr *agent.Server) *Agent {
-	return &Agent{svr: svr}
+func NewAgent(s service.Agent) *Agent {
+	return &Agent{s: s}
 }
 
-func (s *Agent) Run(addr string) {
-	s.svr.Run(addr)
+func (s *Agent) Reload(c *gin.Context) {
+	s.s.LoadRoute(c)
+	c.Status(http.StatusOK)
 }
 
-func (s *Agent) RegisterToHttp(group gin.IRouter) {
+func (s *Agent) RegisterToHttp(r gin.IRouter) {
+	r.POST("/agent/reload", s.Reload)
 }

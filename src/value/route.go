@@ -25,7 +25,13 @@ type ForwardEndpoint struct {
 }
 
 type ForwardEndpointStatic struct {
-	Address []string `json:"address" binding:"required"`
+	Timeout int                      `json:"timeout"`
+	Address []*ForwardEndpointTarget `json:"address" binding:"required"`
+}
+
+type ForwardEndpointTarget struct {
+	Network string `json:"network" binding:"required"`
+	Address string `json:"address" binding:"required"`
 }
 
 // 证书对象

@@ -13,6 +13,7 @@ type Link interface {
 	BatchLink(ctx context.Context, direct string, sourceId uint64, linkedIds []uint64) error
 	LinkOnce(ctx context.Context, direct string, sourceId, linkedId uint64) error
 	Linked(ctx context.Context, direct string, sourceId []uint64) ([]*entity.Link, error)
+	LinkedSource(ctx context.Context, direct string, linkedId []uint64) ([]*entity.Link, error)
 	BatchDeleteLink(ctx context.Context, direct string, sourceId uint64, linkedIds []uint64) error
 	DeleteAllLink(ctx context.Context, direct string, sourceId uint64) error
 }
@@ -45,7 +46,7 @@ func (r *link) BatchLink(ctx context.Context, direct string, sourceId uint64, li
 
 func (r *link) LinkOnce(ctx context.Context, direct string, sourceId, linkedId uint64) error {
 	return r.dataSource(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Delete(entity.Link{Direct: direct, SourceId: sourceId}).Error; err != nil {
+		if err := tx.Where(entity.Link{Direct: direct, SourceId: sourceId}).Delete(entity.Link{}).Error; err != nil {
 			return err
 		}
 		link := entity.Link{}
@@ -59,6 +60,14 @@ func (r *link) LinkOnce(ctx context.Context, direct string, sourceId, linkedId u
 func (r *link) Linked(ctx context.Context, direct string, sourceId []uint64) ([]*entity.Link, error) {
 	links := []*entity.Link{}
 	if err := r.dataSource(ctx).Model(entity.Link{}).Where(entity.Link{Direct: direct}).Where("source_id in ?", sourceId).Find(&links).Error; err != nil {
+		return nil, err
+	}
+	return links, nil
+}
+
+func (r *link) LinkedSource(ctx context.Context, direct string, linkedId []uint64) ([]*entity.Link, error) {
+	links := []*entity.Link{}
+	if err := r.dataSource(ctx).Model(entity.Link{}).Where(entity.Link{Direct: direct}).Where("linked_id in ?", linkedId).Find(&links).Error; err != nil {
 		return nil, err
 	}
 	return links, nil

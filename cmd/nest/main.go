@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"reflect"
 	"strings"
 	"time"
@@ -76,7 +77,9 @@ func main() {
 
 	collectionServer := server.NewCollection(collectionService)
 
-	agentServer := server.NewAgent(agent.New())
+	ag := agent.New()
+	agentService := service.NewAgent(ag, routeRepository, collectionRepository, endpointRepository, linkRepository)
+	agentServer := server.NewAgent(agentService)
 
 	httpServer := httpserver.New()
 
@@ -103,5 +106,7 @@ func main() {
 	httpServer.Register(server.NewSwagger())
 
 	go httpServer.Run(":2333")
-	agentServer.Run(":80")
+
+	agentService.LoadRoute(data_source.With(context.Background(), ds))
+	agentService.Run(":80")
 }

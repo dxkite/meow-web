@@ -54,11 +54,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 type forwardItem struct {
-	AuthorizeHandler
+	auth AuthorizeHandler
 	RequestMatcher
 	RequestForwardHandler
 }
 
 func NewForwardItem(matcher RequestMatcher, forward RequestForwardHandler, auth AuthorizeHandler) ForwardItem {
-	return &forwardItem{RequestMatcher: matcher, RequestForwardHandler: forward, AuthorizeHandler: auth}
+	return &forwardItem{RequestMatcher: matcher, RequestForwardHandler: forward, auth: auth}
+}
+
+func (item forwardItem) HandleAuthorizeCheck(w http.ResponseWriter, req *http.Request) bool {
+	if item.auth != nil {
+		return item.auth.HandleAuthorizeCheck(w, req)
+	}
+	return true
 }

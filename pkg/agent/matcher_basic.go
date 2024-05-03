@@ -9,6 +9,10 @@ type BasicMatcher struct {
 	Extra  []*ExtraMatchOption
 }
 
+func NewBasicMatcher() *BasicMatcher {
+	return &BasicMatcher{}
+}
+
 type ExtraMatchOption struct {
 	Type   string
 	Source string
@@ -17,11 +21,11 @@ type ExtraMatchOption struct {
 }
 
 func (b *BasicMatcher) MatchRequest(req *http.Request) bool {
-	if !InStringSlice(req.Host, b.Host) {
+	if len(b.Host) > 0 && !InStringSlice(req.Host, b.Host) {
 		return false
 	}
 
-	if !InStringSlice(req.Method, b.Method) && !InStringSlice("Any", b.Method) {
+	if len(b.Method) > 0 && !InStringSlice(req.Method, b.Method) && !InStringSlice("Any", b.Method) {
 		return false
 	}
 
