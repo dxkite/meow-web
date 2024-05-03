@@ -145,8 +145,8 @@ func (s *route) List(ctx context.Context, param *ListRouteParam) (*ListRouteResu
 		Name:          param.Name,
 		Path:          param.Path,
 		Limit:         param.Limit,
-		StartingAfter: identity.Parse(constant.CollectionPrefix, param.StartingAfter),
-		EndingBefore:  identity.Parse(constant.CollectionPrefix, param.EndingBefore),
+		StartingAfter: identity.Parse(constant.RoutePrefix, param.StartingAfter),
+		EndingBefore:  identity.Parse(constant.RoutePrefix, param.EndingBefore),
 	}
 
 	if param.CollectionId != "" {

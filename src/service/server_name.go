@@ -135,8 +135,8 @@ func (s *serverName) List(ctx context.Context, param *ListServerNameParam) (*Lis
 	entities, err := s.r.List(ctx, &repository.ListServerNameParam{
 		Name:          param.Name,
 		Limit:         param.Limit,
-		StartingAfter: identity.Parse(constant.CollectionPrefix, param.StartingAfter),
-		EndingBefore:  identity.Parse(constant.CollectionPrefix, param.EndingBefore),
+		StartingAfter: identity.Parse(constant.ServerNamePrefix, param.StartingAfter),
+		EndingBefore:  identity.Parse(constant.ServerNamePrefix, param.EndingBefore),
 	})
 	if err != nil {
 		return nil, err

@@ -102,8 +102,8 @@ func (s *endpoint) List(ctx context.Context, param *ListEndpointParam) (*ListEnd
 	entities, err := s.r.List(ctx, &repository.ListEndpointParam{
 		Name:          param.Name,
 		Limit:         param.Limit,
-		StartingAfter: identity.Parse(constant.CollectionPrefix, param.StartingAfter),
-		EndingBefore:  identity.Parse(constant.CollectionPrefix, param.EndingBefore),
+		StartingAfter: identity.Parse(constant.EndpointPrefix, param.StartingAfter),
+		EndingBefore:  identity.Parse(constant.EndpointPrefix, param.EndingBefore),
 	})
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ type UpdateEndpointParam struct {
 }
 
 func (s *endpoint) Update(ctx context.Context, param *UpdateEndpointParam) (*dto.Endpoint, error) {
-	id := identity.Parse(constant.ServerNamePrefix, param.Id)
+	id := identity.Parse(constant.EndpointPrefix, param.Id)
 	err := s.r.Update(ctx, id, &entity.Endpoint{
 		Name: param.Name,
 	})

@@ -93,8 +93,8 @@ func (s *certificate) List(ctx context.Context, param *ListCertificateParam) (*L
 	entities, err := s.r.List(ctx, &repository.ListCertificateParam{
 		Name:          param.Name,
 		Limit:         param.Limit,
-		StartingAfter: identity.Parse(constant.CollectionPrefix, param.StartingAfter),
-		EndingBefore:  identity.Parse(constant.CollectionPrefix, param.EndingBefore),
+		StartingAfter: identity.Parse(constant.CertificatePrefix, param.StartingAfter),
+		EndingBefore:  identity.Parse(constant.CertificatePrefix, param.EndingBefore),
 	})
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ type UpdateCertificateParam struct {
 }
 
 func (s *certificate) Update(ctx context.Context, param *UpdateCertificateParam) (*dto.Certificate, error) {
-	id := identity.Parse(constant.ServerNamePrefix, param.Id)
+	id := identity.Parse(constant.CertificatePrefix, param.Id)
 	err := s.r.Update(ctx, id, &entity.Certificate{
 		Name: param.Name,
 	})
