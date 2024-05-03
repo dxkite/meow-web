@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"dxkite.cn/meownest/pkg/agent"
 	"dxkite.cn/meownest/pkg/data_source"
 	"dxkite.cn/meownest/pkg/data_source/sqlite"
 	"dxkite.cn/meownest/pkg/httpserver"
@@ -75,6 +76,8 @@ func main() {
 
 	collectionServer := server.NewCollection(collectionService)
 
+	agentServer := server.NewAgent(agent.New())
+
 	httpServer := httpserver.New()
 
 	httpServer.Use(cors.New(cors.Config{
@@ -96,6 +99,9 @@ func main() {
 	httpServer.RegisterPrefix("/api/v1", endpointServer)
 	httpServer.RegisterPrefix("/api/v1", authorizeServer)
 	httpServer.RegisterPrefix("/api/v1", collectionServer)
+	httpServer.RegisterPrefix("/api/v1", agentServer)
 	httpServer.Register(server.NewSwagger())
-	httpServer.Run(":2333")
+
+	go httpServer.Run(":2333")
+	agentServer.Run(":80")
 }
