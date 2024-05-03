@@ -1,23 +1,44 @@
 definitions:
-  dto.Certificate:
+  dto.Authorize:
     properties:
-      certificate:
-        type: string
+      attribute:
+        $ref: '#/definitions/value.AuthorizeAttribute'
       created_at:
-        type: string
-      domain:
-        items:
-          type: string
-        type: array
-      end_time:
         type: string
       id:
         type: string
-      key:
-        type: string
       name:
         type: string
-      start_time:
+      type:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.Certificate:
+    properties:
+      certificate:
+        description: 证书
+        type: string
+      created_at:
+        type: string
+      dns_names:
+        description: 证书支持的域名
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      key:
+        description: 私钥
+        type: string
+      name:
+        description: 证书备注名
+        type: string
+      not_after:
+        description: 证书有效期
+        type: string
+      not_before:
+        description: 证书开启时间
         type: string
       updated_at:
         type: string
@@ -44,7 +65,7 @@ definitions:
       matcher:
         description: 匹配规则
         items:
-          $ref: '#/definitions/value.MatcherOption'
+          $ref: '#/definitions/value.MatchOption'
         type: array
       name:
         description: 后端名
@@ -62,14 +83,16 @@ definitions:
       description:
         type: string
       endpoints:
+        description: 路由自定义的后端路由
         items:
           $ref: '#/definitions/dto.Endpoint'
         type: array
       id:
         type: string
       matcher:
+        description: 路由的特殊匹配规则
         items:
-          $ref: '#/definitions/value.MatcherOption'
+          $ref: '#/definitions/value.MatchOption'
         type: array
       method:
         items:
@@ -130,10 +153,10 @@ definitions:
         items:
           type: string
         type: array
-      matcher:
+      match_options:
         description: 特殊匹配规则
         items:
-          $ref: '#/definitions/value.MatcherOption'
+          $ref: '#/definitions/value.MatchOption'
         type: array
       method:
         description: 支持方法
@@ -148,7 +171,7 @@ definitions:
         type: string
     required:
     - collection_id
-    - matcher
+    - match_options
     - method
     - name
     - path
@@ -166,6 +189,15 @@ definitions:
         type: string
     required:
     - name
+    type: object
+  service.ListAuthorizeResult:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.Authorize'
+        type: array
+      has_more:
+        type: boolean
     type: object
   service.ListCertificateResult:
     properties:
@@ -203,6 +235,22 @@ definitions:
       has_more:
         type: boolean
     type: object
+  service.UpdateAuthorizeParam:
+    properties:
+      attribute:
+        $ref: '#/definitions/value.AuthorizeAttribute'
+      id:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+    required:
+    - attribute
+    - id
+    - name
+    - type
+    type: object
   service.UpdateCertificateParam:
     properties:
       certificate:
@@ -239,7 +287,7 @@ definitions:
       matcher:
         description: 匹配规则
         items:
-          $ref: '#/definitions/value.MatcherOption'
+          $ref: '#/definitions/value.MatchOption'
         type: array
       name:
         type: string
@@ -269,10 +317,10 @@ definitions:
         type: array
       id:
         type: string
-      matcher:
+      match_options:
         description: 特殊匹配规则
         items:
-          $ref: '#/definitions/value.MatcherOption'
+          $ref: '#/definitions/value.MatchOption'
         type: array
       method:
         description: 支持方法
@@ -288,7 +336,7 @@ definitions:
     required:
     - collection_id
     - id
-    - matcher
+    - match_options
     - method
     - name
     - path
@@ -309,6 +357,34 @@ definitions:
     required:
     - id
     - name
+    type: object
+  value.AuthorizeAttribute:
+    properties:
+      binary:
+        $ref: '#/definitions/value.AuthorizeAttributeBinary'
+      sources:
+        items:
+          $ref: '#/definitions/value.AuthorizeSource'
+        type: array
+    required:
+    - sources
+    type: object
+  value.AuthorizeAttributeBinary:
+    properties:
+      key:
+        type: string
+    type: object
+  value.AuthorizeSource:
+    properties:
+      name:
+        description: 匹配值
+        type: string
+      source:
+        description: 匹配源
+        type: string
+    required:
+    - name
+    - source
     type: object
   value.Certificate:
     properties:
@@ -358,7 +434,7 @@ definitions:
     - regex
     - replace
     type: object
-  value.MatcherOption:
+  value.MatchOption:
     properties:
       name:
         description: 匹配值
@@ -381,6 +457,183 @@ definitions:
 info:
   contact: {}
 paths:
+  /authorizes:
+    get:
+      consumes:
+      - application/json
+      description: Authorize列表
+      parameters:
+      - description: Authorize
+        in: query
+        name: name
+        type: string
+      - description: 限制
+        in: query
+        name: limit
+        type: integer
+      - description: 从当前ID开始
+        in: query
+        name: starting_after
+        type: string
+      - description: 从当前ID结束
+        in: query
+        name: ending_before
+        type: string
+      - collectionFormat: csv
+        description: 展开数据
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.ListAuthorizeResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Authorize列表
+      tags:
+      - Authorize
+    post:
+      consumes:
+      - application/json
+      description: Create Authorize
+      parameters:
+      - description: Authorize ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: expand attribute list
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Authorize'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Create Authorize
+      tags:
+      - Authorize
+  /authorizes/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Authorize
+      parameters:
+      - description: AuthorizeID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Delete Authorize
+      tags:
+      - Authorize
+    get:
+      consumes:
+      - application/json
+      description: Get Authorize
+      parameters:
+      - description: Authorize ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: expand attribute list
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Authorize'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Get Authorize
+      tags:
+      - Authorize
+    post:
+      consumes:
+      - application/json
+      description: Update Authorize
+      parameters:
+      - description: Authorize ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateAuthorizeParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Update Authorize
+      tags:
+      - Authorize
   /certificates:
     get:
       consumes:

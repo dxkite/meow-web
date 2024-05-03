@@ -15,6 +15,271 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/authorizes": {
+            "get": {
+                "description": "Authorize列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authorize"
+                ],
+                "summary": "Authorize列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorize",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "限制",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "从当前ID开始",
+                        "name": "starting_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "从当前ID结束",
+                        "name": "ending_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "展开数据",
+                        "name": "expand",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.ListAuthorizeResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create Authorize",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authorize"
+                ],
+                "summary": "Create Authorize",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorize ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "expand attribute list",
+                        "name": "expand",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Authorize"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/authorizes/{id}": {
+            "get": {
+                "description": "Get Authorize",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authorize"
+                ],
+                "summary": "Get Authorize",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorize ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "expand attribute list",
+                        "name": "expand",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Authorize"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Update Authorize",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authorize"
+                ],
+                "summary": "Update Authorize",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorize ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UpdateAuthorizeParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete Authorize",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authorize"
+                ],
+                "summary": "Delete Authorize",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "AuthorizeID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            }
+        },
         "/certificates": {
             "get": {
                 "description": "证书列表",
@@ -965,34 +1230,63 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.Certificate": {
+        "dto.Authorize": {
             "type": "object",
             "properties": {
-                "certificate": {
-                    "type": "string"
+                "attribute": {
+                    "$ref": "#/definitions/value.AuthorizeAttribute"
                 },
                 "created_at": {
-                    "type": "string"
-                },
-                "domain": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "end_time": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "key": {
-                    "type": "string"
-                },
                 "name": {
                     "type": "string"
                 },
-                "start_time": {
+                "type": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.Certificate": {
+            "type": "object",
+            "properties": {
+                "certificate": {
+                    "description": "证书",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "dns_names": {
+                    "description": "证书支持的域名",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "key": {
+                    "description": "私钥",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "证书备注名",
+                    "type": "string"
+                },
+                "not_after": {
+                    "description": "证书有效期",
+                    "type": "string"
+                },
+                "not_before": {
+                    "description": "证书开启时间",
                     "type": "string"
                 },
                 "updated_at": {
@@ -1036,7 +1330,7 @@ const docTemplate = `{
                     "description": "匹配规则",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/value.MatcherOption"
+                        "$ref": "#/definitions/value.MatchOption"
                     }
                 },
                 "name": {
@@ -1062,6 +1356,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "endpoints": {
+                    "description": "路由自定义的后端路由",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.Endpoint"
@@ -1071,9 +1366,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "matcher": {
+                    "description": "路由的特殊匹配规则",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/value.MatcherOption"
+                        "$ref": "#/definitions/value.MatchOption"
                     }
                 },
                 "method": {
@@ -1152,7 +1448,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "collection_id",
-                "matcher",
+                "match_options",
                 "method",
                 "name",
                 "path"
@@ -1173,11 +1469,11 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "matcher": {
+                "match_options": {
                     "description": "特殊匹配规则",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/value.MatcherOption"
+                        "$ref": "#/definitions/value.MatchOption"
                     }
                 },
                 "method": {
@@ -1217,6 +1513,20 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "service.ListAuthorizeResult": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Authorize"
+                    }
+                },
+                "has_more": {
+                    "type": "boolean"
                 }
             }
         },
@@ -1273,6 +1583,29 @@ const docTemplate = `{
                 },
                 "has_more": {
                     "type": "boolean"
+                }
+            }
+        },
+        "service.UpdateAuthorizeParam": {
+            "type": "object",
+            "required": [
+                "attribute",
+                "id",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "attribute": {
+                    "$ref": "#/definitions/value.AuthorizeAttribute"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
                 }
             }
         },
@@ -1340,7 +1673,7 @@ const docTemplate = `{
                     "description": "匹配规则",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/value.MatcherOption"
+                        "$ref": "#/definitions/value.MatchOption"
                     }
                 },
                 "name": {
@@ -1357,7 +1690,7 @@ const docTemplate = `{
             "required": [
                 "collection_id",
                 "id",
-                "matcher",
+                "match_options",
                 "method",
                 "name",
                 "path"
@@ -1381,11 +1714,11 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "matcher": {
+                "match_options": {
                     "description": "特殊匹配规则",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/value.MatcherOption"
+                        "$ref": "#/definitions/value.MatchOption"
                     }
                 },
                 "method": {
@@ -1428,6 +1761,48 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "value.AuthorizeAttribute": {
+            "type": "object",
+            "required": [
+                "sources"
+            ],
+            "properties": {
+                "binary": {
+                    "$ref": "#/definitions/value.AuthorizeAttributeBinary"
+                },
+                "sources": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/value.AuthorizeSource"
+                    }
+                }
+            }
+        },
+        "value.AuthorizeAttributeBinary": {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
+        "value.AuthorizeSource": {
+            "type": "object",
+            "required": [
+                "name",
+                "source"
+            ],
+            "properties": {
+                "name": {
+                    "description": "匹配值",
+                    "type": "string"
+                },
+                "source": {
+                    "description": "匹配源",
                     "type": "string"
                 }
             }
@@ -1504,7 +1879,7 @@ const docTemplate = `{
                 }
             }
         },
-        "value.MatcherOption": {
+        "value.MatchOption": {
             "type": "object",
             "required": [
                 "name",
