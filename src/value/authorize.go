@@ -1,12 +1,12 @@
 package value
 
 type AuthorizeAttribute struct {
-	Binary  *AuthorizeAttributeBinary `json:"binary,omitempty"`
-	Sources []*AuthorizeSource        `json:"sources" binding:"required,dive,required"`
+	Binary *AuthorizeAttributeBinary `json:"binary,omitempty"`
 }
 
 type AuthorizeAttributeBinary struct {
-	Key string `json:"key"`
+	Key     string             `json:"key"`
+	Sources []*AuthorizeSource `json:"sources" binding:"required,dive,required"`
 }
 
 type AuthorizeSource struct {
