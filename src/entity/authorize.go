@@ -2,6 +2,8 @@ package entity
 
 import (
 	"time"
+
+	"dxkite.cn/meownest/src/value"
 )
 
 type Authorize struct {
@@ -9,10 +11,12 @@ type Authorize struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
-	// TODO
+	Name      string
+	Type      string
+	Attribute *value.AuthorizeAttribute `gorm:"serializer:json"`
 }
 
-func NewAuthorize() (*Authorize, error) {
+func NewAuthorize() *Authorize {
 	entity := new(Authorize)
-	return entity, nil
+	return entity
 }

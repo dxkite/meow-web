@@ -8,6 +8,7 @@ import (
 	"dxkite.cn/meownest/src/dto"
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
+	"dxkite.cn/meownest/src/value"
 )
 
 type Authorize interface {
@@ -19,7 +20,9 @@ type Authorize interface {
 }
 
 type CreateAuthorizeParam struct {
-	// TODO
+	Name      string                    `json:"name" binding:"required"`
+	Type      string                    `json:"type" binding:"required"`
+	Attribute *value.AuthorizeAttribute `json:"attribute"  binding:"required"`
 }
 
 func NewAuthorize(r repository.Authorize) Authorize {
@@ -31,12 +34,13 @@ type authorize struct {
 }
 
 func (s *authorize) Create(ctx context.Context, param *CreateAuthorizeParam) (*dto.Authorize, error) {
-	entity, err := entity.NewAuthorize()
-	if err != nil {
-		return nil, err
-	}
+	ent := entity.NewAuthorize()
 
-	resp, err := s.r.Create(ctx, entity)
+	ent.Name = param.Name
+	ent.Type = param.Type
+	ent.Attribute = param.Attribute
+
+	resp, err := s.r.Create(ctx, ent)
 	if err != nil {
 		return nil, err
 	}
@@ -71,6 +75,7 @@ func (s *authorize) Delete(ctx context.Context, param *DeleteAuthorizeParam) err
 }
 
 type ListAuthorizeParam struct {
+	Name          string   `form:"name"`
 	Limit         int      `form:"limit" binding:"max=1000"`
 	StartingAfter string   `form:"starting_after"`
 	EndingBefore  string   `form:"ending_before"`
@@ -78,7 +83,7 @@ type ListAuthorizeParam struct {
 }
 
 type ListAuthorizeResult struct {
-	HasMore bool               `json:"has_more"`
+	HasMore bool             `json:"has_more"`
 	Data    []*dto.Authorize `json:"data"`
 }
 
@@ -88,6 +93,7 @@ func (s *authorize) List(ctx context.Context, param *ListAuthorizeParam) (*ListA
 	}
 
 	entities, err := s.r.List(ctx, &repository.ListAuthorizeParam{
+		Name:          param.Name,
 		Limit:         param.Limit,
 		StartingAfter: identity.Parse(constant.AuthorizePrefix, param.StartingAfter),
 		EndingBefore:  identity.Parse(constant.AuthorizePrefix, param.EndingBefore),
@@ -117,8 +123,13 @@ type UpdateAuthorizeParam struct {
 
 func (s *authorize) Update(ctx context.Context, param *UpdateAuthorizeParam) (*dto.Authorize, error) {
 	id := identity.Parse(constant.AuthorizePrefix, param.Id)
-	err := s.r.Update(ctx, id, &entity.Authorize{
-	})
+
+	ent := entity.NewAuthorize()
+	ent.Name = param.Name
+	ent.Type = param.Type
+	ent.Attribute = param.Attribute
+
+	err := s.r.Update(ctx, id, ent)
 	if err != nil {
 		return nil, err
 	}
