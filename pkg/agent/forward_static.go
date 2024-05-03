@@ -2,17 +2,13 @@ package agent
 
 import (
 	"math/rand"
-	"net/http"
 	"time"
 )
 
 type StaticForwardHandler struct {
-	Timeout int
-	Target  []*EndpointTarget
-}
-
-func NewStaticForwardHandler() *StaticForwardHandler {
-	return new(StaticForwardHandler)
+	*BasicForwardHandler
+	targets []*EndpointTarget
+	timeout int
 }
 
 type EndpointTarget struct {
@@ -20,12 +16,21 @@ type EndpointTarget struct {
 	Address string
 }
 
-func (h *StaticForwardHandler) HandleRequest(w http.ResponseWriter, req *http.Request) {
-	n := len(h.Target)
+func NewStaticForwardHandler(targets []*EndpointTarget, timeout int) *StaticForwardHandler {
+	h := new(StaticForwardHandler)
+	h.BasicForwardHandler = NewBasicForwardHandler(h)
+	h.timeout = timeout
+	h.targets = targets
+	return h
+}
+
+func (h *StaticForwardHandler) ForwardTarget() (network, address string, timeout time.Duration) {
+	n := len(h.targets)
 	i := intn(n)
-	target := h.Target[i]
-	f := NewForward(target.Network, target.Address, time.Duration(h.Timeout)*time.Millisecond)
-	f.HandleRequest(w, req)
+	network = h.targets[i].Network
+	address = h.targets[i].Address
+	timeout = time.Duration(h.timeout) * time.Millisecond
+	return
 }
 
 func intn(v int) int {

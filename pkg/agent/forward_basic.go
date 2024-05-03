@@ -9,16 +9,26 @@ import (
 	"time"
 )
 
-type BasicForwardHandler struct {
-	network         string
-	address         string
-	timeout         time.Duration
-	RewriteRequest  func(req *http.Request) error
-	RewriteResponse func(resp *http.Response) error
+type ForwardProvider interface {
+	ForwardTarget() (network, address string, timeout time.Duration)
 }
 
-func NewForward(network, address string, timeout time.Duration) *BasicForwardHandler {
-	return &BasicForwardHandler{network: network, address: address, timeout: timeout}
+type ForwardRewriteRequestProvider interface {
+	RewriteRequest(req *http.Request) error
+}
+
+type ForwardRewriteResponseProvider interface {
+	RewriteResponse(resp *http.Response) error
+}
+
+type TargetHandler func() (network, address string, timeout time.Duration)
+
+type BasicForwardHandler struct {
+	fp ForwardProvider
+}
+
+func NewBasicForwardHandler(fp ForwardProvider) *BasicForwardHandler {
+	return &BasicForwardHandler{fp: fp}
 }
 
 func (h *BasicForwardHandler) HandleRequest(w http.ResponseWriter, req *http.Request) {
@@ -27,7 +37,8 @@ func (h *BasicForwardHandler) HandleRequest(w http.ResponseWriter, req *http.Req
 		return
 	}
 
-	rmt, err := net.DialTimeout(h.network, h.address, h.timeout)
+	network, address, timeout := h.fp.ForwardTarget()
+	rmt, err := net.DialTimeout(network, address, timeout)
 	if err != nil {
 		http.Error(w, "dial remote error: "+err.Error(), http.StatusBadGateway)
 		return
@@ -92,15 +103,15 @@ func (h *BasicForwardHandler) HandleRequest(w http.ResponseWriter, req *http.Req
 }
 
 func (h BasicForwardHandler) rewriteRequest(req *http.Request) error {
-	if h.RewriteRequest != nil {
-		return h.RewriteRequest(req)
+	if v, ok := h.fp.(ForwardRewriteRequestProvider); ok {
+		return v.RewriteRequest(req)
 	}
 	return nil
 }
 
 func (h BasicForwardHandler) rewriteResponse(resp *http.Response) error {
-	if h.RewriteResponse != nil {
-		return h.RewriteResponse(resp)
+	if v, ok := h.fp.(ForwardRewriteResponseProvider); ok {
+		return v.RewriteResponse(resp)
 	}
 	return nil
 }

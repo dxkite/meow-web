@@ -64,25 +64,28 @@ func (s *agent) createForwardItem(ctx context.Context, item *entity.Route) (ag.F
 		return nil, err
 	}
 
+	if len(endpoints) == 0 {
+		return nil, errors.New("missing endpoint")
+	}
+
 	endpoint := endpoints[0]
+	forwardItem := NewForwardItem(item, endpoint)
+	return forwardItem, nil
+}
 
-	handler := ag.NewStaticForwardHandler()
-	handler.Timeout = endpoint.Endpoint.Static.Timeout
-	handler.Target = []*ag.EndpointTarget{}
-
+func NewForwardItem(item *entity.Route, endpoint *entity.Endpoint) ag.ForwardItem {
+	targets := []*ag.EndpointTarget{}
 	for _, v := range endpoint.Endpoint.Static.Address {
-		handler.Target = append(handler.Target, &ag.EndpointTarget{
+		targets = append(targets, &ag.EndpointTarget{
 			Network: v.Network,
 			Address: v.Address,
 		})
 	}
-
 	matcher := ag.NewBasicMatcher()
 	matcher.Path = item.Path
 	matcher.Method = item.Method
-
-	forwardItem := ag.NewForwardItem(matcher, handler, nil)
-	return forwardItem, nil
+	handler := ag.NewStaticForwardHandler(targets, endpoint.Endpoint.Static.Timeout)
+	return ag.NewForwardItem(matcher, handler, nil)
 }
 
 func (s *agent) getEndpoint(ctx context.Context, routeId uint64, collectionIdList []uint64) ([]*entity.Endpoint, error) {
