@@ -14,22 +14,22 @@ type AuthorizeHandler interface {
 	HandleAuthorizeCheck(w http.ResponseWriter, req *http.Request) bool
 }
 
-type ForwardItem interface {
+type ForwardHandler interface {
 	RequestMatcher
 	RequestForwardHandler
 }
 
 type Handler struct {
-	items []ForwardItem
+	items []ForwardHandler
 }
 
 func NewHandler() *Handler {
 	h := new(Handler)
-	h.items = []ForwardItem{}
+	h.items = []ForwardHandler{}
 	return h
 }
 
-func (h *Handler) Add(item ForwardItem) {
+func (h *Handler) Add(item ForwardHandler) {
 	h.items = append(h.items, item)
 }
 
@@ -59,7 +59,7 @@ type forwardItem struct {
 	RequestForwardHandler
 }
 
-func NewForwardItem(matcher RequestMatcher, forward RequestForwardHandler, auth AuthorizeHandler) ForwardItem {
+func NewForwardHandler(matcher RequestMatcher, forward RequestForwardHandler, auth AuthorizeHandler) ForwardHandler {
 	return &forwardItem{RequestMatcher: matcher, RequestForwardHandler: forward, auth: auth}
 }
 

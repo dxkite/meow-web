@@ -53,7 +53,7 @@ func (s *agent) LoadRoute(ctx context.Context) error {
 	return nil
 }
 
-func (s *agent) createForwardItem(ctx context.Context, item *entity.Route) (ag.ForwardItem, error) {
+func (s *agent) createForwardItem(ctx context.Context, item *entity.Route) (ag.ForwardHandler, error) {
 	collectionIdList, err := s.getCollectionList(ctx, item)
 	if err != nil {
 		return nil, err
@@ -69,11 +69,11 @@ func (s *agent) createForwardItem(ctx context.Context, item *entity.Route) (ag.F
 	}
 
 	endpoint := endpoints[0]
-	forwardItem := NewForwardItem(item, endpoint)
+	forwardItem := NewForwardHandler(item, endpoint)
 	return forwardItem, nil
 }
 
-func NewForwardItem(item *entity.Route, endpoint *entity.Endpoint) ag.ForwardItem {
+func NewForwardHandler(item *entity.Route, endpoint *entity.Endpoint) ag.ForwardHandler {
 	targets := []*ag.EndpointTarget{}
 	for _, v := range endpoint.Endpoint.Static.Address {
 		targets = append(targets, &ag.EndpointTarget{
@@ -94,7 +94,7 @@ func NewForwardItem(item *entity.Route, endpoint *entity.Endpoint) ag.ForwardIte
 		})
 	}
 	handler := ag.NewStaticForwardHandler(targets, endpoint.Endpoint.Static.Timeout)
-	return ag.NewForwardItem(matcher, handler, nil)
+	return ag.NewForwardHandler(matcher, handler, nil)
 }
 
 func (s *agent) getEndpoint(ctx context.Context, routeId uint64, collectionIdList []uint64) ([]*entity.Endpoint, error) {

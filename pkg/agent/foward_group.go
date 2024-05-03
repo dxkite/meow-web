@@ -3,33 +3,36 @@ package agent
 import "net/http"
 
 type forwardGroup struct {
-	items []ForwardGroupItem
+	items []MatchForwardHandler
 }
 
-type ForwardGroupItem interface {
+type MatchForwardHandler interface {
 	RequestMatcher
 	RequestForwardHandler
 }
 
-type forwardGroupItem struct {
+type matchForwardHandler struct {
 	RequestMatcher
 	RequestForwardHandler
 }
 
-func NewForwardGroupItem(matcher RequestMatcher, handler RequestForwardHandler) RequestForwardHandler {
-	return &forwardGroupItem{RequestMatcher: matcher, RequestForwardHandler: handler}
+func NewMatchForwardHandler(matcher RequestMatcher, handler RequestForwardHandler) RequestForwardHandler {
+	return &matchForwardHandler{RequestMatcher: matcher, RequestForwardHandler: handler}
 }
 
-func NewForwardGroup(items []ForwardGroupItem) RequestForwardHandler {
+func NewForwardGroup(items []MatchForwardHandler) RequestForwardHandler {
 	return &forwardGroup{items: items}
 }
 
 func (fg *forwardGroup) HandleRequest(w http.ResponseWriter, req *http.Request) {
+	// 使用自定义处理请求转发
 	for _, v := range fg.items {
 		if v.MatchRequest(req) {
 			v.HandleRequest(w, req)
 			return
 		}
 	}
+
+	// 无匹配，走第一条
 	fg.items[0].HandleRequest(w, req)
 }
