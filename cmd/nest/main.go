@@ -46,13 +46,15 @@ func main() {
 	db := ds.Gorm()
 	db.AutoMigrate(entity.ServerName{}, entity.Certificate{},
 		entity.Link{},
-		entity.Collection{}, entity.Route{}, entity.Endpoint{})
-
-	linkRepository := repository.NewLink()
+		entity.Collection{}, entity.Route{}, entity.Endpoint{}, entity.Authorize{})
 
 	certificateRepository := repository.NewCertificate()
 	certificateService := service.NewCertificate(certificateRepository)
 	certificateServer := server.NewCertificate(certificateService)
+
+	authorizeRepository := repository.NewAuthorize()
+	authorizeService := service.NewAuthorize(authorizeRepository)
+	authorizeServer := server.NewAuthorize(authorizeService)
 
 	nameServerRepository := repository.NewServerName()
 	serverNameService := service.NewServerName(nameServerRepository, certificateRepository)
@@ -61,6 +63,8 @@ func main() {
 	endpointRepository := repository.NewEndpoint()
 	endpointService := service.NewEndpoint(endpointRepository)
 	endpointServer := server.NewEndpoint(endpointService)
+
+	linkRepository := repository.NewLink()
 
 	routeRepository := repository.NewRoute()
 	collectionRepository := repository.NewCollection()
@@ -90,6 +94,7 @@ func main() {
 	httpServer.RegisterPrefix("/api/v1", serverNameServer)
 	httpServer.RegisterPrefix("/api/v1", routeServer)
 	httpServer.RegisterPrefix("/api/v1", endpointServer)
+	httpServer.RegisterPrefix("/api/v1", authorizeServer)
 	httpServer.RegisterPrefix("/api/v1", collectionServer)
 	httpServer.Register(server.NewSwagger())
 	httpServer.Run(":2333")

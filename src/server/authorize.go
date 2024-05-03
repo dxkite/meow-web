@@ -1,0 +1,180 @@
+package server
+
+import (
+	"net/http"
+
+	"dxkite.cn/meownest/pkg/httpserver"
+	"dxkite.cn/meownest/src/service"
+	"github.com/gin-gonic/gin"
+)
+
+func NewAuthorize(s service.Authorize) *Authorize {
+	return &Authorize{s: s}
+}
+
+type Authorize struct {
+	s service.Authorize
+}
+
+// Create Authorize
+//
+// @Summary      Create Authorize
+// @Description  Create Authorize
+// @Tags         Authorize
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Authorize ID"
+// @Param        expand query []string false "expand attribute list"
+// @Success      200  {object} dto.Authorize
+// @Failure      400  {object} httpserver.HttpError
+// @Failure      500  {object} httpserver.HttpError
+// @Router       /authorizes [post]
+func (s *Authorize) Create(c *gin.Context) {
+	var param service.CreateAuthorizeParam
+
+	if err := c.ShouldBind(&param); err != nil {
+		httpserver.ResultErrorBind(c, err)
+		return
+	}
+
+	rst, err := s.s.Create(c, &param)
+	if err != nil {
+		httpserver.ResultError(c, err)
+		return
+	}
+
+	httpserver.Result(c, http.StatusCreated, rst)
+}
+
+// Get Authorize
+//
+// @Summary      Get Authorize
+// @Description  Get Authorize
+// @Tags         Authorize
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Authorize ID"
+// @Param        expand query []string false "expand attribute list"
+// @Success      200  {object} dto.Authorize
+// @Failure      400  {object} httpserver.HttpError
+// @Failure      500  {object} httpserver.HttpError
+// @Router       /authorizes/{id} [get]
+func (s *Authorize) Get(c *gin.Context) {
+	var param service.GetAuthorizeParam
+
+	if err := c.ShouldBindUri(&param); err != nil {
+		httpserver.ResultErrorBind(c, err)
+		return
+	}
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		httpserver.ResultErrorBind(c, err)
+		return
+	}
+
+	rst, err := s.s.Get(c, &param)
+	if err != nil {
+		httpserver.ResultError(c, err)
+		return
+	}
+	httpserver.Result(c, http.StatusOK, rst)
+}
+
+// Authorize列表
+//
+// @Summary      Authorize列表
+// @Description  Authorize列表
+// @Tags         Authorize
+// @Accept       json
+// @Produce      json
+// @Param        name query string false "Authorize"
+// @Param        limit query int false "限制"
+// @Param        starting_after query string false "从当前ID开始"
+// @Param        ending_before query string false "从当前ID结束"
+// @Param        expand query []string false "展开数据"
+// @Success      200  {object} service.ListAuthorizeResult
+// @Failure      400  {object} httpserver.HttpError
+// @Failure      500  {object} httpserver.HttpError
+// @Router       /authorizes [get]
+func (s *Authorize) List(c *gin.Context) {
+	var param service.ListAuthorizeParam
+
+	if err := c.ShouldBindQuery(&param); err != nil {
+		httpserver.ResultErrorBind(c, err)
+		return
+	}
+
+	rst, err := s.s.List(c, &param)
+	if err != nil {
+		httpserver.ResultError(c, err)
+		return
+	}
+
+	httpserver.Result(c, http.StatusOK, rst)
+}
+
+// Update Authorize
+//
+// @Summary      Update Authorize
+// @Description  Update Authorize
+// @Tags         Authorize
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Authorize ID"
+// @Param        body body service.UpdateAuthorizeParam true "data"
+// @Success      200  {object} service.Authorize
+// @Failure      400  {object} httpserver.HttpError
+// @Failure      500  {object} httpserver.HttpError
+// @Router       /authorizes/{id} [post]
+func (s *Authorize) Update(c *gin.Context) {
+	var param service.UpdateAuthorizeParam
+	param.Id = c.Param("id")
+
+	if err := c.ShouldBind(&param); err != nil {
+		httpserver.ResultErrorBind(c, err)
+		return
+	}
+
+	rst, err := s.s.Update(c, &param)
+	if err != nil {
+		httpserver.ResultError(c, err)
+		return
+	}
+	httpserver.Result(c, http.StatusOK, rst)
+}
+
+// Delete Authorize
+//
+// @Summary      Delete Authorize
+// @Description  Delete Authorize
+// @Tags         Authorize
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "AuthorizeID"
+// @Success      200
+// @Failure      400  {object} httpserver.HttpError
+// @Failure      500  {object} httpserver.HttpError
+// @Router       /authorizes/{id} [delete]
+func (s *Authorize) Delete(c *gin.Context) {
+	var param service.DeleteAuthorizeParam
+
+	if err := c.ShouldBindUri(&param); err != nil {
+		httpserver.ResultErrorBind(c, err)
+		return
+	}
+	err := s.s.Delete(c, &param)
+	if err != nil {
+		httpserver.ResultError(c, err)
+		return
+	}
+
+	httpserver.ResultEmpty(c, http.StatusOK)
+}
+
+func (s *Authorize) RegisterToHttp(route gin.IRouter) {
+	route.POST("/authorizes", s.Create)
+	route.GET("/authorizes", s.List)
+	route.GET("/authorizes/:id", s.Get)
+	route.POST("/authorizes/:id", s.Update)
+	route.DELETE("/authorizes/:id", s.Delete)
+}
