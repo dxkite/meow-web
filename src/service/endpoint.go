@@ -131,7 +131,12 @@ type UpdateEndpointParam struct {
 func (s *endpoint) Update(ctx context.Context, param *UpdateEndpointParam) (*dto.Endpoint, error) {
 	id := identity.Parse(constant.EndpointPrefix, param.Id)
 	err := s.r.Update(ctx, id, &entity.Endpoint{
-		Name: param.Name,
+		Name:           param.Name,
+		Type:           param.Type,
+		ForwardRewrite: param.ForwardRewrite,
+		ForwardHeader:  param.ForwardHeader,
+		Matcher:        param.Matcher,
+		Endpoint:       param.Endpoint,
 	})
 	if err != nil {
 		return nil, err
