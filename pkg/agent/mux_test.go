@@ -1,4 +1,4 @@
-package mux
+package agent
 
 import (
 	"net/url"
