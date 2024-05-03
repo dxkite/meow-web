@@ -2,6 +2,7 @@ package agent
 
 import (
 	"errors"
+	"net/http"
 	"net/url"
 )
 
@@ -60,4 +61,33 @@ func TestPath(pattern, path string) (bool, url.Values, error) {
 	}
 
 	return true, p, nil
+}
+
+func VarFrom(req *http.Request, source, name string) string {
+	switch source {
+	case "cookie":
+		if c, err := req.Cookie(name); err != http.ErrNoCookie {
+			return ""
+		} else if c != nil {
+			return c.Value
+		}
+	case "header":
+		if v := req.Header.Get(name); v != "" {
+			return v
+		}
+	case "query":
+		if v := req.URL.Query().Get(name); v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+func InStringSlice(v string, slice []string) bool {
+	for _, m := range slice {
+		if v == m {
+			return true
+		}
+	}
+	return false
 }

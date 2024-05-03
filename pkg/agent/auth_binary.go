@@ -30,7 +30,7 @@ func (a *binaryAuth) HandleAuthorizeCheck(w http.ResponseWriter, req *http.Reque
 
 	for _, v := range a.source {
 		item := strings.SplitN(v, ":", 2)
-		tok := varFrom(req, item[0], item[1])
+		tok := VarFrom(req, item[0], item[1])
 		if token, err := a.validateToken(tok); err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return false
@@ -91,24 +91,4 @@ func (t *BinaryToken) DecodeString(val string) error {
 		return err
 	}
 	return t.Unmarshal(buf)
-}
-
-func varFrom(req *http.Request, source, name string) string {
-	switch source {
-	case "cookie":
-		if c, err := req.Cookie(name); err != http.ErrNoCookie {
-			return ""
-		} else if c != nil {
-			return c.Value
-		}
-	case "header":
-		if v := req.Header.Get(name); v != "" {
-			return v
-		}
-	case "query":
-		if v := req.URL.Query().Get(name); v != "" {
-			return v
-		}
-	}
-	return ""
 }

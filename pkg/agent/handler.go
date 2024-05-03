@@ -29,6 +29,10 @@ func NewHandler() *Handler {
 	return h
 }
 
+func (h *Handler) Add(item ForwardItem) {
+	h.items = append(h.items, item)
+}
+
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, item := range h.items {
 		// 匹配请求
@@ -49,6 +53,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	http.NotFound(w, req)
 }
 
-type forwardHandler struct {
-	authHandler AuthorizeHandler
+type forwardItem struct {
+	AuthorizeHandler
+	RequestMatcher
+	RequestForwardHandler
+}
+
+func NewForwardItem(matcher RequestMatcher, forward RequestForwardHandler, auth AuthorizeHandler) ForwardItem {
+	return &forwardItem{RequestMatcher: matcher, RequestForwardHandler: forward, AuthorizeHandler: auth}
 }
