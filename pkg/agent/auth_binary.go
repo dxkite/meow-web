@@ -7,30 +7,35 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"dxkite.cn/meownest/pkg/crypto"
 )
 
-func NewBinaryAuth(key, header string, source []string) AuthorizeHandler {
+func NewBinaryAuth(key, header string, source []*AuthorizeSource) AuthorizeHandler {
 	return &binaryAuth{key: key, header: header, source: source}
+}
+
+type AuthorizeSource struct {
+	Source string
+	Name   string
 }
 
 type binaryAuth struct {
 	key    string
 	header string
-	source []string
+	source []*AuthorizeSource
 }
 
 func (a *binaryAuth) HandleAuthorizeCheck(w http.ResponseWriter, req *http.Request) bool {
+	req.Header.Del(a.header)
+
 	if a.key == "" {
 		return true
 	}
 
 	for _, v := range a.source {
-		item := strings.SplitN(v, ":", 2)
-		tok := VarFrom(req, item[0], item[1])
+		tok := VarFrom(req, v.Source, v.Name)
 		if token, err := a.validateToken(tok); err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return false

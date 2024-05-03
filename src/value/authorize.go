@@ -6,6 +6,7 @@ type AuthorizeAttribute struct {
 
 type AuthorizeAttributeBinary struct {
 	Key     string             `json:"key"`
+	Header  string             `json:"header"`
 	Sources []*AuthorizeSource `json:"sources" binding:"required,dive,required"`
 }
 

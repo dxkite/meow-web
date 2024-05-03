@@ -25,10 +25,11 @@ type agent struct {
 	rs  repository.ServerName
 	rr  repository.Route
 	re  repository.Endpoint
+	ra  repository.Authorize
 }
 
-func NewAgent(svr *ag.Server, rr repository.Route, rc repository.Collection, re repository.Endpoint, rl repository.Link) Agent {
-	return &agent{svr: svr, rr: rr, rc: rc, rl: rl, re: re}
+func NewAgent(svr *ag.Server, rr repository.Route, rc repository.Collection, re repository.Endpoint, ra repository.Authorize, rl repository.Link) Agent {
+	return &agent{svr: svr, rr: rr, rc: rc, rl: rl, re: re, ra: ra}
 }
 
 func (s *agent) Run(addr string) {
@@ -69,11 +70,11 @@ func (s *agent) createForwardItem(ctx context.Context, item *entity.Route) (ag.F
 	}
 
 	endpoint := endpoints[0]
-	forwardItem := NewForwardHandler(item, endpoint)
+	forwardItem := NewForwardHandler(item, endpoint, nil)
 	return forwardItem, nil
 }
 
-func NewForwardHandler(item *entity.Route, endpoint *entity.Endpoint) ag.ForwardHandler {
+func NewForwardHandler(item *entity.Route, endpoint *entity.Endpoint, auth *entity.Authorize) ag.ForwardHandler {
 	targets := []*ag.EndpointTarget{}
 	for _, v := range endpoint.Endpoint.Static.Address {
 		targets = append(targets, &ag.EndpointTarget{
@@ -94,7 +95,22 @@ func NewForwardHandler(item *entity.Route, endpoint *entity.Endpoint) ag.Forward
 		})
 	}
 	handler := ag.NewStaticForwardHandler(targets, endpoint.Endpoint.Static.Timeout)
-	return ag.NewForwardHandler(matcher, handler, nil)
+
+	var authHandler ag.AuthorizeHandler
+	if auth != nil {
+		authHandler = NewAuthorizeHandler(auth)
+	}
+
+	return ag.NewForwardHandler(matcher, handler, authHandler)
+}
+
+func NewAuthorizeHandler(auth *entity.Authorize) ag.AuthorizeHandler {
+	binary := auth.Attribute.Binary
+	source := []*ag.AuthorizeSource{}
+	for _, v := range binary.Sources {
+		source = append(source, &ag.AuthorizeSource{Source: v.Source, Name: v.Name})
+	}
+	return ag.NewBinaryAuth(binary.Key, binary.Header, source)
 }
 
 func (s *agent) getEndpoint(ctx context.Context, routeId uint64, collectionIdList []uint64) ([]*entity.Endpoint, error) {
@@ -113,6 +129,40 @@ func (s *agent) getEndpoint(ctx context.Context, routeId uint64, collectionIdLis
 		}
 	}
 
+	return nil, nil
+}
+
+func (s *agent) getAuthorize(ctx context.Context, routeId uint64, collectionIdList []uint64) (*entity.Authorize, error) {
+	if auth, err := s.getAuthorizeBy(ctx, constant.LinkDirectRouteAuthorize, routeId); err != nil {
+		return nil, err
+	} else if auth != nil {
+		return auth, nil
+	}
+
+	for _, v := range collectionIdList {
+		if auth, err := s.getAuthorizeBy(ctx, constant.LinkDirectCollectionAuthorize, v); err != nil {
+			return nil, err
+		} else if auth != nil {
+			return auth, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func (s *agent) getAuthorizeBy(ctx context.Context, direct string, id uint64) (*entity.Authorize, error) {
+	linked, err := s.rl.Linked(ctx, direct, []uint64{id})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(linked) > 0 {
+		ent, err := s.ra.Get(ctx, linked[0].Id)
+		if err != nil {
+			return nil, err
+		}
+		return ent, nil
+	}
 	return nil, nil
 }
 

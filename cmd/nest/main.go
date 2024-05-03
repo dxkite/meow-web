@@ -84,7 +84,10 @@ func main() {
 	collectionServer := server.NewCollection(collectionService)
 
 	ag := agent.New()
-	agentService := service.NewAgent(ag, routeRepository, collectionRepository, endpointRepository, linkRepository)
+	agentService := service.NewAgent(ag,
+		routeRepository, collectionRepository,
+		endpointRepository, authorizeRepository, linkRepository,
+	)
 	agentServer := server.NewAgent(agentService)
 
 	httpServer := httpserver.New()
