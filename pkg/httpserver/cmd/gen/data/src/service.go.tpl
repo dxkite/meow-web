@@ -31,12 +31,9 @@ type {{ .PrivateName }} struct {
 }
 
 func (s *{{ .PrivateName }}) Create(ctx context.Context, param *Create{{ .Name }}Param) (*dto.{{ .Name }}, error) {
-	entity, err := entity.New{{ .Name }}()
-	if err != nil {
-		return nil, err
-	}
+	ent := entity.New{{ .Name }}()
 
-	resp, err := s.r.Create(ctx, entity)
+	resp, err := s.r.Create(ctx, ent)
 	if err != nil {
 		return nil, err
 	}
@@ -117,8 +114,9 @@ type Update{{ .Name }}Param struct {
 
 func (s *{{ .PrivateName }}) Update(ctx context.Context, param *Update{{ .Name }}Param) (*dto.{{ .Name }}, error) {
 	id := identity.Parse(constant.{{ .Name }}Prefix, param.Id)
-	err := s.r.Update(ctx, id, &entity.{{ .Name }}{
-	})
+	ent := entity.New{{ .Name }}()
+
+	err := s.r.Update(ctx, id, ent)
 	if err != nil {
 		return nil, err
 	}

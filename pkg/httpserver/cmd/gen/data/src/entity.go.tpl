@@ -12,7 +12,7 @@ type {{ .Name }} struct {
 	// TODO
 }
 
-func New{{ .Name }}() (*{{ .Name }}, error) {
+func New{{ .Name }}() *{{ .Name }} {
 	entity := new({{ .Name }})
-	return entity, nil
+	return entity
 }
