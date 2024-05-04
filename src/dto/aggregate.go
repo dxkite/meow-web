@@ -149,7 +149,7 @@ func NewEndpoint(item *entity.Endpoint) *Endpoint {
 	obj.ForwardHeader = item.ForwardHeader
 	obj.ForwardRewrite = item.ForwardRewrite
 	obj.Endpoint = item.Endpoint
-	obj.Matcher = item.Matcher
+	obj.Matcher = item.MatchOptions
 	obj.CreatedAt = item.CreatedAt
 	obj.UpdatedAt = item.UpdatedAt
 	return obj

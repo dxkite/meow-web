@@ -93,7 +93,7 @@ func NewEndpointForwardHandler(endpoint *entity.Endpoint) ag.MatchForwardHandler
 	handler := ag.NewStaticForwardHandler(targets, endpoint.Endpoint.Static.Timeout)
 
 	matcher := ag.NewBasicMatcher()
-	for _, v := range endpoint.Matcher {
+	for _, v := range endpoint.MatchOptions {
 		matcher.Extra = append(matcher.Extra, &ag.ExtraMatchOption{
 			Source: v.Source,
 			Type:   v.Type,

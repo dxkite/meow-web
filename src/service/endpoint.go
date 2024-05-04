@@ -20,7 +20,7 @@ type CreateEndpointParam struct {
 	// 请求头转发配置
 	ForwardHeader []*value.ForwardHeaderOption `json:"forward_header" binding:"dive,required"`
 	// 匹配规则
-	Matcher []*value.MatchOption `json:"matcher" binding:"dive,required"`
+	MatchOptions []*value.MatchOption `json:"match_options" binding:"dive,required"`
 	// 远程服务
 	Endpoint *value.ForwardEndpoint `json:"endpoint" binding:"required"`
 }
@@ -52,7 +52,7 @@ func (s *endpoint) Create(ctx context.Context, param *CreateEndpointParam) (*dto
 		Type:           param.Type,
 		ForwardRewrite: param.ForwardRewrite,
 		ForwardHeader:  param.ForwardHeader,
-		Matcher:        param.Matcher,
+		MatchOptions:   param.MatchOptions,
 		Endpoint:       param.Endpoint,
 	})
 	if err != nil {
@@ -135,7 +135,7 @@ func (s *endpoint) Update(ctx context.Context, param *UpdateEndpointParam) (*dto
 		Type:           param.Type,
 		ForwardRewrite: param.ForwardRewrite,
 		ForwardHeader:  param.ForwardHeader,
-		Matcher:        param.Matcher,
+		MatchOptions:   param.MatchOptions,
 		Endpoint:       param.Endpoint,
 	})
 	if err != nil {
