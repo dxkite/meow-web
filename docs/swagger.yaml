@@ -43,6 +43,45 @@ definitions:
       updated_at:
         type: string
     type: object
+  dto.Collection:
+    properties:
+      authorize:
+        allOf:
+        - $ref: '#/definitions/dto.Authorize'
+        description: 鉴权信息
+      created_at:
+        type: string
+      description:
+        type: string
+      endpoints:
+        description: |-
+          后端服务
+          集合中没有设置后端服务的路由默认继承集合的后端服务信息
+        items:
+          $ref: '#/definitions/dto.Endpoint'
+        type: array
+      id:
+        type: string
+      name:
+        type: string
+      parent_id:
+        description: 父级ID
+        type: string
+      routes:
+        description: 路由信息
+        items:
+          $ref: '#/definitions/dto.Route'
+        type: array
+      server_names:
+        description: |-
+          服务域名
+          外部服务访问路由的入口
+        items:
+          $ref: '#/definitions/dto.ServerName'
+        type: array
+      updated_at:
+        type: string
+    type: object
   dto.Endpoint:
     properties:
       created_at:
@@ -51,22 +90,8 @@ definitions:
         allOf:
         - $ref: '#/definitions/value.ForwardEndpoint'
         description: 远程服务
-      forward_header:
-        description: 请求头转发配置
-        items:
-          $ref: '#/definitions/value.ForwardHeaderOption'
-        type: array
-      forward_rewrite:
-        allOf:
-        - $ref: '#/definitions/value.ForwardRewriteOption'
-        description: 重写配置
       id:
         type: string
-      matcher:
-        description: 匹配规则
-        items:
-          $ref: '#/definitions/value.MatchOption'
-        type: array
       name:
         description: 后端名
         type: string
@@ -78,6 +103,10 @@ definitions:
     type: object
   dto.Route:
     properties:
+      authorize:
+        allOf:
+        - $ref: '#/definitions/dto.Authorize'
+        description: 鉴权信息
       created_at:
         type: string
       description:
@@ -140,8 +169,64 @@ definitions:
       message:
         type: string
     type: object
+  service.CreateCollectionParam:
+    properties:
+      authorize_id:
+        description: 鉴权配置
+        type: string
+      description:
+        description: 分组描述
+        type: string
+      endpoint_id:
+        description: 绑定的后端服务
+        items:
+          type: string
+        type: array
+      name:
+        description: 分组名
+        type: string
+      parent_id:
+        description: 父级节点
+        type: string
+      server_name_id:
+        description: 绑定的域名
+        items:
+          type: string
+        type: array
+    required:
+    - name
+    type: object
+  service.CreateEndpointParam:
+    properties:
+      endpoint:
+        allOf:
+        - $ref: '#/definitions/value.ForwardEndpoint'
+        description: 远程服务
+      forward_header:
+        description: 请求头转发配置
+        items:
+          $ref: '#/definitions/value.ForwardHeaderOption'
+        type: array
+      forward_rewrite:
+        allOf:
+        - $ref: '#/definitions/value.ForwardRewriteOption'
+        description: 重写配置
+      name:
+        type: string
+      type:
+        description: 服务类型
+        type: string
+    required:
+    - endpoint
+    - forward_header
+    - name
+    - type
+    type: object
   service.CreateRouteParam:
     properties:
+      authorize_id:
+        description: 鉴权配置
+        type: string
       collection_id:
         description: 路由分组ID
         type: string
@@ -150,9 +235,7 @@ definitions:
         type: string
       endpoint_id:
         description: 绑定的后端服务
-        items:
-          type: string
-        type: array
+        type: string
       match_options:
         description: 特殊匹配规则
         items:
@@ -190,6 +273,31 @@ definitions:
     required:
     - name
     type: object
+  service.DeleteCollectionRouteParam:
+    properties:
+      id:
+        type: string
+      route_id:
+        items:
+          type: string
+        maxItems: 1000
+        type: array
+    required:
+    - id
+    - route_id
+    type: object
+  service.LinkCollectionRouteParam:
+    properties:
+      id:
+        type: string
+      route_id:
+        items:
+          type: string
+        type: array
+    required:
+    - id
+    - route_id
+    type: object
   service.ListAuthorizeResult:
     properties:
       data:
@@ -204,6 +312,15 @@ definitions:
       data:
         items:
           $ref: '#/definitions/dto.Certificate'
+        type: array
+      has_more:
+        type: boolean
+    type: object
+  service.ListCollectionResult:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.Collection'
         type: array
       has_more:
         type: boolean
@@ -267,6 +384,36 @@ definitions:
     - key
     - name
     type: object
+  service.UpdateCollectionParam:
+    properties:
+      authorize_id:
+        description: 鉴权配置
+        type: string
+      description:
+        description: 分组描述
+        type: string
+      endpoint_id:
+        description: 绑定的后端服务
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      name:
+        description: 分组名
+        type: string
+      parent_id:
+        description: 父级节点
+        type: string
+      server_name_id:
+        description: 绑定的域名
+        items:
+          type: string
+        type: array
+    required:
+    - id
+    - name
+    type: object
   service.UpdateEndpointParam:
     properties:
       endpoint:
@@ -284,11 +431,6 @@ definitions:
         description: 重写配置
       id:
         type: string
-      matcher:
-        description: 匹配规则
-        items:
-          $ref: '#/definitions/value.MatchOption'
-        type: array
       name:
         type: string
       type:
@@ -298,12 +440,14 @@ definitions:
     - endpoint
     - forward_header
     - id
-    - matcher
     - name
     - type
     type: object
   service.UpdateRouteParam:
     properties:
+      authorize_id:
+        description: 鉴权配置
+        type: string
       collection_id:
         description: 路由分组ID
         type: string
@@ -312,9 +456,7 @@ definitions:
         type: string
       endpoint_id:
         description: 绑定的后端服务
-        items:
-          type: string
-        type: array
+        type: string
       id:
         type: string
       match_options:
@@ -362,17 +504,19 @@ definitions:
     properties:
       binary:
         $ref: '#/definitions/value.AuthorizeAttributeBinary'
+    type: object
+  value.AuthorizeAttributeBinary:
+    properties:
+      header:
+        type: string
+      key:
+        type: string
       sources:
         items:
           $ref: '#/definitions/value.AuthorizeSource'
         type: array
     required:
     - sources
-    type: object
-  value.AuthorizeAttributeBinary:
-    properties:
-      key:
-        type: string
     type: object
   value.AuthorizeSource:
     properties:
@@ -405,10 +549,22 @@ definitions:
     properties:
       address:
         items:
-          type: string
+          $ref: '#/definitions/value.ForwardEndpointTarget'
         type: array
+      timeout:
+        type: integer
     required:
     - address
+    type: object
+  value.ForwardEndpointTarget:
+    properties:
+      address:
+        type: string
+      network:
+        type: string
+    required:
+    - address
+    - network
     type: object
   value.ForwardHeaderOption:
     properties:
@@ -811,13 +967,13 @@ paths:
       summary: 更新证书
       tags:
       - 证书
-  /endpoints:
+  /collections:
     get:
       consumes:
       - application/json
-      description: 证书列表
+      description: Collection列表
       parameters:
-      - description: 证书
+      - description: Collection
         in: query
         name: name
         type: string
@@ -846,7 +1002,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/service.ListEndpointResult'
+            $ref: '#/definitions/service.ListCollectionResult'
         "400":
           description: Bad Request
           schema:
@@ -855,16 +1011,45 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httpserver.HttpError'
-      summary: 证书列表
+      summary: Collection列表
       tags:
-      - 证书
-  /endpoints/{id}:
+      - Collection
+    post:
+      consumes:
+      - application/json
+      description: Create Collection
+      parameters:
+      - description: Collection data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateCollectionParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Collection'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Create Collection
+      tags:
+      - Collection
+  /collections/{id}:
     delete:
       consumes:
       - application/json
-      description: 删除证书
+      description: Delete Collection
       parameters:
-      - description: 证书ID
+      - description: CollectionID
         in: path
         name: id
         required: true
@@ -882,20 +1067,281 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httpserver.HttpError'
-      summary: 删除证书
+      summary: Delete Collection
       tags:
-      - 证书
-    post:
+      - Collection
+    get:
       consumes:
       - application/json
-      description: 更新证书
+      description: Get Collection
       parameters:
-      - description: 证书ID
+      - description: Collection ID
         in: path
         name: id
         required: true
         type: string
-      - description: 数据
+      - collectionFormat: csv
+        description: expand attribute list
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Collection'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Get Collection
+      tags:
+      - Collection
+    post:
+      consumes:
+      - application/json
+      description: Update Collection
+      parameters:
+      - description: Collection ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateCollectionParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Update Collection
+      tags:
+      - Collection
+  /collections/{id}/routes:
+    delete:
+      consumes:
+      - application/json
+      description: 删除集合路由的关联
+      parameters:
+      - description: Collection
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.DeleteCollectionRouteParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: 删除集合路由的关联
+      tags:
+      - Collection
+    post:
+      consumes:
+      - application/json
+      description: 将路由绑定到集合
+      parameters:
+      - description: Collection
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.LinkCollectionRouteParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: 将路由绑定到集合
+      tags:
+      - Collection
+  /endpoints:
+    get:
+      consumes:
+      - application/json
+      description: Endpoint list
+      parameters:
+      - description: Endpoint
+        in: query
+        name: name
+        type: string
+      - description: size limit
+        in: query
+        name: limit
+        type: integer
+      - description: get list after id
+        in: query
+        name: starting_after
+        type: string
+      - description: get list before id
+        in: query
+        name: ending_before
+        type: string
+      - collectionFormat: csv
+        description: expand attribute list
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.ListEndpointResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Endpoint list
+      tags:
+      - Endpoint
+    post:
+      consumes:
+      - application/json
+      description: Create Endpoint
+      parameters:
+      - description: Endpoint data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateEndpointParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Endpoint'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Create Endpoint
+      tags:
+      - Endpoint
+  /endpoints/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete Endpoint
+      parameters:
+      - description: EndpointID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Delete Endpoint
+      tags:
+      - Endpoint
+    get:
+      consumes:
+      - application/json
+      description: Get Endpoint
+      parameters:
+      - description: Endpoint ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: expand attribute list
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Endpoint'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Get Endpoint
+      tags:
+      - Endpoint
+    post:
+      consumes:
+      - application/json
+      description: Update Endpoint
+      parameters:
+      - description: Endpoint ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: data
         in: body
         name: body
         required: true
@@ -915,9 +1361,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httpserver.HttpError'
-      summary: 更新证书
+      summary: Update Endpoint
       tags:
-      - 证书
+      - Endpoint
   /routes:
     get:
       consumes:

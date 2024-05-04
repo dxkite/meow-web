@@ -545,9 +545,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/endpoints": {
+        "/collections": {
             "get": {
-                "description": "证书列表",
+                "description": "Collection列表",
                 "consumes": [
                     "application/json"
                 ],
@@ -555,13 +555,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "证书"
+                    "Collection"
                 ],
-                "summary": "证书列表",
+                "summary": "Collection列表",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "证书",
+                        "description": "Collection",
                         "name": "name",
                         "in": "query"
                     },
@@ -598,7 +598,392 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
+                            "$ref": "#/definitions/service.ListCollectionResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create Collection",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collection"
+                ],
+                "summary": "Create Collection",
+                "parameters": [
+                    {
+                        "description": "Collection data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateCollectionParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Collection"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/collections/{id}": {
+            "get": {
+                "description": "Get Collection",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collection"
+                ],
+                "summary": "Get Collection",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Collection ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "expand attribute list",
+                        "name": "expand",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Collection"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Update Collection",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collection"
+                ],
+                "summary": "Update Collection",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Collection ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.UpdateCollectionParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete Collection",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collection"
+                ],
+                "summary": "Delete Collection",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "CollectionID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/collections/{id}/routes": {
+            "post": {
+                "description": "将路由绑定到集合",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collection"
+                ],
+                "summary": "将路由绑定到集合",
+                "parameters": [
+                    {
+                        "description": "Collection",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.LinkCollectionRouteParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "删除集合路由的关联",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Collection"
+                ],
+                "summary": "删除集合路由的关联",
+                "parameters": [
+                    {
+                        "description": "Collection",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.DeleteCollectionRouteParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/endpoints": {
+            "get": {
+                "description": "Endpoint list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Endpoint"
+                ],
+                "summary": "Endpoint list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Endpoint",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "size limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "get list after id",
+                        "name": "starting_after",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "get list before id",
+                        "name": "ending_before",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "expand attribute list",
+                        "name": "expand",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
                             "$ref": "#/definitions/service.ListEndpointResult"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create Endpoint",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Endpoint"
+                ],
+                "summary": "Create Endpoint",
+                "parameters": [
+                    {
+                        "description": "Endpoint data",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateEndpointParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Endpoint"
                         }
                     },
                     "400": {
@@ -617,8 +1002,8 @@ const docTemplate = `{
             }
         },
         "/endpoints/{id}": {
-            "post": {
-                "description": "更新证书",
+            "get": {
+                "description": "Get Endpoint",
                 "consumes": [
                     "application/json"
                 ],
@@ -626,19 +1011,71 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "证书"
+                    "Endpoint"
                 ],
-                "summary": "更新证书",
+                "summary": "Get Endpoint",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "证书ID",
+                        "description": "Endpoint ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "数据",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "expand attribute list",
+                        "name": "expand",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Endpoint"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Update Endpoint",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Endpoint"
+                ],
+                "summary": "Update Endpoint",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Endpoint ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -667,7 +1104,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "删除证书",
+                "description": "Delete Endpoint",
                 "consumes": [
                     "application/json"
                 ],
@@ -675,13 +1112,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "证书"
+                    "Endpoint"
                 ],
-                "summary": "删除证书",
+                "summary": "Delete Endpoint",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "证书ID",
+                        "description": "EndpointID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1294,6 +1731,59 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.Collection": {
+            "type": "object",
+            "properties": {
+                "authorize": {
+                    "description": "鉴权信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.Authorize"
+                        }
+                    ]
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "endpoints": {
+                    "description": "后端服务\n集合中没有设置后端服务的路由默认继承集合的后端服务信息",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Endpoint"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parent_id": {
+                    "description": "父级ID",
+                    "type": "string"
+                },
+                "routes": {
+                    "description": "路由信息",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Route"
+                    }
+                },
+                "server_names": {
+                    "description": "服务域名\n外部服务访问路由的入口",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ServerName"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Endpoint": {
             "type": "object",
             "properties": {
@@ -1308,30 +1798,8 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "forward_header": {
-                    "description": "请求头转发配置",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/value.ForwardHeaderOption"
-                    }
-                },
-                "forward_rewrite": {
-                    "description": "重写配置",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/value.ForwardRewriteOption"
-                        }
-                    ]
-                },
                 "id": {
                     "type": "string"
-                },
-                "matcher": {
-                    "description": "匹配规则",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/value.MatchOption"
-                    }
                 },
                 "name": {
                     "description": "后端名",
@@ -1349,6 +1817,14 @@ const docTemplate = `{
         "dto.Route": {
             "type": "object",
             "properties": {
+                "authorize": {
+                    "description": "鉴权信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.Authorize"
+                        }
+                    ]
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -1444,6 +1920,85 @@ const docTemplate = `{
                 }
             }
         },
+        "service.CreateCollectionParam": {
+            "type": "object",
+            "required": [
+                "name"
+            ],
+            "properties": {
+                "authorize_id": {
+                    "description": "鉴权配置",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "分组描述",
+                    "type": "string"
+                },
+                "endpoint_id": {
+                    "description": "绑定的后端服务",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "description": "分组名",
+                    "type": "string"
+                },
+                "parent_id": {
+                    "description": "父级节点",
+                    "type": "string"
+                },
+                "server_name_id": {
+                    "description": "绑定的域名",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "service.CreateEndpointParam": {
+            "type": "object",
+            "required": [
+                "endpoint",
+                "forward_header",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "endpoint": {
+                    "description": "远程服务",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/value.ForwardEndpoint"
+                        }
+                    ]
+                },
+                "forward_header": {
+                    "description": "请求头转发配置",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/value.ForwardHeaderOption"
+                    }
+                },
+                "forward_rewrite": {
+                    "description": "重写配置",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/value.ForwardRewriteOption"
+                        }
+                    ]
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "服务类型",
+                    "type": "string"
+                }
+            }
+        },
         "service.CreateRouteParam": {
             "type": "object",
             "required": [
@@ -1454,6 +2009,10 @@ const docTemplate = `{
                 "path"
             ],
             "properties": {
+                "authorize_id": {
+                    "description": "鉴权配置",
+                    "type": "string"
+                },
                 "collection_id": {
                     "description": "路由分组ID",
                     "type": "string"
@@ -1464,10 +2023,7 @@ const docTemplate = `{
                 },
                 "endpoint_id": {
                     "description": "绑定的后端服务",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                    "type": "string"
                 },
                 "match_options": {
                     "description": "特殊匹配规则",
@@ -1516,6 +2072,43 @@ const docTemplate = `{
                 }
             }
         },
+        "service.DeleteCollectionRouteParam": {
+            "type": "object",
+            "required": [
+                "id",
+                "route_id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "route_id": {
+                    "type": "array",
+                    "maxItems": 1000,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "service.LinkCollectionRouteParam": {
+            "type": "object",
+            "required": [
+                "id",
+                "route_id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "route_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "service.ListAuthorizeResult": {
             "type": "object",
             "properties": {
@@ -1537,6 +2130,20 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.Certificate"
+                    }
+                },
+                "has_more": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "service.ListCollectionResult": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Collection"
                     }
                 },
                 "has_more": {
@@ -1632,13 +2239,54 @@ const docTemplate = `{
                 }
             }
         },
+        "service.UpdateCollectionParam": {
+            "type": "object",
+            "required": [
+                "id",
+                "name"
+            ],
+            "properties": {
+                "authorize_id": {
+                    "description": "鉴权配置",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "分组描述",
+                    "type": "string"
+                },
+                "endpoint_id": {
+                    "description": "绑定的后端服务",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "分组名",
+                    "type": "string"
+                },
+                "parent_id": {
+                    "description": "父级节点",
+                    "type": "string"
+                },
+                "server_name_id": {
+                    "description": "绑定的域名",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "service.UpdateEndpointParam": {
             "type": "object",
             "required": [
                 "endpoint",
                 "forward_header",
                 "id",
-                "matcher",
                 "name",
                 "type"
             ],
@@ -1669,13 +2317,6 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "matcher": {
-                    "description": "匹配规则",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/value.MatchOption"
-                    }
-                },
                 "name": {
                     "type": "string"
                 },
@@ -1696,6 +2337,10 @@ const docTemplate = `{
                 "path"
             ],
             "properties": {
+                "authorize_id": {
+                    "description": "鉴权配置",
+                    "type": "string"
+                },
                 "collection_id": {
                     "description": "路由分组ID",
                     "type": "string"
@@ -1706,10 +2351,7 @@ const docTemplate = `{
                 },
                 "endpoint_id": {
                     "description": "绑定的后端服务",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                    "type": "string"
                 },
                 "id": {
                     "type": "string"
@@ -1767,26 +2409,29 @@ const docTemplate = `{
         },
         "value.AuthorizeAttribute": {
             "type": "object",
+            "properties": {
+                "binary": {
+                    "$ref": "#/definitions/value.AuthorizeAttributeBinary"
+                }
+            }
+        },
+        "value.AuthorizeAttributeBinary": {
+            "type": "object",
             "required": [
                 "sources"
             ],
             "properties": {
-                "binary": {
-                    "$ref": "#/definitions/value.AuthorizeAttributeBinary"
+                "header": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
                 },
                 "sources": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/value.AuthorizeSource"
                     }
-                }
-            }
-        },
-        "value.AuthorizeAttributeBinary": {
-            "type": "object",
-            "properties": {
-                "key": {
-                    "type": "string"
                 }
             }
         },
@@ -1839,8 +2484,26 @@ const docTemplate = `{
                 "address": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/value.ForwardEndpointTarget"
                     }
+                },
+                "timeout": {
+                    "type": "integer"
+                }
+            }
+        },
+        "value.ForwardEndpointTarget": {
+            "type": "object",
+            "required": [
+                "address",
+                "network"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "network": {
+                    "type": "string"
                 }
             }
         },
