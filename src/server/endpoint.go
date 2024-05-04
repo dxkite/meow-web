@@ -16,6 +16,18 @@ type Endpoint struct {
 	s service.Endpoint
 }
 
+// Create Endpoint
+//
+// @Summary      Create Endpoint
+// @Description  Create Endpoint
+// @Tags         Endpoint
+// @Accept       json
+// @Produce      json
+// @Param        body body service.CreateEndpointParam true "Endpoint data"
+// @Success      200  {object} dto.Endpoint
+// @Failure      400  {object} httpserver.HttpError
+// @Failure      500  {object} httpserver.HttpError
+// @Router       /endpoints [post]
 func (s *Endpoint) Create(c *gin.Context) {
 	var param service.CreateEndpointParam
 
@@ -33,13 +45,23 @@ func (s *Endpoint) Create(c *gin.Context) {
 	httpserver.Result(c, http.StatusCreated, rst)
 }
 
+// Get Endpoint
+//
+// @Summary      Get Endpoint
+// @Description  Get Endpoint
+// @Tags         Endpoint
+// @Accept       json
+// @Produce      json
+// @Param        id path string true "Endpoint ID"
+// @Param        expand query []string false "expand attribute list"
+// @Success      200  {object} dto.Endpoint
+// @Failure      400  {object} httpserver.HttpError
+// @Failure      500  {object} httpserver.HttpError
+// @Router       /endpoints/{id} [get]
 func (s *Endpoint) Get(c *gin.Context) {
 	var param service.GetEndpointParam
 
-	if err := c.ShouldBindUri(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
-		return
-	}
+	param.Id = c.Param("id")
 
 	if err := c.ShouldBindQuery(&param); err != nil {
 		httpserver.ResultErrorBind(c, err)
@@ -54,18 +76,18 @@ func (s *Endpoint) Get(c *gin.Context) {
 	httpserver.Result(c, http.StatusOK, rst)
 }
 
-// 证书列表
+// List Endpoint
 //
-// @Summary      证书列表
-// @Description  证书列表
-// @Tags         证书
+// @Summary      Endpoint list
+// @Description  Endpoint list
+// @Tags         Endpoint
 // @Accept       json
 // @Produce      json
-// @Param        name query string false "证书"
-// @Param        limit query int false "限制"
-// @Param        starting_after query string false "从当前ID开始"
-// @Param        ending_before query string false "从当前ID结束"
-// @Param        expand query []string false "展开数据"
+// @Param        name query string false "Endpoint"
+// @Param        limit query int false "size limit"
+// @Param        starting_after query string false "get list after id"
+// @Param        ending_before query string false "get list before id"
+// @Param        expand query []string false "expand attribute list"
 // @Success      200  {object} service.ListEndpointResult
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
@@ -87,15 +109,15 @@ func (s *Endpoint) List(c *gin.Context) {
 	httpserver.Result(c, http.StatusOK, rst)
 }
 
-// 更新证书
+// Update Endpoint
 //
-// @Summary      更新证书
-// @Description  更新证书
-// @Tags         证书
+// @Summary      Update Endpoint
+// @Description  Update Endpoint
+// @Tags         Endpoint
 // @Accept       json
 // @Produce      json
-// @Param        id path string true "证书ID"
-// @Param        body body service.UpdateEndpointParam true "数据"
+// @Param        id path string true "Endpoint ID"
+// @Param        body body service.UpdateEndpointParam true "data"
 // @Success      200  {object} service.Endpoint
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
@@ -117,14 +139,14 @@ func (s *Endpoint) Update(c *gin.Context) {
 	httpserver.Result(c, http.StatusOK, rst)
 }
 
-// 删除证书
+// Delete Endpoint
 //
-// @Summary      删除证书
-// @Description  删除证书
-// @Tags         证书
+// @Summary      Delete Endpoint
+// @Description  Delete Endpoint
+// @Tags         Endpoint
 // @Accept       json
 // @Produce      json
-// @Param        id path string true "证书ID"
+// @Param        id path string true "EndpointID"
 // @Success      200
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
@@ -145,10 +167,10 @@ func (s *Endpoint) Delete(c *gin.Context) {
 	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *Endpoint) RegisterToHttp(group gin.IRouter) {
-	group.POST("/endpoints", s.Create)
-	group.GET("/endpoints", s.List)
-	group.GET("/endpoints/:id", s.Get)
-	group.POST("/endpoints/:id", s.Update)
-	group.DELETE("/endpoints/:id", s.Delete)
+func (s *Endpoint) RegisterToHttp(route gin.IRouter) {
+	route.POST("/endpoints", s.Create)
+	route.GET("/endpoints", s.List)
+	route.GET("/endpoints/:id", s.Get)
+	route.POST("/endpoints/:id", s.Update)
+	route.DELETE("/endpoints/:id", s.Delete)
 }
