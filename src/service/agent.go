@@ -45,11 +45,14 @@ func (s *agent) LoadRoute(ctx context.Context) error {
 			return nil
 		}
 		route.Add(forward)
+
 		printLog("load route %v %s\n", item.Method, item.Path)
 		return nil
 	}); err != nil {
 		return err
 	}
+
+	route.Sort()
 	s.svr.Use(route)
 	return nil
 }
@@ -69,8 +72,13 @@ func (s *agent) createForwardItem(ctx context.Context, item *entity.Route) (ag.F
 		return nil, errors.New("missing endpoint")
 	}
 
+	authorize, err := s.getAuthorize(ctx, item.Id, collectionIdList)
+	if err != nil {
+		return nil, err
+	}
+
 	endpoint := endpoints[0]
-	forwardItem := NewForwardHandler(item, endpoint, nil)
+	forwardItem := NewForwardHandler(item, endpoint, authorize)
 	return forwardItem, nil
 }
 
@@ -83,9 +91,10 @@ func NewForwardHandler(item *entity.Route, endpoint *entity.Endpoint, auth *enti
 		})
 	}
 	matcher := ag.NewBasicMatcher()
-	matcher.Path = item.Path
+	matcher.Path = ag.NewRequestPathMatcher(item.Path)
 	matcher.Method = item.Method
 	matcher.Extra = []*ag.ExtraMatchOption{}
+
 	for _, v := range item.MatchOptions {
 		matcher.Extra = append(matcher.Extra, &ag.ExtraMatchOption{
 			Source: v.Source,
@@ -94,8 +103,8 @@ func NewForwardHandler(item *entity.Route, endpoint *entity.Endpoint, auth *enti
 			Value:  v.Value,
 		})
 	}
-	handler := ag.NewStaticForwardHandler(targets, endpoint.Endpoint.Static.Timeout)
 
+	handler := ag.NewStaticForwardHandler(targets, endpoint.Endpoint.Static.Timeout)
 	var authHandler ag.AuthorizeHandler
 	if auth != nil {
 		authHandler = NewAuthorizeHandler(auth)

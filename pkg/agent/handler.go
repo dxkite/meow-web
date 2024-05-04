@@ -1,9 +1,18 @@
 package agent
 
-import "net/http"
+import (
+	"net/http"
+	"sort"
+)
 
 type RequestMatcher interface {
 	MatchRequest(req *http.Request) bool
+}
+
+type RequestPathMatcher interface {
+	RequestMatcher
+	MatchPathType() PathType
+	MatchPathPriority() int
 }
 
 type RequestForwardHandler interface {
@@ -15,7 +24,7 @@ type AuthorizeHandler interface {
 }
 
 type ForwardHandler interface {
-	RequestMatcher
+	RequestPathMatcher
 	RequestForwardHandler
 }
 
@@ -31,6 +40,15 @@ func NewHandler() *Handler {
 
 func (h *Handler) Add(item ForwardHandler) {
 	h.items = append(h.items, item)
+}
+
+func (h *Handler) Sort() {
+	sort.Slice(h.items, func(i, j int) bool {
+		if h.items[i].MatchPathType() == h.items[j].MatchPathType() {
+			return h.items[i].MatchPathPriority() > h.items[j].MatchPathPriority()
+		}
+		return h.items[i].MatchPathType() > h.items[j].MatchPathType()
+	})
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -55,12 +73,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 type forwardItem struct {
 	auth AuthorizeHandler
-	RequestMatcher
+	RequestPathMatcher
 	RequestForwardHandler
 }
 
-func NewForwardHandler(matcher RequestMatcher, forward RequestForwardHandler, auth AuthorizeHandler) ForwardHandler {
-	return &forwardItem{RequestMatcher: matcher, RequestForwardHandler: forward, auth: auth}
+func NewForwardHandler(matcher RequestPathMatcher, forward RequestForwardHandler, auth AuthorizeHandler) ForwardHandler {
+	return &forwardItem{RequestPathMatcher: matcher, RequestForwardHandler: forward, auth: auth}
 }
 
 func (item forwardItem) HandleAuthorizeCheck(w http.ResponseWriter, req *http.Request) bool {
