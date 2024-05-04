@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	ag "dxkite.cn/meownest/pkg/agent"
-	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
 )
@@ -63,12 +62,26 @@ func (s *agent) createForwardItem(ctx context.Context, item *entity.Route) (ag.F
 		return nil, err
 	}
 
-	endpoint, err := s.getEndpoint(ctx, item.Id, collectionIdList)
+	collections, err := s.rc.BatchGet(ctx, collectionIdList)
 	if err != nil {
 		return nil, err
 	}
 
-	authorize, err := s.getAuthorize(ctx, item.Id, collectionIdList)
+	collectionMap := map[uint64]*entity.Collection{}
+	for i, v := range collections {
+		collectionMap[v.Id] = collections[i]
+	}
+
+	endpoint, err := s.getEndpoint(ctx, item, collectionIdList, collectionMap)
+	if err != nil {
+		return nil, err
+	}
+
+	if endpoint == nil {
+		return nil, errors.New("missing endpoint")
+	}
+
+	authorize, err := s.getAuthorize(ctx, item, collectionIdList, collectionMap)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +103,7 @@ func NewEndpointForwardHandler(endpoint *entity.Endpoint) ag.RequestForwardHandl
 	return handler
 }
 
-func NewForwardHandler(item *entity.Route, endpoints *entity.Endpoint, auth *entity.Authorize) ag.ForwardHandler {
+func NewForwardHandler(item *entity.Route, endpoint *entity.Endpoint, auth *entity.Authorize) ag.ForwardHandler {
 	matcher := ag.NewBasicMatcher()
 	matcher.Path = ag.NewRequestPathMatcher(item.Path)
 	matcher.Method = item.Method
@@ -110,7 +123,7 @@ func NewForwardHandler(item *entity.Route, endpoints *entity.Endpoint, auth *ent
 		authHandler = NewAuthorizeHandler(auth)
 	}
 
-	handler := NewEndpointForwardHandler(endpoints)
+	handler := NewEndpointForwardHandler(endpoint)
 	return ag.NewForwardHandler(matcher, handler, authHandler)
 }
 
@@ -123,93 +136,55 @@ func NewAuthorizeHandler(auth *entity.Authorize) ag.AuthorizeHandler {
 	return ag.NewBinaryAuth(binary.Key, binary.Header, source)
 }
 
-func (s *agent) getEndpoint(ctx context.Context, routeId uint64, collectionIdList []uint64) (*entity.Endpoint, error) {
-
-	if endpoints, err := s.getEndpointBy(ctx, constant.LinkDirectRouteEndpoint, routeId); err != nil {
-		return nil, err
-	} else if len(endpoints) > 0 {
-		return endpoints[0], nil
-	}
-
-	for _, v := range collectionIdList {
-		if endpoints, err := s.getEndpointBy(ctx, constant.LinkDirectCollectionEndpoint, v); err != nil {
-			return nil, err
-		} else if len(endpoints) > 0 {
-			return endpoints[0], nil
-		}
-	}
-
-	return nil, nil
-}
-
-func (s *agent) getAuthorize(ctx context.Context, routeId uint64, collectionIdList []uint64) (*entity.Authorize, error) {
-	if auth, err := s.getAuthorizeBy(ctx, constant.LinkDirectRouteAuthorize, routeId); err != nil {
-		return nil, err
-	} else if auth != nil {
-		return auth, nil
-	}
-
-	for _, v := range collectionIdList {
-		if auth, err := s.getAuthorizeBy(ctx, constant.LinkDirectCollectionAuthorize, v); err != nil {
-			return nil, err
-		} else if auth != nil {
-			return auth, nil
-		}
-	}
-
-	return nil, nil
-}
-
-func (s *agent) getAuthorizeBy(ctx context.Context, direct string, id uint64) (*entity.Authorize, error) {
-	linked, err := s.rl.Linked(ctx, direct, []uint64{id})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(linked) > 0 {
-		ent, err := s.ra.Get(ctx, linked[0].Id)
+func (s *agent) getEndpoint(ctx context.Context, route *entity.Route, collectionIdList []uint64, collectionMap map[uint64]*entity.Collection) (*entity.Endpoint, error) {
+	if route.EndpointId != 0 {
+		item, err := s.re.Get(ctx, route.EndpointId)
 		if err != nil {
 			return nil, err
 		}
-		return ent, nil
+		return item, nil
+	}
+
+	for _, v := range collectionIdList {
+		if coll, ok := collectionMap[v]; ok {
+			if coll.EndpointId != 0 {
+				endpoint, err := s.re.Get(ctx, coll.EndpointId)
+				if err != nil {
+					return nil, err
+				}
+				return endpoint, nil
+			}
+		}
 	}
 	return nil, nil
 }
 
-func (s *agent) getEndpointBy(ctx context.Context, direct string, id uint64) ([]*entity.Endpoint, error) {
-	var endpointList []*entity.Endpoint
-	endpointLink, err := s.rl.Linked(ctx, direct, []uint64{id})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if len(endpointLink) > 0 {
-		linkedId := linkedIds(endpointLink)
-		endpoints, err := s.re.BatchGet(ctx, linkedId)
+func (s *agent) getAuthorize(ctx context.Context, route *entity.Route, collectionIdList []uint64, collectionMap map[uint64]*entity.Collection) (*entity.Authorize, error) {
+	if route.AuthorizeId != 0 {
+		item, err := s.ra.Get(ctx, route.AuthorizeId)
 		if err != nil {
 			return nil, err
 		}
-		return endpoints, nil
+		return item, nil
 	}
 
-	return endpointList, nil
+	for _, v := range collectionIdList {
+		if coll, ok := collectionMap[v]; ok {
+			if coll.AuthorizeId != 0 {
+				item, err := s.ra.Get(ctx, coll.AuthorizeId)
+				if err != nil {
+					return nil, err
+				}
+				return item, nil
+			}
+		}
+	}
+	return nil, nil
 }
 
 func (s *agent) getCollectionList(ctx context.Context, item *entity.Route) ([]uint64, error) {
-	sources, err := s.rl.LinkedSource(ctx, constant.LinkDirectCollectionRoute, []uint64{item.Id})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(sources) == 0 {
-		return nil, errors.New("missing collection")
-	}
-
 	collection := []uint64{}
-
-	sourceLink := sources[0]
-	source, err := s.rc.Get(ctx, sourceLink.SourceId)
+	source, err := s.rc.Get(ctx, item.CollectionId)
 	if err != nil {
 		return nil, err
 	}
@@ -230,12 +205,4 @@ func (s *agent) getCollectionList(ctx context.Context, item *entity.Route) ([]ui
 
 func printLog(format string, values ...interface{}) {
 	fmt.Printf(format, values...)
-}
-
-func linkedIds(item []*entity.Link) []uint64 {
-	idList := []uint64{}
-	for _, v := range item {
-		idList = append(idList, v.LinkedId)
-	}
-	return idList
 }

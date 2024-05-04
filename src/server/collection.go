@@ -167,74 +167,10 @@ func (s *Collection) Delete(c *gin.Context) {
 	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
-// 将路由绑定到集合
-//
-// @Summary      将路由绑定到集合
-// @Description  将路由绑定到集合
-// @Tags         Collection
-// @Accept       json
-// @Produce      json
-// @Param        body body service.LinkCollectionRouteParam true "Collection"
-// @Success      200
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
-// @Router       /collections/{id}/routes [post]
-func (s *Collection) LinkRoute(c *gin.Context) {
-	var param service.LinkCollectionRouteParam
-
-	param.Id = c.Param("id")
-
-	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
-		return
-	}
-
-	err := s.s.LinkRoute(c, &param)
-	if err != nil {
-		httpserver.ResultError(c, err)
-		return
-	}
-
-	httpserver.ResultEmpty(c, http.StatusOK)
-}
-
-// 删除集合路由的关联
-//
-// @Summary      删除集合路由的关联
-// @Description  删除集合路由的关联
-// @Tags         Collection
-// @Accept       json
-// @Produce      json
-// @Param        body body service.DeleteCollectionRouteParam true "Collection"
-// @Success      200
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
-// @Router       /collections/{id}/routes [delete]
-func (s *Collection) DeleteRoute(c *gin.Context) {
-	var param service.DeleteCollectionRouteParam
-
-	param.Id = c.Param("id")
-
-	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
-		return
-	}
-
-	err := s.s.DeleteRoute(c, &param)
-	if err != nil {
-		httpserver.ResultError(c, err)
-		return
-	}
-
-	httpserver.ResultEmpty(c, http.StatusOK)
-}
-
 func (s *Collection) RegisterToHttp(route gin.IRouter) {
 	route.POST("/collections", s.Create)
 	route.GET("/collections", s.List)
 	route.GET("/collections/:id", s.Get)
 	route.POST("/collections/:id", s.Update)
 	route.DELETE("/collections/:id", s.Delete)
-	route.POST("/collections/:id/routes", s.LinkRoute)
-	route.DELETE("/collections/:id/routes", s.DeleteRoute)
 }

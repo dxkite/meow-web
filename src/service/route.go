@@ -43,14 +43,14 @@ type CreateRouteParam struct {
 	Name string `json:"name" form:"name" binding:"required"`
 	// 路由描述
 	Description string `json:"description" form:"description"`
-	// 路由分组ID
-	CollectionId string `json:"collection_id" form:"collection_id" binding:"required"`
 	// 支持方法
 	Method []string `json:"method" form:"method" binding:"required"`
 	// 匹配路径
 	Path string `json:"path" form:"path" binding:"required"`
 	// 特殊匹配规则
 	MatchOptions []*value.MatchOption `json:"match_options" form:"match_options" binding:"dive,required"`
+	// 路由分组ID
+	CollectionId string `json:"collection_id" form:"collection_id" binding:"required"`
 	// 绑定的后端服务
 	EndpointId string `json:"endpoint_id" form:"endpoint_id"`
 	// 鉴权配置
@@ -61,36 +61,19 @@ func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route
 	var obj *dto.Route
 	err := data_source.Transaction(ctx, func(ctx context.Context) error {
 
-		collId := identity.Parse(constant.CollectionPrefix, param.CollectionId)
 		ent, err := s.r.Create(ctx, &entity.Route{
 			Name:         param.Name,
 			Description:  param.Description,
 			Method:       param.Method,
 			Path:         param.Path,
 			MatchOptions: param.MatchOptions,
+			CollectionId: identity.Parse(constant.CollectionPrefix, param.CollectionId),
+			AuthorizeId:  identity.Parse(constant.AuthorizePrefix, param.AuthorizeId),
+			EndpointId:   identity.Parse(constant.EndpointPrefix, param.EndpointId),
 		})
 
 		if err != nil {
 			return err
-		}
-
-		err = s.rl.LinkedOnce(ctx, constant.LinkDirectCollectionRoute, collId, ent.Id)
-		if err != nil {
-			return err
-		}
-
-		if param.AuthorizeId != "" {
-			err = s.rl.LinkOnce(ctx, constant.LinkDirectRouteAuthorize, ent.Id, identity.Parse(constant.AuthorizePrefix, param.AuthorizeId))
-			if err != nil {
-				return err
-			}
-		}
-
-		if param.EndpointId != "" {
-			err = s.rl.LinkedOnce(ctx, constant.LinkDirectRouteEndpoint, ent.Id, identity.Parse(constant.AuthorizePrefix, param.AuthorizeId))
-			if err != nil {
-				return err
-			}
 		}
 
 		obj = dto.NewRoute(ent)
@@ -106,47 +89,21 @@ func (s *route) Get(ctx context.Context, param *GetRouteParam) (*dto.Route, erro
 	}
 
 	obj := dto.NewRoute(rst)
-
-	if utils.InStringSlice("endpoints", param.Expand) {
-		entityIds := []uint64{}
-
-		linked, err := s.rl.Linked(ctx, constant.LinkDirectRouteEndpoint, []uint64{rst.Id})
+	if utils.InStringSlice("endpoint", param.Expand) {
+		ent, err := s.re.Get(ctx, rst.EndpointId)
 		if err != nil {
 			return nil, err
 		}
-
-		for _, v := range linked {
-			entityIds = append(entityIds, v.LinkedId)
-		}
-
-		entities, err := s.re.BatchGet(ctx, entityIds)
-		if err != nil {
-			return nil, err
-		}
-
-		items := make([]*dto.Endpoint, len(entities))
-		for i, v := range entities {
-			items[i] = dto.NewEndpoint(v)
-		}
-
-		obj.Endpoints = items
+		obj.Endpoint = dto.NewEndpoint(ent)
 	}
 
 	if utils.InStringSlice("authorize", param.Expand) {
-		linked, err := s.rl.Linked(ctx, constant.LinkDirectRouteAuthorize, []uint64{rst.Id})
+		ent, err := s.ra.Get(ctx, rst.AuthorizeId)
 		if err != nil {
 			return nil, err
 		}
-
-		if len(linked) > 0 {
-			ent, err := s.ra.Get(ctx, linked[0].Id)
-			if err != nil {
-				return nil, err
-			}
-			obj.Authorize = dto.NewAuthorize(ent)
-		}
+		obj.Authorize = dto.NewAuthorize(ent)
 	}
-
 	return obj, nil
 }
 
@@ -249,41 +206,12 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 			Method:       param.Method,
 			Path:         param.Path,
 			MatchOptions: param.MatchOptions,
+			CollectionId: identity.Parse(constant.CollectionPrefix, param.CollectionId),
+			AuthorizeId:  identity.Parse(constant.AuthorizePrefix, param.AuthorizeId),
+			EndpointId:   identity.Parse(constant.EndpointPrefix, param.EndpointId),
 		})
 		if err != nil {
 			return err
-		}
-
-		if param.CollectionId != "" {
-			collId := identity.Parse(constant.CollectionPrefix, param.CollectionId)
-			err = s.rl.LinkedOnce(txCtx, constant.LinkDirectCollectionRoute, collId, entId)
-			if err != nil {
-				return err
-			}
-		}
-
-		if param.AuthorizeId != "" {
-			err = s.rl.LinkOnce(txCtx, constant.LinkDirectRouteAuthorize, entId, identity.Parse(constant.AuthorizePrefix, param.AuthorizeId))
-			if err != nil {
-				return err
-			}
-		} else {
-			err = s.rl.DeleteSourceLink(txCtx, constant.LinkDirectRouteAuthorize, entId)
-			if err != nil {
-				return err
-			}
-		}
-
-		if param.EndpointId != "" {
-			err = s.rl.LinkedOnce(ctx, constant.LinkDirectRouteEndpoint, entId, identity.Parse(constant.AuthorizePrefix, param.AuthorizeId))
-			if err != nil {
-				return err
-			}
-		} else {
-			err = s.rl.DeleteSourceLink(txCtx, constant.LinkDirectRouteEndpoint, entId)
-			if err != nil {
-				return err
-			}
 		}
 
 		return nil

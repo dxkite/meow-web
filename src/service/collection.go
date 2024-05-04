@@ -18,8 +18,6 @@ type Collection interface {
 	Get(ctx context.Context, param *GetCollectionParam) (*dto.Collection, error)
 	Delete(ctx context.Context, param *DeleteCollectionParam) error
 	List(ctx context.Context, param *ListCollectionParam) (*ListCollectionResult, error)
-	LinkRoute(ctx context.Context, param *LinkCollectionRouteParam) error
-	DeleteRoute(ctx context.Context, param *DeleteCollectionRouteParam) error
 }
 
 func NewCollection(r repository.Collection, rl repository.Link, rr repository.Route, re repository.Endpoint, rs repository.ServerName, ra repository.Authorize) Collection {
@@ -45,7 +43,7 @@ type CreateCollectionParam struct {
 	// 绑定的域名
 	ServerNameId []string `json:"server_name_id" form:"server_name"`
 	// 绑定的后端服务
-	EndpointId []string `json:"endpoint_id" form:"endpoint_id"`
+	EndpointId string `json:"endpoint_id" form:"endpoint_id"`
 	// 鉴权配置
 	AuthorizeId string `json:"authorize_id" form:"authorize_id"`
 }
@@ -58,6 +56,8 @@ func (s *collection) Create(ctx context.Context, param *CreateCollectionParam) (
 			Name:        param.Name,
 			Description: param.Description,
 			ParentId:    identity.Parse(constant.CollectionPrefix, param.ParentId),
+			AuthorizeId: identity.Parse(constant.AuthorizePrefix, param.AuthorizeId),
+			EndpointId:  identity.Parse(constant.EndpointPrefix, param.EndpointId),
 		})
 
 		if err != nil {
@@ -66,17 +66,6 @@ func (s *collection) Create(ctx context.Context, param *CreateCollectionParam) (
 
 		if err := s.batchLinkOnce(ctx, constant.LinkDirectCollectionServerName, item.Id, identity.ParseSlice(constant.ServerNamePrefix, param.ServerNameId)); err != nil {
 			return err
-		}
-
-		if err := s.batchLinkOnce(ctx, constant.LinkDirectCollectionEndpoint, item.Id, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
-			return err
-		}
-
-		if param.AuthorizeId != "" {
-			err = s.rl.LinkOnce(ctx, constant.LinkDirectCollectionAuthorize, item.Id, identity.Parse(constant.AuthorizePrefix, param.AuthorizeId))
-			if err != nil {
-				return err
-			}
 		}
 
 		obj = dto.NewCollection(item)
@@ -142,120 +131,23 @@ func (s *collection) Get(ctx context.Context, param *GetCollectionParam) (*dto.C
 		collection.ServerNames = items
 	}
 
-	if utils.InStringSlice("routes", param.Expand) {
-		entityIds := []uint64{}
-
-		linked, err := s.rl.Linked(ctx, constant.LinkDirectCollectionRoute, []uint64{rst.Id})
+	if utils.InStringSlice("endpoint", param.Expand) {
+		ent, err := s.re.Get(ctx, rst.EndpointId)
 		if err != nil {
 			return nil, err
 		}
-
-		for _, v := range linked {
-			entityIds = append(entityIds, v.LinkedId)
-		}
-
-		entities, err := s.rr.BatchGet(ctx, entityIds)
-		if err != nil {
-			return nil, err
-		}
-
-		items := make([]*dto.Route, len(entities))
-		for i, v := range entities {
-			items[i] = dto.NewRoute(v)
-		}
-
-		collection.Routes = items
-	}
-
-	if utils.InStringSlice("endpoints", param.Expand) {
-		entityIds := []uint64{}
-
-		linked, err := s.rl.Linked(ctx, constant.LinkDirectCollectionEndpoint, []uint64{rst.Id})
-		if err != nil {
-			return nil, err
-		}
-
-		for _, v := range linked {
-			entityIds = append(entityIds, v.LinkedId)
-		}
-
-		entities, err := s.re.BatchGet(ctx, entityIds)
-		if err != nil {
-			return nil, err
-		}
-
-		items := make([]*dto.Endpoint, len(entities))
-		for i, v := range entities {
-			items[i] = dto.NewEndpoint(v)
-		}
-
-		collection.Endpoints = items
+		collection.Endpoint = dto.NewEndpoint(ent)
 	}
 
 	if utils.InStringSlice("authorize", param.Expand) {
-		linked, err := s.rl.Linked(ctx, constant.LinkDirectRouteAuthorize, []uint64{rst.Id})
+		ent, err := s.ra.Get(ctx, rst.AuthorizeId)
 		if err != nil {
 			return nil, err
 		}
-
-		if len(linked) > 0 {
-			ent, err := s.ra.Get(ctx, linked[0].Id)
-			if err != nil {
-				return nil, err
-			}
-			collection.Authorize = dto.NewAuthorize(ent)
-		}
+		collection.Authorize = dto.NewAuthorize(ent)
 	}
 
 	return collection, nil
-}
-
-type LinkCollectionRouteParam struct {
-	Id      string   `json:"id" uri:"id" binding:"required"`
-	RouteId []string `json:"route_id" form:"route_id" binding:"required"`
-}
-
-func (s *collection) LinkRoute(ctx context.Context, param *LinkCollectionRouteParam) error {
-	item, err := s.r.Get(ctx, identity.Parse(constant.CollectionPrefix, param.Id))
-	if err != nil {
-		return err
-	}
-
-	linkIds := []uint64{}
-	routes, err := s.rr.BatchGet(ctx, identity.ParseSlice(constant.RoutePrefix, param.RouteId))
-	if err != nil {
-		return err
-	}
-
-	for _, v := range routes {
-		linkIds = append(linkIds, v.Id)
-	}
-
-	return s.rl.BatchLink(ctx, constant.LinkDirectCollectionRoute, item.Id, linkIds)
-}
-
-type DeleteCollectionRouteParam struct {
-	Id      string   `json:"id" uri:"id" binding:"required"`
-	RouteId []string `json:"route_id" form:"route_id" binding:"required,max=1000"`
-}
-
-func (s *collection) DeleteRoute(ctx context.Context, param *DeleteCollectionRouteParam) error {
-	item, err := s.r.Get(ctx, identity.Parse(constant.CollectionPrefix, param.Id))
-	if err != nil {
-		return err
-	}
-
-	linkIds := []uint64{}
-	routes, err := s.rr.BatchGet(ctx, identity.ParseSlice(constant.RoutePrefix, param.RouteId))
-	if err != nil {
-		return err
-	}
-
-	for _, v := range routes {
-		linkIds = append(linkIds, v.Id)
-	}
-
-	return s.rl.BatchDeleteLink(ctx, constant.LinkDirectCollectionRoute, item.Id, linkIds)
 }
 
 type ListCollectionParam struct {
@@ -312,7 +204,9 @@ func (s *collection) Update(ctx context.Context, param *UpdateCollectionParam) (
 		id := identity.Parse(constant.ServerNamePrefix, param.Id)
 
 		err := s.r.Update(ctx, id, &entity.Collection{
-			Name: param.Name,
+			Name:        param.Name,
+			AuthorizeId: identity.Parse(constant.AuthorizePrefix, param.AuthorizeId),
+			EndpointId:  identity.Parse(constant.EndpointPrefix, param.EndpointId),
 		})
 
 		if err != nil {
@@ -321,17 +215,6 @@ func (s *collection) Update(ctx context.Context, param *UpdateCollectionParam) (
 
 		if err := s.batchLinkOnce(ctx, constant.LinkDirectCollectionServerName, id, identity.ParseSlice(constant.ServerNamePrefix, param.ServerNameId)); err != nil {
 			return err
-		}
-
-		if err := s.batchLinkOnce(ctx, constant.LinkDirectCollectionEndpoint, id, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
-			return err
-		}
-
-		if param.AuthorizeId != "" {
-			err = s.rl.LinkOnce(ctx, constant.LinkDirectCollectionAuthorize, id, identity.Parse(constant.AuthorizePrefix, param.AuthorizeId))
-			if err != nil {
-				return err
-			}
 		}
 
 		return nil

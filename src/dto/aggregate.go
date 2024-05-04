@@ -71,8 +71,12 @@ type Route struct {
 	Path        string   `json:"path"`
 	// 路由的特殊匹配规则
 	Matcher []*value.MatchOption `json:"matcher"`
+	// 后端服务
+	EndpointId string `json:"endpoint_id,omitempty"`
 	// 路由自定义的后端路由
-	Endpoints []*Endpoint `json:"endpoints,omitempty"`
+	Endpoint *Endpoint `json:"endpoints,omitempty"`
+	// 鉴权信息ID
+	AuthorizeId string `json:"authorize_id,omitempty"`
 	// 鉴权信息
 	Authorize *Authorize `json:"authorize,omitempty"`
 	CreatedAt time.Time  `json:"created_at"`

@@ -1,5 +1,5 @@
 package constant
 
-const ServerNamePrefix = "name_"
-const CertificatePrefix = "cert_"
+const ServerNamePrefix = "server_name_"
+const CertificatePrefix = "certificate_"
 const RoutePrefix = "route_"

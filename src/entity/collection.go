@@ -15,9 +15,14 @@ type Collection struct {
 	Order    int
 	Depth    int
 
-	// 合辑名
-	Name        string `gorm:"index"`
+	// 集合名
+	Name string `gorm:"index"`
+	// 集合描述
 	Description string
+	// 权限配置ID
+	AuthorizeId uint64 `gorm:"index"`
+	// 后端服务ID
+	EndpointId uint64 `gorm:"index"`
 }
 
 func NewCollection() *Collection {
