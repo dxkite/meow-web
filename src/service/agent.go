@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	ag "dxkite.cn/meownest/pkg/agent"
+	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
 )
@@ -62,6 +63,11 @@ func (s *agent) createForwardItem(ctx context.Context, item *entity.Route) (ag.F
 		return nil, err
 	}
 
+	serverNameList, err := s.getServerNameList(ctx, collectionIdList)
+	if err != nil {
+		return nil, err
+	}
+
 	collections, err := s.rc.BatchGet(ctx, collectionIdList)
 	if err != nil {
 		return nil, err
@@ -86,7 +92,7 @@ func (s *agent) createForwardItem(ctx context.Context, item *entity.Route) (ag.F
 		return nil, err
 	}
 
-	forwardItem := NewForwardHandler(item, endpoint, authorize)
+	forwardItem := NewForwardHandler(item, serverNameList, endpoint, authorize)
 	return forwardItem, nil
 }
 
@@ -103,11 +109,15 @@ func NewEndpointForwardHandler(endpoint *entity.Endpoint) ag.RequestForwardHandl
 	return handler
 }
 
-func NewForwardHandler(item *entity.Route, endpoint *entity.Endpoint, auth *entity.Authorize) ag.ForwardHandler {
+func NewForwardHandler(item *entity.Route, serverNameList []*entity.ServerName, endpoint *entity.Endpoint, auth *entity.Authorize) ag.ForwardHandler {
 	matcher := ag.NewBasicMatcher()
 	matcher.Path = ag.NewRequestPathMatcher(item.Path)
 	matcher.Method = item.Method
 	matcher.Extra = []*ag.ExtraMatchOption{}
+
+	for _, v := range serverNameList {
+		matcher.Host = append(matcher.Host, v.Name)
+	}
 
 	for _, v := range item.MatchOptions {
 		matcher.Extra = append(matcher.Extra, &ag.ExtraMatchOption{
@@ -134,6 +144,36 @@ func NewAuthorizeHandler(auth *entity.Authorize) ag.AuthorizeHandler {
 		source = append(source, &ag.AuthorizeSource{Source: v.Source, Name: v.Name})
 	}
 	return ag.NewBinaryAuth(binary.Key, binary.Header, source)
+}
+
+func (s *agent) getServerNameList(ctx context.Context, collectionIdList []uint64) ([]*entity.ServerName, error) {
+
+	for _, v := range collectionIdList {
+		if serverNames, err := s.getServerNameBy(ctx, constant.LinkDirectCollectionServerName, v); err != nil {
+			return nil, err
+		} else if serverNames != nil {
+			return serverNames, nil
+		}
+	}
+
+	return nil, nil
+}
+
+func (s *agent) getServerNameBy(ctx context.Context, direct string, id uint64) ([]*entity.ServerName, error) {
+	var items []*entity.ServerName
+	relationLink, err := s.rl.Linked(ctx, direct, []uint64{id})
+	if err != nil {
+		return nil, err
+	}
+	if len(relationLink) > 0 {
+		linkedId := linkedIds(relationLink)
+		endpoints, err := s.rs.BatchGet(ctx, linkedId)
+		if err != nil {
+			return nil, err
+		}
+		return endpoints, nil
+	}
+	return items, nil
 }
 
 func (s *agent) getEndpoint(ctx context.Context, route *entity.Route, collectionIdList []uint64, collectionMap map[uint64]*entity.Collection) (*entity.Endpoint, error) {
@@ -205,4 +245,12 @@ func (s *agent) getCollectionList(ctx context.Context, item *entity.Route) ([]ui
 
 func printLog(format string, values ...interface{}) {
 	fmt.Printf(format, values...)
+}
+
+func linkedIds(item []*entity.Link) []uint64 {
+	idList := []uint64{}
+	for _, v := range item {
+		idList = append(idList, v.LinkedId)
+	}
+	return idList
 }
