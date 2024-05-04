@@ -92,7 +92,7 @@ func (s *collection) batchLinkOnce(ctx context.Context, direct string, id uint64
 
 func (s *collection) batchLink(ctx context.Context, direct string, id uint64, linkedId []uint64, once bool) error {
 	if once {
-		if err := s.rl.DeleteAllLink(ctx, direct, id); err != nil {
+		if err := s.rl.DeleteSourceLink(ctx, direct, id); err != nil {
 			return err
 		}
 	}

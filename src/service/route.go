@@ -265,7 +265,7 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 				return err
 			}
 		} else {
-			err = s.rl.DeleteAllLink(txCtx, constant.LinkDirectRouteAuthorize, entId)
+			err = s.rl.DeleteSourceLink(txCtx, constant.LinkDirectRouteAuthorize, entId)
 			if err != nil {
 				return err
 			}
@@ -290,7 +290,7 @@ func (s *route) batchLinkOnce(ctx context.Context, direct string, id uint64, lin
 
 func (s *route) batchLink(ctx context.Context, direct string, id uint64, linkedId []uint64, once bool) error {
 	if once {
-		if err := s.rl.DeleteAllLink(ctx, direct, id); err != nil {
+		if err := s.rl.DeleteSourceLink(ctx, direct, id); err != nil {
 			return err
 		}
 	}

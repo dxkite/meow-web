@@ -16,7 +16,7 @@ type Link interface {
 	Linked(ctx context.Context, direct string, sourceId []uint64) ([]*entity.Link, error)
 	LinkedSource(ctx context.Context, direct string, linkedId []uint64) ([]*entity.Link, error)
 	BatchDeleteLink(ctx context.Context, direct string, sourceId uint64, linkedIds []uint64) error
-	DeleteAllLink(ctx context.Context, direct string, sourceId uint64) error
+	DeleteSourceLink(ctx context.Context, direct string, sourceId uint64) error
 }
 
 func NewLink() Link {
@@ -94,7 +94,7 @@ func (r *link) BatchDeleteLink(ctx context.Context, direct string, sourceId uint
 	return nil
 }
 
-func (r *link) DeleteAllLink(ctx context.Context, direct string, sourceId uint64) error {
+func (r *link) DeleteSourceLink(ctx context.Context, direct string, sourceId uint64) error {
 	if err := r.dataSource(ctx).Where(entity.Link{Direct: direct, SourceId: sourceId}).Delete(entity.Link{}).Error; err != nil {
 		return err
 	}
