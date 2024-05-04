@@ -1,10 +1,14 @@
 package main
 
 import (
+	"archive/zip"
+	"bytes"
 	"embed"
 	_ "embed"
 	"flag"
 	"fmt"
+	"io"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -14,6 +18,9 @@ import (
 
 //go:embed data/src
 var srcFiles embed.FS
+
+//go:embed data/pkg.zip
+var pkgFile []byte
 
 type TemplateValue struct {
 	Pkg         string
@@ -28,6 +35,7 @@ func main() {
 	filename := flag.String("filename", "", "filename")
 	privateName := flag.String("private-name", "", "private name")
 	uri := flag.String("uri", "", "uri path")
+	output := flag.String("output", ".", "output path")
 
 	flag.Parse()
 
@@ -70,9 +78,13 @@ func main() {
 			panic(err)
 		}
 
-		if err := render(path.Join("src", dirname, *filename+".go"), tpl, templateVal); err != nil {
+		if err := render(path.Join(*output, "src", dirname, *filename+".go"), tpl, templateVal); err != nil {
 			panic(err)
 		}
+	}
+
+	if err := unzip(pkgFile, path.Join(*output, "pkg")); err != nil {
+		panic(err)
 	}
 }
 
@@ -83,7 +95,6 @@ func render(p string, tpl *template.Template, val *TemplateValue) error {
 	}
 
 	dir := filepath.Dir(p)
-
 	os.MkdirAll(dir, os.ModePerm)
 
 	f, err := os.OpenFile(p, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, os.ModePerm)
@@ -105,4 +116,52 @@ func exists(name string) bool {
 		return false
 	}
 	return false
+}
+
+func unzip(data []byte, output string) error {
+	zipReader, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	if err != nil {
+		return err
+	}
+	err = fs.WalkDir(zipReader, ".", func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if p == "." {
+			return nil
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		extract := path.Join(output, p)
+		if exists(extract) {
+			fmt.Printf("file %s is exist, deleted to generate new\n", extract)
+			return nil
+		}
+
+		f, err := zipReader.Open(p)
+		if err != nil {
+			fmt.Printf("open file %s error %v\n", p, err)
+			return nil
+		}
+		defer f.Close()
+
+		dir := filepath.Dir(extract)
+		os.MkdirAll(dir, os.ModePerm)
+
+		out, err := os.OpenFile(extract, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, os.ModePerm)
+		if err != nil {
+			fmt.Printf("create file %s error %v\n", extract, err)
+			return err
+		}
+
+		defer out.Close()
+
+		_, err = io.Copy(out, f)
+		return err
+	})
+	return err
 }
