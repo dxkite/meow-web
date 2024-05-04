@@ -13,13 +13,13 @@ import (
 )
 
 type Collection interface {
-	Create(ctx context.Context, param *CreateCollectionParam) (*dto.Collection, error)
+	Create(ctx context.Context, create *CreateCollectionParam) (*dto.Collection, error)
+	Update(ctx context.Context, param *UpdateCollectionParam) (*dto.Collection, error)
 	Get(ctx context.Context, param *GetCollectionParam) (*dto.Collection, error)
+	Delete(ctx context.Context, param *DeleteCollectionParam) error
 	List(ctx context.Context, param *ListCollectionParam) (*ListCollectionResult, error)
 	LinkRoute(ctx context.Context, param *LinkCollectionRouteParam) error
 	DeleteRoute(ctx context.Context, param *DeleteCollectionRouteParam) error
-	LinkEndpoint(ctx context.Context, param *LinkCollectionEndpointParam) error
-	DeleteEndpoint(ctx context.Context, param *DeleteCollectionEndpointParam) error
 }
 
 func NewCollection(r repository.Collection, rl repository.Link, rr repository.Route, re repository.Endpoint, rs repository.ServerName, ra repository.Authorize) Collection {
@@ -258,54 +258,6 @@ func (s *collection) DeleteRoute(ctx context.Context, param *DeleteCollectionRou
 	return s.rl.BatchDeleteLink(ctx, constant.LinkDirectCollectionRoute, item.Id, linkIds)
 }
 
-type LinkCollectionEndpointParam struct {
-	Id         string   `json:"id" uri:"id" binding:"required"`
-	EndpointId []string `json:"endpoint_id" form:"endpoint_id" binding:"required"`
-}
-
-func (s *collection) LinkEndpoint(ctx context.Context, param *LinkCollectionEndpointParam) error {
-	item, err := s.r.Get(ctx, identity.Parse(constant.CollectionPrefix, param.Id))
-	if err != nil {
-		return err
-	}
-
-	linkIds := []uint64{}
-	endpoints, err := s.re.BatchGet(ctx, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId))
-	if err != nil {
-		return err
-	}
-
-	for _, v := range endpoints {
-		linkIds = append(linkIds, v.Id)
-	}
-
-	return s.rl.BatchLink(ctx, constant.LinkDirectCollectionEndpoint, item.Id, linkIds)
-}
-
-type DeleteCollectionEndpointParam struct {
-	Id         string   `json:"id" uri:"id" binding:"required"`
-	EndpointId []string `json:"endpoint_id" form:"endpoint_id" binding:"required,max=1000"`
-}
-
-func (s *collection) DeleteEndpoint(ctx context.Context, param *DeleteCollectionEndpointParam) error {
-	item, err := s.r.Get(ctx, identity.Parse(constant.CollectionPrefix, param.Id))
-	if err != nil {
-		return err
-	}
-
-	linkIds := []uint64{}
-	endpoints, err := s.re.BatchGet(ctx, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId))
-	if err != nil {
-		return err
-	}
-
-	for _, v := range endpoints {
-		linkIds = append(linkIds, v.Id)
-	}
-
-	return s.rl.BatchDeleteLink(ctx, constant.LinkDirectCollectionEndpoint, item.Id, linkIds)
-}
-
 type ListCollectionParam struct {
 	ParentId      string `form:"parent_id"`
 	Name          string `form:"name"`
@@ -386,4 +338,16 @@ func (s *collection) Update(ctx context.Context, param *UpdateCollectionParam) (
 	})
 
 	return s.Get(ctx, &GetCollectionParam{Id: param.Id})
+}
+
+type DeleteCollectionParam struct {
+	Id string `json:"id" uri:"id" binding:"required"`
+}
+
+func (s *collection) Delete(ctx context.Context, param *DeleteCollectionParam) error {
+	err := s.r.Delete(ctx, identity.Parse(constant.CollectionPrefix, param.Id))
+	if err != nil {
+		return err
+	}
+	return nil
 }

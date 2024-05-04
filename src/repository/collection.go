@@ -10,15 +10,17 @@ import (
 )
 
 type Collection interface {
-	Create(ctx context.Context, param *entity.Collection) (*entity.Collection, error)
+	Create(ctx context.Context, collection *entity.Collection) (*entity.Collection, error)
 	Get(ctx context.Context, id uint64) (*entity.Collection, error)
-	List(ctx context.Context, param *ListCollectionParam) ([]*entity.Collection, error)
 	Update(ctx context.Context, id uint64, ent *entity.Collection) error
+	Delete(ctx context.Context, id uint64) error
+	List(ctx context.Context, param *ListCollectionParam) ([]*entity.Collection, error)
+	BatchGet(ctx context.Context, ids []uint64) ([]*entity.Collection, error)
 	GetChildren(ctx context.Context, id uint64) ([]*entity.Collection, error)
 }
 
 func NewCollection() Collection {
-	return &collection{}
+	return new(collection)
 }
 
 type collection struct {
@@ -53,6 +55,14 @@ func (r *collection) Get(ctx context.Context, id uint64) (*entity.Collection, er
 		return nil, err
 	}
 	return &item, nil
+}
+
+func (r *collection) BatchGet(ctx context.Context, ids []uint64) ([]*entity.Collection, error) {
+	var items []*entity.Collection
+	if err := r.dataSource(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 // 获取所有子级，包括子集的子集
@@ -128,6 +138,13 @@ func (r *collection) List(ctx context.Context, param *ListCollectionParam) ([]*e
 
 func (r *collection) Update(ctx context.Context, id uint64, ent *entity.Collection) error {
 	if err := r.dataSource(ctx).Where("id = ?", id).Updates(&ent).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *collection) Delete(ctx context.Context, id uint64) error {
+	if err := r.dataSource(ctx).Where("id = ?", id).Delete(entity.Collection{}).Error; err != nil {
 		return err
 	}
 	return nil
