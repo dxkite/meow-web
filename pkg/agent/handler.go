@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"fmt"
 	"net/http"
 	"sort"
 )
@@ -47,12 +48,16 @@ func (h *Handler) Sort() {
 		if h.items[i].MatchPathType() == h.items[j].MatchPathType() {
 			return h.items[i].MatchPathPriority() > h.items[j].MatchPathPriority()
 		}
-		return h.items[i].MatchPathType() > h.items[j].MatchPathType()
+		return h.items[i].MatchPathType() < h.items[j].MatchPathType()
 	})
+	for _, v := range h.items {
+		fmt.Println("rule", v)
+	}
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	for _, item := range h.items {
+		fmt.Println("match test", item)
 		// 匹配请求
 		if item.MatchRequest(req) {
 			// 进行权限校验
@@ -62,6 +67,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 				}
 			}
 			// 校验通过
+			fmt.Println("match", item)
 			item.HandleRequest(w, req)
 			return
 		}

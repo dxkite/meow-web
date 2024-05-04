@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -59,6 +60,10 @@ func (b *BasicMatcher) MatchRequest(req *http.Request) bool {
 	return true
 }
 
+func (b *BasicMatcher) String() string {
+	return fmt.Sprintf("%v %v", b.Method, b.Path)
+}
+
 type PathType int
 
 const (
@@ -101,12 +106,9 @@ func (m *pathMatcher) MatchRequest(req *http.Request) bool {
 }
 
 func NewRequestPathMatcher(path string) RequestPathMatcher {
-	typ := PathTypeFull
-	np := len(path)
+	typ := PathTypePrefix
 	if strings.IndexByte(path, '{') >= 0 {
 		typ = PathTypeParam
-	} else if np > 0 && path[np-1] == '/' {
-		typ = PathTypePrefix
 	}
 	return NewRequestPathMatcherWithType(typ, path)
 }
