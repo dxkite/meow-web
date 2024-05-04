@@ -4,19 +4,14 @@ import (
 	"io"
 	"os/exec"
 	"path/filepath"
-
-	"dxkite.cn/log"
-
-	"dxkite.cn/meownest/pkg/gateway/utils"
 )
 
-func ExecCommandWithName(name string, command []string) error {
-	w := utils.MakeNameLoggerWriter(name)
+func ExecCommandWithName(name string, command []string, w io.Writer) error {
+
 	rebootLimit := 10
 	var err error
 	for rebootLimit > 0 {
 		if err = ExecCommand(command, w); err != nil {
-			log.Error("exec error, reboot", command, err)
 			rebootLimit--
 		}
 	}
@@ -26,7 +21,6 @@ func ExecCommandWithName(name string, command []string) error {
 func ExecCommand(command []string, w io.Writer) error {
 	ap, err := filepath.Abs(command[0])
 	if err != nil {
-		log.Error("exec", command, err)
 		return err
 	}
 	bp := filepath.Dir(ap)
@@ -40,11 +34,8 @@ func ExecCommand(command []string, w io.Writer) error {
 	}
 
 	if err := cmd.Start(); err != nil {
-		log.Error("exec", command, err)
 		return err
 	}
-
-	log.Info("exec", command, "pid", cmd.Process.Pid)
 
 	defer func() {
 		cmd.Process.Kill()
