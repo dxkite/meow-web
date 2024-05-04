@@ -128,12 +128,6 @@ type Endpoint struct {
 	Name string `json:"name"`
 	// 服务类型
 	Type string `json:"type"`
-	// 重写配置
-	ForwardRewrite *value.ForwardRewriteOption `json:"forward_rewrite"`
-	// 请求头转发配置
-	ForwardHeader []*value.ForwardHeaderOption `json:"forward_header"`
-	// 匹配规则
-	Matcher []*value.MatchOption `json:"matcher"`
 	// 远程服务
 	Endpoint *value.ForwardEndpoint `gorm:"serializer:json" json:"endpoint"`
 
@@ -145,11 +139,7 @@ func NewEndpoint(item *entity.Endpoint) *Endpoint {
 	obj := &Endpoint{Id: identity.Format(constant.EndpointPrefix, item.Id)}
 	obj.Name = item.Name
 	obj.Type = item.Type
-	obj.ForwardRewrite = item.ForwardRewrite
-	obj.ForwardHeader = item.ForwardHeader
-	obj.ForwardRewrite = item.ForwardRewrite
 	obj.Endpoint = item.Endpoint
-	obj.Matcher = item.MatchOptions
 	obj.CreatedAt = item.CreatedAt
 	obj.UpdatedAt = item.UpdatedAt
 	return obj

@@ -19,8 +19,6 @@ type CreateEndpointParam struct {
 	ForwardRewrite *value.ForwardRewriteOption `json:"forward_rewrite"`
 	// 请求头转发配置
 	ForwardHeader []*value.ForwardHeaderOption `json:"forward_header" binding:"dive,required"`
-	// 匹配规则
-	MatchOptions []*value.MatchOption `json:"match_options" binding:"dive,required"`
 	// 远程服务
 	Endpoint *value.ForwardEndpoint `json:"endpoint" binding:"required"`
 }
@@ -48,12 +46,9 @@ type endpoint struct {
 
 func (s *endpoint) Create(ctx context.Context, param *CreateEndpointParam) (*dto.Endpoint, error) {
 	rst, err := s.r.Create(ctx, &entity.Endpoint{
-		Name:           param.Name,
-		Type:           param.Type,
-		ForwardRewrite: param.ForwardRewrite,
-		ForwardHeader:  param.ForwardHeader,
-		MatchOptions:   param.MatchOptions,
-		Endpoint:       param.Endpoint,
+		Name:     param.Name,
+		Type:     param.Type,
+		Endpoint: param.Endpoint,
 	})
 	if err != nil {
 		return nil, err
@@ -131,12 +126,9 @@ type UpdateEndpointParam struct {
 func (s *endpoint) Update(ctx context.Context, param *UpdateEndpointParam) (*dto.Endpoint, error) {
 	id := identity.Parse(constant.EndpointPrefix, param.Id)
 	err := s.r.Update(ctx, id, &entity.Endpoint{
-		Name:           param.Name,
-		Type:           param.Type,
-		ForwardRewrite: param.ForwardRewrite,
-		ForwardHeader:  param.ForwardHeader,
-		MatchOptions:   param.MatchOptions,
-		Endpoint:       param.Endpoint,
+		Name:     param.Name,
+		Type:     param.Type,
+		Endpoint: param.Endpoint,
 	})
 	if err != nil {
 		return nil, err

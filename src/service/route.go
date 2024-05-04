@@ -52,7 +52,7 @@ type CreateRouteParam struct {
 	// 特殊匹配规则
 	MatchOptions []*value.MatchOption `json:"match_options" form:"match_options" binding:"dive,required"`
 	// 绑定的后端服务
-	EndpointId []string `json:"endpoint_id" form:"endpoint_id"`
+	EndpointId string `json:"endpoint_id" form:"endpoint_id"`
 	// 鉴权配置
 	AuthorizeId string `json:"authorize_id" form:"authorize_id"`
 }
@@ -86,8 +86,11 @@ func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route
 			}
 		}
 
-		if err := s.batchLinkOnce(ctx, constant.LinkDirectRouteEndpoint, ent.Id, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
-			return err
+		if param.EndpointId != "" {
+			err = s.rl.LinkedOnce(ctx, constant.LinkDirectRouteEndpoint, ent.Id, identity.Parse(constant.AuthorizePrefix, param.AuthorizeId))
+			if err != nil {
+				return err
+			}
 		}
 
 		obj = dto.NewRoute(ent)
@@ -271,8 +274,16 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 			}
 		}
 
-		if err := s.batchLinkOnce(txCtx, constant.LinkDirectRouteEndpoint, entId, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
-			return err
+		if param.EndpointId != "" {
+			err = s.rl.LinkedOnce(ctx, constant.LinkDirectRouteEndpoint, entId, identity.Parse(constant.AuthorizePrefix, param.AuthorizeId))
+			if err != nil {
+				return err
+			}
+		} else {
+			err = s.rl.DeleteSourceLink(txCtx, constant.LinkDirectRouteEndpoint, entId)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -282,22 +293,4 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 	}
 
 	return s.Get(ctx, &GetRouteParam{Id: param.Id})
-}
-
-func (s *route) batchLinkOnce(ctx context.Context, direct string, id uint64, linkedId []uint64) error {
-	return s.batchLink(ctx, direct, id, linkedId, true)
-}
-
-func (s *route) batchLink(ctx context.Context, direct string, id uint64, linkedId []uint64, once bool) error {
-	if once {
-		if err := s.rl.DeleteSourceLink(ctx, direct, id); err != nil {
-			return err
-		}
-	}
-
-	if err := s.rl.BatchLink(ctx, direct, id, linkedId); err != nil {
-		return err
-	}
-
-	return nil
 }
