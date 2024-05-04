@@ -23,8 +23,7 @@ type {{ .Name }} struct {
 // @Tags         {{ .Name }}
 // @Accept       json
 // @Produce      json
-// @Param        id path string true "{{ .Name }} ID"
-// @Param        expand query []string false "expand attribute list"
+// @Param        body body service.Create{{ .Name }}Param true "{{ .Name }} data"
 // @Success      200  {object} dto.{{ .Name }}
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
@@ -62,10 +61,7 @@ func (s *{{ .Name }}) Create(c *gin.Context) {
 func (s *{{ .Name }}) Get(c *gin.Context) {
 	var param service.Get{{ .Name }}Param
 
-	if err := c.ShouldBindUri(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
-		return
-	}
+	param.Id = c.Param("id")
 
 	if err := c.ShouldBindQuery(&param); err != nil {
 		httpserver.ResultErrorBind(c, err)
@@ -80,18 +76,18 @@ func (s *{{ .Name }}) Get(c *gin.Context) {
 	httpserver.Result(c, http.StatusOK, rst)
 }
 
-// {{ .Name }}列表
+// List {{ .Name }}
 //
-// @Summary      {{ .Name }}列表
-// @Description  {{ .Name }}列表
+// @Summary      {{ .Name }} list
+// @Description  {{ .Name }} list
 // @Tags         {{ .Name }}
 // @Accept       json
 // @Produce      json
 // @Param        name query string false "{{ .Name }}"
-// @Param        limit query int false "限制"
-// @Param        starting_after query string false "从当前ID开始"
-// @Param        ending_before query string false "从当前ID结束"
-// @Param        expand query []string false "展开数据"
+// @Param        limit query int false "size limit"
+// @Param        starting_after query string false "get list after id"
+// @Param        ending_before query string false "get list before id"
+// @Param        expand query []string false "expand attribute list"
 // @Success      200  {object} service.List{{ .Name }}Result
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError

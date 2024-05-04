@@ -25,11 +25,11 @@ type {{ .PrivateName }} struct {
 }
 
 func (r *{{ .PrivateName }}) Get(ctx context.Context, id uint64) (*entity.{{ .Name }}, error) {
-	var cert entity.{{ .Name }}
-	if err := r.dataSource(ctx).Where("id = ?", id).First(&cert).Error; err != nil {
+	var item entity.{{ .Name }}
+	if err := r.dataSource(ctx).Where("id = ?", id).First(&item).Error; err != nil {
 		return nil, err
 	}
-	return &cert, nil
+	return &item, nil
 }
 
 func (r *{{ .PrivateName }}) BatchGet(ctx context.Context, ids []uint64) ([]*entity.{{ .Name }}, error) {
@@ -90,5 +90,5 @@ func (r *{{ .PrivateName }}) Delete(ctx context.Context, id uint64) error {
 }
 
 func (r *{{ .PrivateName }}) dataSource(ctx context.Context) *gorm.DB {
-	return data_source.Get(ctx).(data_source.GormDataSource).Gorm()
+	return data_source.Get(ctx).RawSource().(*gorm.DB)
 }

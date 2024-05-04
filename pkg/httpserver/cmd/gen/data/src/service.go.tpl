@@ -11,15 +11,11 @@ import (
 )
 
 type {{ .Name }} interface {
-	Create(ctx context.Context, create *Create{{ .Name }}Param) (*dto.{{ .Name }}, error)
+	Create(ctx context.Context, param *Create{{ .Name }}Param) (*dto.{{ .Name }}, error)
 	Update(ctx context.Context, param *Update{{ .Name }}Param) (*dto.{{ .Name }}, error)
 	Get(ctx context.Context, param *Get{{ .Name }}Param) (*dto.{{ .Name }}, error)
 	Delete(ctx context.Context, param *Delete{{ .Name }}Param) error
 	List(ctx context.Context, param *List{{ .Name }}Param) (*List{{ .Name }}Result, error)
-}
-
-type Create{{ .Name }}Param struct {
-	// TODO
 }
 
 func New{{ .Name }}(r repository.{{ .Name }}) {{ .Name }} {
@@ -28,6 +24,11 @@ func New{{ .Name }}(r repository.{{ .Name }}) {{ .Name }} {
 
 type {{ .PrivateName }} struct {
 	r repository.{{ .Name }}
+}
+
+
+type Create{{ .Name }}Param struct {
+	// TODO
 }
 
 func (s *{{ .PrivateName }}) Create(ctx context.Context, param *Create{{ .Name }}Param) (*dto.{{ .Name }}, error) {
