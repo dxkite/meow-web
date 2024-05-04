@@ -102,5 +102,5 @@ func (r *link) DeleteSourceLink(ctx context.Context, direct string, sourceId uin
 }
 
 func (r *link) dataSource(ctx context.Context) *gorm.DB {
-	return data_source.Get(ctx).(data_source.GormDataSource).Gorm()
+	return data_source.Get(ctx).RawSource().(*gorm.DB)
 }

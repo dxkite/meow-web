@@ -27,10 +27,6 @@ func (s *DataSource) RawSource() interface{} {
 	return s.db
 }
 
-func (s *DataSource) Gorm() *gorm.DB {
-	return s.db
-}
-
 func (s *DataSource) Transaction(fn func(s data_source.DataSource) error) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		return fn(NewSQLiteDataSource(tx))

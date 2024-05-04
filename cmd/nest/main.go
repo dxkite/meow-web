@@ -18,6 +18,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	"gorm.io/gorm"
 )
 
 func init() {
@@ -45,7 +46,7 @@ func main() {
 		panic(err)
 	}
 
-	db := ds.Gorm()
+	db := ds.RawSource().(*gorm.DB)
 	db.AutoMigrate(entity.ServerName{}, entity.Certificate{},
 		entity.Link{},
 		entity.Collection{}, entity.Route{}, entity.Endpoint{}, entity.Authorize{})

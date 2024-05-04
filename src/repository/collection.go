@@ -151,5 +151,5 @@ func (r *collection) Delete(ctx context.Context, id uint64) error {
 }
 
 func (r *collection) dataSource(ctx context.Context) *gorm.DB {
-	return data_source.Get(ctx).(data_source.GormDataSource).Gorm()
+	return data_source.Get(ctx).RawSource().(*gorm.DB)
 }

@@ -121,5 +121,5 @@ func (r *route) Batch(ctx context.Context, batchFn func(item *entity.Route) erro
 }
 
 func (r *route) dataSource(ctx context.Context) *gorm.DB {
-	return data_source.Get(ctx).(data_source.GormDataSource).Gorm()
+	return data_source.Get(ctx).RawSource().(*gorm.DB)
 }

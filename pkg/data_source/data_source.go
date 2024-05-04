@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 var DataSourceKey = "pkg/data_source"
@@ -15,10 +14,6 @@ var ErrMissSource = errors.New("missing data source")
 type DataSource interface {
 	RawSource() interface{}
 	Transaction(func(s DataSource) error) error
-}
-
-type GormDataSource interface {
-	Gorm() *gorm.DB
 }
 
 func Get(ctx context.Context) DataSource {
