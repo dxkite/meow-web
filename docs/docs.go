@@ -15,6 +15,38 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/agent/reload": {
+            "post": {
+                "description": "重载代理服务路由",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Agent"
+                ],
+                "summary": "重载代理服务路由",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            }
+        },
         "/authorizes": {
             "get": {
                 "description": "Authorize列表",
@@ -781,90 +813,6 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httpserver.HttpError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httpserver.HttpError"
-                        }
-                    }
-                }
-            }
-        },
-        "/collections/{id}/routes": {
-            "post": {
-                "description": "将路由绑定到集合",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Collection"
-                ],
-                "summary": "将路由绑定到集合",
-                "parameters": [
-                    {
-                        "description": "Collection",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service.LinkCollectionRouteParam"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httpserver.HttpError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httpserver.HttpError"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "删除集合路由的关联",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Collection"
-                ],
-                "summary": "删除集合路由的关联",
-                "parameters": [
-                    {
-                        "description": "Collection",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service.DeleteCollectionRouteParam"
-                        }
                     }
                 ],
                 "responses": {
@@ -1742,18 +1690,27 @@ const docTemplate = `{
                         }
                     ]
                 },
+                "authorize_id": {
+                    "description": "鉴权信息ID",
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
                 "description": {
                     "type": "string"
                 },
-                "endpoints": {
+                "endpoint": {
                     "description": "后端服务\n集合中没有设置后端服务的路由默认继承集合的后端服务信息",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.Endpoint"
-                    }
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.Endpoint"
+                        }
+                    ]
+                },
+                "endpoint_id": {
+                    "description": "后端服务",
+                    "type": "string"
                 },
                 "id": {
                     "type": "string"
@@ -1825,18 +1782,27 @@ const docTemplate = `{
                         }
                     ]
                 },
+                "authorize_id": {
+                    "description": "鉴权信息ID",
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
                 "description": {
                     "type": "string"
                 },
+                "endpoint_id": {
+                    "description": "后端服务",
+                    "type": "string"
+                },
                 "endpoints": {
                     "description": "路由自定义的后端路由",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.Endpoint"
-                    }
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.Endpoint"
+                        }
+                    ]
                 },
                 "id": {
                     "type": "string"
@@ -1936,10 +1902,7 @@ const docTemplate = `{
                 },
                 "endpoint_id": {
                     "description": "绑定的后端服务",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                    "type": "string"
                 },
                 "name": {
                     "description": "分组名",
@@ -2069,43 +2032,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                }
-            }
-        },
-        "service.DeleteCollectionRouteParam": {
-            "type": "object",
-            "required": [
-                "id",
-                "route_id"
-            ],
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "route_id": {
-                    "type": "array",
-                    "maxItems": 1000,
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "service.LinkCollectionRouteParam": {
-            "type": "object",
-            "required": [
-                "id",
-                "route_id"
-            ],
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "route_id": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -2256,10 +2182,7 @@ const docTemplate = `{
                 },
                 "endpoint_id": {
                     "description": "绑定的后端服务",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                    "type": "string"
                 },
                 "id": {
                     "type": "string"

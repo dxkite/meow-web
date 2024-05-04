@@ -49,17 +49,22 @@ definitions:
         allOf:
         - $ref: '#/definitions/dto.Authorize'
         description: 鉴权信息
+      authorize_id:
+        description: 鉴权信息ID
+        type: string
       created_at:
         type: string
       description:
         type: string
-      endpoints:
+      endpoint:
+        allOf:
+        - $ref: '#/definitions/dto.Endpoint'
         description: |-
           后端服务
           集合中没有设置后端服务的路由默认继承集合的后端服务信息
-        items:
-          $ref: '#/definitions/dto.Endpoint'
-        type: array
+      endpoint_id:
+        description: 后端服务
+        type: string
       id:
         type: string
       name:
@@ -107,15 +112,20 @@ definitions:
         allOf:
         - $ref: '#/definitions/dto.Authorize'
         description: 鉴权信息
+      authorize_id:
+        description: 鉴权信息ID
+        type: string
       created_at:
         type: string
       description:
         type: string
+      endpoint_id:
+        description: 后端服务
+        type: string
       endpoints:
+        allOf:
+        - $ref: '#/definitions/dto.Endpoint'
         description: 路由自定义的后端路由
-        items:
-          $ref: '#/definitions/dto.Endpoint'
-        type: array
       id:
         type: string
       matcher:
@@ -179,9 +189,7 @@ definitions:
         type: string
       endpoint_id:
         description: 绑定的后端服务
-        items:
-          type: string
-        type: array
+        type: string
       name:
         description: 分组名
         type: string
@@ -272,31 +280,6 @@ definitions:
         type: string
     required:
     - name
-    type: object
-  service.DeleteCollectionRouteParam:
-    properties:
-      id:
-        type: string
-      route_id:
-        items:
-          type: string
-        maxItems: 1000
-        type: array
-    required:
-    - id
-    - route_id
-    type: object
-  service.LinkCollectionRouteParam:
-    properties:
-      id:
-        type: string
-      route_id:
-        items:
-          type: string
-        type: array
-    required:
-    - id
-    - route_id
     type: object
   service.ListAuthorizeResult:
     properties:
@@ -394,9 +377,7 @@ definitions:
         type: string
       endpoint_id:
         description: 绑定的后端服务
-        items:
-          type: string
-        type: array
+        type: string
       id:
         type: string
       name:
@@ -613,6 +594,27 @@ definitions:
 info:
   contact: {}
 paths:
+  /agent/reload:
+    post:
+      consumes:
+      - application/json
+      description: 重载代理服务路由
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: 重载代理服务路由
+      tags:
+      - Agent
   /authorizes:
     get:
       consumes:
@@ -1136,61 +1138,6 @@ paths:
           schema:
             $ref: '#/definitions/httpserver.HttpError'
       summary: Update Collection
-      tags:
-      - Collection
-  /collections/{id}/routes:
-    delete:
-      consumes:
-      - application/json
-      description: 删除集合路由的关联
-      parameters:
-      - description: Collection
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/service.DeleteCollectionRouteParam'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpserver.HttpError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httpserver.HttpError'
-      summary: 删除集合路由的关联
-      tags:
-      - Collection
-    post:
-      consumes:
-      - application/json
-      description: 将路由绑定到集合
-      parameters:
-      - description: Collection
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/service.LinkCollectionRouteParam'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpserver.HttpError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httpserver.HttpError'
-      summary: 将路由绑定到集合
       tags:
       - Collection
   /endpoints:
