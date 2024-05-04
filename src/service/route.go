@@ -74,7 +74,7 @@ func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route
 			return err
 		}
 
-		err = s.rl.LinkOnce(ctx, constant.LinkDirectCollectionRoute, collId, ent.Id)
+		err = s.rl.LinkedOnce(ctx, constant.LinkDirectCollectionRoute, collId, ent.Id)
 		if err != nil {
 			return err
 		}
@@ -236,11 +236,11 @@ type UpdateRouteParam struct {
 }
 
 func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route, error) {
-	err := data_source.Transaction(ctx, func(ctx context.Context) error {
+	err := data_source.Transaction(ctx, func(txCtx context.Context) error {
 
 		entId := identity.Parse(constant.RoutePrefix, param.Id)
 
-		err := s.r.Update(ctx, entId, &entity.Route{
+		err := s.r.Update(txCtx, entId, &entity.Route{
 			Name:         param.Name,
 			Description:  param.Description,
 			Method:       param.Method,
@@ -253,20 +253,25 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 
 		if param.CollectionId != "" {
 			collId := identity.Parse(constant.CollectionPrefix, param.CollectionId)
-			err = s.rl.LinkOnce(ctx, constant.LinkDirectCollectionRoute, collId, entId)
+			err = s.rl.LinkedOnce(txCtx, constant.LinkDirectCollectionRoute, collId, entId)
 			if err != nil {
 				return err
 			}
 		}
 
 		if param.AuthorizeId != "" {
-			err = s.rl.LinkOnce(ctx, constant.LinkDirectRouteAuthorize, entId, identity.Parse(constant.AuthorizePrefix, param.AuthorizeId))
+			err = s.rl.LinkOnce(txCtx, constant.LinkDirectRouteAuthorize, entId, identity.Parse(constant.AuthorizePrefix, param.AuthorizeId))
+			if err != nil {
+				return err
+			}
+		} else {
+			err = s.rl.DeleteAllLink(txCtx, constant.LinkDirectRouteAuthorize, entId)
 			if err != nil {
 				return err
 			}
 		}
 
-		if err := s.batchLinkOnce(ctx, constant.LinkDirectRouteEndpoint, entId, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
+		if err := s.batchLinkOnce(txCtx, constant.LinkDirectRouteEndpoint, entId, identity.ParseSlice(constant.EndpointPrefix, param.EndpointId)); err != nil {
 			return err
 		}
 

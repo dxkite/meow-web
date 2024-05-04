@@ -43,10 +43,6 @@ func GinDataSource(ds DataSource) gin.HandlerFunc {
 }
 
 func With(ctx context.Context, ds DataSource) context.Context {
-	if v, ok := ctx.(*gin.Context); ok {
-		v.Set(DataSourceKey, ds)
-		return v
-	}
 	return context.WithValue(ctx, DataSourceKey, ds)
 }
 

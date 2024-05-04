@@ -12,6 +12,7 @@ type Link interface {
 	Link(ctx context.Context, direct string, sourceId, linkedId uint64) error
 	BatchLink(ctx context.Context, direct string, sourceId uint64, linkedIds []uint64) error
 	LinkOnce(ctx context.Context, direct string, sourceId, linkedId uint64) error
+	LinkedOnce(ctx context.Context, direct string, sourceId, linkedId uint64) error
 	Linked(ctx context.Context, direct string, sourceId []uint64) ([]*entity.Link, error)
 	LinkedSource(ctx context.Context, direct string, linkedId []uint64) ([]*entity.Link, error)
 	BatchDeleteLink(ctx context.Context, direct string, sourceId uint64, linkedIds []uint64) error
@@ -34,9 +35,9 @@ func (r *link) Link(ctx context.Context, direct string, sourceId, linkedId uint6
 }
 
 func (r *link) BatchLink(ctx context.Context, direct string, sourceId uint64, linkedIds []uint64) error {
-	return r.dataSource(ctx).Transaction(func(tx *gorm.DB) error {
+	return data_source.Transaction(ctx, func(txCtx context.Context) error {
 		for _, v := range linkedIds {
-			if err := r.Link(ctx, direct, sourceId, v); err != nil {
+			if err := r.Link(txCtx, direct, sourceId, v); err != nil {
 				return err
 			}
 		}
@@ -47,6 +48,19 @@ func (r *link) BatchLink(ctx context.Context, direct string, sourceId uint64, li
 func (r *link) LinkOnce(ctx context.Context, direct string, sourceId, linkedId uint64) error {
 	return r.dataSource(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where(entity.Link{Direct: direct, SourceId: sourceId}).Delete(entity.Link{}).Error; err != nil {
+			return err
+		}
+		link := entity.Link{}
+		link.Direct = direct
+		link.SourceId = sourceId
+		link.LinkedId = linkedId
+		return r.dataSource(ctx).Create(&link).Error
+	})
+}
+
+func (r *link) LinkedOnce(ctx context.Context, direct string, sourceId, linkedId uint64) error {
+	return r.dataSource(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where(entity.Link{Direct: direct, LinkedId: linkedId}).Delete(entity.Link{}).Error; err != nil {
 			return err
 		}
 		link := entity.Link{}
