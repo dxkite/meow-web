@@ -77,12 +77,11 @@ func (s *agent) createForwardItem(ctx context.Context, item *entity.Route) (ag.F
 		return nil, err
 	}
 
-	endpoint := endpoints[0]
-	forwardItem := NewForwardHandler(item, endpoint, authorize)
+	forwardItem := NewForwardHandler(item, endpoints, authorize)
 	return forwardItem, nil
 }
 
-func NewForwardHandler(item *entity.Route, endpoint *entity.Endpoint, auth *entity.Authorize) ag.ForwardHandler {
+func NewEndpointForwardHandler(endpoint *entity.Endpoint) ag.MatchForwardHandler {
 	targets := []*ag.EndpointTarget{}
 	for _, v := range endpoint.Endpoint.Static.Address {
 		targets = append(targets, &ag.EndpointTarget{
@@ -90,6 +89,24 @@ func NewForwardHandler(item *entity.Route, endpoint *entity.Endpoint, auth *enti
 			Address: v.Address,
 		})
 	}
+
+	handler := ag.NewStaticForwardHandler(targets, endpoint.Endpoint.Static.Timeout)
+
+	matcher := ag.NewBasicMatcher()
+	for _, v := range endpoint.Matcher {
+		matcher.Extra = append(matcher.Extra, &ag.ExtraMatchOption{
+			Source: v.Source,
+			Type:   v.Type,
+			Name:   v.Name,
+			Value:  v.Value,
+		})
+	}
+
+	return ag.NewMatchForwardHandler(matcher, handler)
+}
+
+func NewForwardHandler(item *entity.Route, endpoints []*entity.Endpoint, auth *entity.Authorize) ag.ForwardHandler {
+
 	matcher := ag.NewBasicMatcher()
 	matcher.Path = ag.NewRequestPathMatcher(item.Path)
 	matcher.Method = item.Method
@@ -104,11 +121,18 @@ func NewForwardHandler(item *entity.Route, endpoint *entity.Endpoint, auth *enti
 		})
 	}
 
-	handler := ag.NewStaticForwardHandler(targets, endpoint.Endpoint.Static.Timeout)
 	var authHandler ag.AuthorizeHandler
 	if auth != nil {
 		authHandler = NewAuthorizeHandler(auth)
 	}
+
+	handlerGroup := []ag.MatchForwardHandler{}
+
+	for i := range endpoints {
+		handlerGroup = append(handlerGroup, NewEndpointForwardHandler(endpoints[i]))
+	}
+
+	handler := ag.NewForwardGroup(handlerGroup)
 
 	return ag.NewForwardHandler(matcher, handler, authHandler)
 }

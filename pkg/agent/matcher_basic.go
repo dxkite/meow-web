@@ -43,16 +43,18 @@ func (b *BasicMatcher) MatchRequest(req *http.Request) bool {
 		return false
 	}
 
-	if !b.Path.MatchRequest(req) {
+	if b.Path != nil && !b.Path.MatchRequest(req) {
 		return false
 	}
 
-	for _, e := range b.Extra {
-		value := VarFrom(req, e.Source, e.Name)
-		switch e.Type {
-		case "equal", "=", "":
-			if value != e.Value {
-				return false
+	if b.Extra != nil {
+		for _, e := range b.Extra {
+			value := VarFrom(req, e.Source, e.Name)
+			switch e.Type {
+			case "equal", "=", "":
+				if value != e.Value {
+					return false
+				}
 			}
 		}
 	}

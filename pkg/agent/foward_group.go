@@ -16,7 +16,7 @@ type matchForwardHandler struct {
 	RequestForwardHandler
 }
 
-func NewMatchForwardHandler(matcher RequestMatcher, handler RequestForwardHandler) RequestForwardHandler {
+func NewMatchForwardHandler(matcher RequestMatcher, handler RequestForwardHandler) MatchForwardHandler {
 	return &matchForwardHandler{RequestMatcher: matcher, RequestForwardHandler: handler}
 }
 

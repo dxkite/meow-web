@@ -2,6 +2,7 @@ package agent
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 )
@@ -90,4 +91,8 @@ func InStringSlice(v string, slice []string) bool {
 		}
 	}
 	return false
+}
+
+func printLog(format string, values ...interface{}) {
+	fmt.Printf(format, values...)
 }
