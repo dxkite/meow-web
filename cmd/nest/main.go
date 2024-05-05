@@ -48,12 +48,16 @@ func main() {
 
 	db := ds.RawSource().(*gorm.DB)
 	db.AutoMigrate(entity.ServerName{}, entity.Certificate{},
-		entity.Link{},
+		entity.Link{}, entity.User{},
 		entity.Collection{}, entity.Route{}, entity.Endpoint{}, entity.Authorize{})
 
 	certificateRepository := repository.NewCertificate()
 	certificateService := service.NewCertificate(certificateRepository)
 	certificateServer := server.NewCertificate(certificateService)
+
+	userRepository := repository.NewUser()
+	userService := service.NewUser(userRepository, []byte("12345678901234567890123456789012"))
+	userServer := server.NewUser(userService)
 
 	authorizeRepository := repository.NewAuthorize()
 	authorizeService := service.NewAuthorize(authorizeRepository)
@@ -107,6 +111,7 @@ func main() {
 	httpServer.Use(data_source.GinDataSource(ds))
 
 	httpServer.RegisterPrefix("/api/v1", certificateServer)
+	httpServer.RegisterPrefix("/api/v1", userServer)
 	httpServer.RegisterPrefix("/api/v1", serverNameServer)
 	httpServer.RegisterPrefix("/api/v1", routeServer)
 	httpServer.RegisterPrefix("/api/v1", endpointServer)
