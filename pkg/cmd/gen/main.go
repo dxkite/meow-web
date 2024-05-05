@@ -65,11 +65,11 @@ func main() {
 		URI:         *uri,
 	}
 
-	if err := renderString(goModStr, templateVal, true, path.Join(*output, "go.mod")); err != nil {
+	if err := renderString(goModStr, templateVal, false, path.Join(*output, "go.mod")); err != nil {
 		panic(err)
 	}
 
-	if err := renderString(goSumStr, templateVal, true, path.Join(*output, "go.sum")); err != nil {
+	if err := renderString(goSumStr, templateVal, false, path.Join(*output, "go.sum")); err != nil {
 		panic(err)
 	}
 
@@ -98,7 +98,7 @@ func main() {
 
 		fmt.Println("prepare file", p, d.Name(), "-->", outFile)
 
-		if err := renderString(string(tplStr), templateVal, true, outFile); err != nil {
+		if err := renderString(string(tplStr), templateVal, false, outFile); err != nil {
 			return err
 		}
 		return nil
@@ -131,7 +131,7 @@ func main() {
 
 		fmt.Println("prepare file", p, d.Name(), "-->", outFile)
 
-		if err := renderString(string(tplStr), templateVal, true, outFile); err != nil {
+		if err := renderString(string(tplStr), templateVal, false, outFile); err != nil {
 			return err
 		}
 		return nil
@@ -151,7 +151,7 @@ func renderString(tplStr string, val interface{}, overwrite bool, p string) erro
 	}
 
 	if !overwrite && exists(p) {
-		fmt.Printf("file %s is exist, deleted to generate new\n", p)
+		fmt.Printf("file %s is exist, deleted to generate\n", p)
 		return nil
 	}
 
