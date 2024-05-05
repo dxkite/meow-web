@@ -16,11 +16,17 @@ import (
 	"text/template"
 )
 
-//go:embed data/src
+//go:embed data/tpl
 var srcFiles embed.FS
 
 //go:embed data/pkg.zip
 var pkgFile []byte
+
+//go:embed data/go.mod.tpl
+var goModStr string
+
+//go:embed data/go.sum
+var goSumStr string
 
 type TemplateValue struct {
 	Pkg         string
@@ -60,27 +66,78 @@ func main() {
 		URI:         *uri,
 	}
 
-	srcList, err := srcFiles.ReadDir("data/src")
-	if err != nil {
+	if err := renderString(goModStr, templateVal, true, path.Join(*output, "go.mod")); err != nil {
 		panic(err)
 	}
 
-	for _, v := range srcList {
-		fmt.Println(v.Name())
-		dirname := strings.TrimSuffix(v.Name(), ".go.tpl")
+	if err := renderString(goSumStr, templateVal, true, path.Join(*output, "go.sum")); err != nil {
+		panic(err)
+	}
 
-		tplStr, err := srcFiles.ReadFile(path.Join("data/src", v.Name()))
+	if err := fs.WalkDir(srcFiles, "data/tpl/entity", func(p string, d fs.DirEntry, err error) error {
+		fmt.Println("scan file", p)
+
 		if err != nil {
-			panic(err)
+			return err
 		}
-		tpl, err := template.New(v.Name()).Parse(string(tplStr))
-		if err != nil {
-			panic(err)
+		if d.IsDir() {
+			return nil
 		}
 
-		if err := render(path.Join(*output, "src", dirname, *filename+".go"), tpl, templateVal); err != nil {
-			panic(err)
+		if !strings.HasSuffix(d.Name(), ".go.tpl") {
+			return nil
 		}
+
+		dirname := strings.TrimSuffix(d.Name(), ".go.tpl")
+
+		tplStr, err := srcFiles.ReadFile(p)
+		if err != nil {
+			return err
+		}
+
+		outFile := path.Join(*output, "src", dirname, *filename+".go")
+
+		fmt.Println("prepare file", p, d.Name(), "-->", outFile)
+
+		if err := renderString(string(tplStr), templateVal, true, outFile); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		panic(err)
+	}
+
+	if err := fs.WalkDir(srcFiles, "data/tpl/pkg", func(p string, d fs.DirEntry, err error) error {
+		fmt.Println("scan file", p)
+
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+
+		if !strings.HasSuffix(d.Name(), ".go.tpl") {
+			return nil
+		}
+
+		outputFilename := strings.TrimSuffix(strings.TrimPrefix(p, "data/tpl"), ".tpl")
+
+		tplStr, err := srcFiles.ReadFile(p)
+		if err != nil {
+			return err
+		}
+
+		outFile := path.Join(*output, outputFilename)
+
+		fmt.Println("prepare file", p, d.Name(), "-->", outFile)
+
+		if err := renderString(string(tplStr), templateVal, true, outFile); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		panic(err)
 	}
 
 	if err := unzip(pkgFile, path.Join(*output, "pkg")); err != nil {
@@ -88,15 +145,19 @@ func main() {
 	}
 }
 
-func render(p string, tpl *template.Template, val *TemplateValue) error {
-	if exists(p) {
+func renderString(tplStr string, val interface{}, overwrite bool, p string) error {
+	tpl, err := template.New("template").Parse(tplStr)
+	if err != nil {
+		panic(err)
+	}
+
+	if !overwrite && exists(p) {
 		fmt.Printf("file %s is exist, deleted to generate new\n", p)
 		return nil
 	}
 
 	dir := filepath.Dir(p)
 	os.MkdirAll(dir, os.ModePerm)
-
 	f, err := os.OpenFile(p, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, os.ModePerm)
 	if err != nil {
 		return err
@@ -104,6 +165,7 @@ func render(p string, tpl *template.Template, val *TemplateValue) error {
 
 	defer f.Close()
 
+	fmt.Printf("file %s is created\n", p)
 	return tpl.Execute(f, val)
 }
 
