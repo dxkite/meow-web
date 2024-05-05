@@ -163,6 +163,19 @@ definitions:
       updated_at:
         type: string
     type: object
+  dto.User:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
   httpserver.HttpError:
     properties:
       error:
@@ -281,6 +294,32 @@ definitions:
     required:
     - name
     type: object
+  service.CreateSessionResult:
+    properties:
+      expire_at:
+        type: string
+      token:
+        type: string
+      type:
+        type: string
+    type: object
+  service.CreateUserParam:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  service.CreateUserSessionParam:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - name
+    - password
+    type: object
   service.ListAuthorizeResult:
     properties:
       data:
@@ -331,6 +370,15 @@ definitions:
       data:
         items:
           $ref: '#/definitions/dto.ServerName'
+        type: array
+      has_more:
+        type: boolean
+    type: object
+  service.ListUserResult:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.User'
         type: array
       has_more:
         type: boolean
@@ -480,6 +528,17 @@ definitions:
     required:
     - id
     - name
+    type: object
+  service.UpdateUserParam:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - id
     type: object
   value.AuthorizeAttribute:
     properties:
@@ -975,6 +1034,14 @@ paths:
       - application/json
       description: Collection列表
       parameters:
+      - description: 父级ID
+        in: query
+        name: parent_id
+        type: string
+      - description: 获取深度
+        in: query
+        name: depth
+        type: integer
       - description: Collection
         in: query
         name: name
@@ -1658,4 +1725,205 @@ paths:
       summary: 更新域名
       tags:
       - 域名
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: User list
+      parameters:
+      - description: User
+        in: query
+        name: name
+        type: string
+      - description: size limit
+        in: query
+        name: limit
+        type: integer
+      - description: get list after id
+        in: query
+        name: starting_after
+        type: string
+      - description: get list before id
+        in: query
+        name: ending_before
+        type: string
+      - collectionFormat: csv
+        description: expand attribute list
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.ListUserResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: User list
+      tags:
+      - User
+    post:
+      consumes:
+      - application/json
+      description: Create User
+      parameters:
+      - description: User data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateUserParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Create User
+      tags:
+      - User
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete User
+      parameters:
+      - description: UserID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Delete User
+      tags:
+      - User
+    get:
+      consumes:
+      - application/json
+      description: Get User
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: expand attribute list
+        in: query
+        items:
+          type: string
+        name: expand
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Get User
+      tags:
+      - User
+    post:
+      consumes:
+      - application/json
+      description: Update User
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.UpdateUserParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Update User
+      tags:
+      - User
+  /users/session:
+    post:
+      consumes:
+      - application/json
+      description: Create User Session
+      parameters:
+      - description: data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateUserSessionParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.CreateSessionResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Create User Session
+      tags:
+      - User
 swagger: "2.0"
