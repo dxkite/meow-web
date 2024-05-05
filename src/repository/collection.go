@@ -84,9 +84,9 @@ func (r *collection) GetChildren(ctx context.Context, id uint64) ([]*entity.Coll
 
 type ListCollectionParam struct {
 	ParentId uint64
-	// deep = 0 只获取当前层级
-	// deep > 0 获取当前层级 > deep
-	Deep          int
+	// depth = 0 只获取当前层级
+	// depth > 0 获取当前层级 > depth
+	Depth         int
 	Name          string
 	Limit         int
 	StartingAfter uint64
@@ -101,10 +101,10 @@ func (r *collection) List(ctx context.Context, param *ListCollectionParam) ([]*e
 		db = db.Where("name like ?", "%"+param.Name+"%")
 	}
 
-	deep := param.Deep
+	deep := param.Depth
 	if param.ParentId != 0 {
 		db = db.Where("parent_id = ?", param.ParentId)
-		if param.Deep != 0 {
+		if param.Depth != 0 {
 			parent, err := r.Get(ctx, param.ParentId)
 			if err != nil {
 				return nil, err

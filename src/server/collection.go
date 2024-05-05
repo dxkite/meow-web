@@ -83,6 +83,8 @@ func (s *Collection) Get(c *gin.Context) {
 // @Tags         Collection
 // @Accept       json
 // @Produce      json
+// @Param        parent_id query string false "父级ID"
+// @Param		 depth query int false "获取深度"
 // @Param        name query string false "Collection"
 // @Param        limit query int false "限制"
 // @Param        starting_after query string false "从当前ID开始"

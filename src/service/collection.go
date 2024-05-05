@@ -153,7 +153,7 @@ func (s *collection) Get(ctx context.Context, param *GetCollectionParam) (*dto.C
 type ListCollectionParam struct {
 	ParentId      string `form:"parent_id"`
 	Name          string `form:"name"`
-	Deep          int    `form:"deep" binding:"max=10"`
+	Depth         int    `form:"depth" binding:"max=10"`
 	Limit         int    `form:"limit" binding:"max=1000"`
 	StartingAfter string `form:"starting_after"`
 	EndingBefore  string `form:"ending_before"`
@@ -172,7 +172,7 @@ func (s *collection) List(ctx context.Context, param *ListCollectionParam) (*Lis
 	entities, err := s.r.List(ctx, &repository.ListCollectionParam{
 		Name:          param.Name,
 		ParentId:      identity.Parse(constant.CollectionPrefix, param.ParentId),
-		Deep:          param.Deep,
+		Depth:         param.Depth,
 		Limit:         param.Limit,
 		StartingAfter: identity.Parse(constant.CollectionPrefix, param.StartingAfter),
 		EndingBefore:  identity.Parse(constant.CollectionPrefix, param.EndingBefore),
@@ -201,7 +201,7 @@ type UpdateCollectionParam struct {
 
 func (s *collection) Update(ctx context.Context, param *UpdateCollectionParam) (*dto.Collection, error) {
 	data_source.Transaction(ctx, func(txCtx context.Context) error {
-		id := identity.Parse(constant.ServerNamePrefix, param.Id)
+		id := identity.Parse(constant.CollectionPrefix, param.Id)
 
 		err := s.r.Update(ctx, id, &entity.Collection{
 			Name:        param.Name,
