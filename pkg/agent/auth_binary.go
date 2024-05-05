@@ -1,15 +1,12 @@
 package agent
 
 import (
-	"bytes"
-	"encoding/base64"
-	"encoding/binary"
 	"errors"
 	"net/http"
 	"strconv"
 	"time"
 
-	"dxkite.cn/meownest/pkg/crypto"
+	"dxkite.cn/meownest/pkg/token"
 )
 
 func NewBinaryAuth(key, header string, source []*AuthorizeSource) AuthorizeHandler {
@@ -48,52 +45,16 @@ func (a *binaryAuth) HandleAuthorizeCheck(w http.ResponseWriter, req *http.Reque
 	return false
 }
 
-func (a *binaryAuth) validateToken(tokStr string) (*BinaryToken, error) {
-	encryptedData, err := base64.RawURLEncoding.DecodeString(tokStr)
-	if err != nil {
-		return nil, err
-	}
+func (a *binaryAuth) validateToken(tokStr string) (*token.BinaryToken, error) {
+	tok := &token.BinaryToken{}
 
-	tok, err := crypto.AesDecrypt([]byte(a.key), encryptedData)
-	if err != nil {
-		return nil, err
-	}
-
-	token := &BinaryToken{}
-	if err := token.Unmarshal([]byte(tok)); err != nil {
+	if err := tok.Decrypt(tokStr, token.NewAesCrypto([]byte(a.key))); err != nil {
 		return nil, errors.New("invalid token")
 	}
 
-	if uint64(time.Now().Unix()) > token.ExpireAt {
+	if uint64(time.Now().Unix()) > tok.ExpireAt {
 		return nil, errors.New("invalid token expire")
 	}
 
-	return token, nil
-}
-
-type BinaryToken struct {
-	Id       uint64
-	ExpireAt uint64
-}
-
-func (t BinaryToken) Marshal() []byte {
-	buf := &bytes.Buffer{}
-	binary.Write(buf, binary.BigEndian, t)
-	return buf.Bytes()
-}
-
-func (t *BinaryToken) Unmarshal(buf []byte) error {
-	return binary.Read(bytes.NewBuffer(buf), binary.BigEndian, t)
-}
-
-func (t *BinaryToken) EncodeToString() string {
-	return base64.RawURLEncoding.EncodeToString(t.Marshal())
-}
-
-func (t *BinaryToken) DecodeString(val string) error {
-	buf, err := base64.RawURLEncoding.DecodeString(val)
-	if err != nil {
-		return err
-	}
-	return t.Unmarshal(buf)
+	return tok, nil
 }
