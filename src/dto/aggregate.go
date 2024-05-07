@@ -74,7 +74,7 @@ type Route struct {
 	// 后端服务
 	EndpointId string `json:"endpoint_id,omitempty"`
 	// 路由自定义的后端路由
-	Endpoint *Endpoint `json:"endpoints,omitempty"`
+	Endpoint *Endpoint `json:"endpoint,omitempty"`
 	// 鉴权信息ID
 	AuthorizeId string `json:"authorize_id,omitempty"`
 	// 鉴权信息
