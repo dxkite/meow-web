@@ -1195,7 +1195,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.ServerName"
+                            "$ref": "#/definitions/dto.Route"
                         }
                     },
                     "400": {
@@ -1861,7 +1861,9 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {}
+                        "schema": {
+                            "$ref": "#/definitions/dto.User"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -2111,7 +2113,7 @@
                 "id": {
                     "type": "string"
                 },
-                "matcher": {
+                "match_options": {
                     "description": "路由的特殊匹配规则",
                     "type": "array",
                     "items": {
@@ -2466,6 +2468,9 @@
                 },
                 "has_more": {
                     "type": "boolean"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -2822,6 +2827,9 @@
                 },
                 "network": {
                     "type": "string"
+                },
+                "weight": {
+                    "type": "integer"
                 }
             }
         },

@@ -128,7 +128,7 @@ definitions:
         type: string
       id:
         type: string
-      matcher:
+      match_options:
         description: 路由的特殊匹配规则
         items:
           $ref: '#/definitions/value.MatchOption'
@@ -364,6 +364,8 @@ definitions:
         type: array
       has_more:
         type: boolean
+      total:
+        type: integer
     type: object
   service.ListServerNameResult:
     properties:
@@ -602,6 +604,8 @@ definitions:
         type: string
       network:
         type: string
+      weight:
+        type: integer
     required:
     - address
     - network
@@ -1446,7 +1450,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/dto.ServerName'
+            $ref: '#/definitions/dto.Route'
         "400":
           description: Bad Request
           schema:
@@ -1884,7 +1888,8 @@ paths:
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/dto.User'
         "400":
           description: Bad Request
           schema:

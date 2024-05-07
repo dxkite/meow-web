@@ -1206,7 +1206,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dto.ServerName"
+                            "$ref": "#/definitions/dto.Route"
                         }
                     },
                     "400": {
@@ -1872,7 +1872,9 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {}
+                        "schema": {
+                            "$ref": "#/definitions/dto.User"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -2122,7 +2124,7 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "matcher": {
+                "match_options": {
                     "description": "路由的特殊匹配规则",
                     "type": "array",
                     "items": {
@@ -2477,6 +2479,9 @@ const docTemplate = `{
                 },
                 "has_more": {
                     "type": "boolean"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -2833,6 +2838,9 @@ const docTemplate = `{
                 },
                 "network": {
                     "type": "string"
+                },
+                "weight": {
+                    "type": "integer"
                 }
             }
         },
