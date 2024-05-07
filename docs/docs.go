@@ -2107,17 +2107,17 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "endpoint_id": {
-                    "description": "后端服务",
-                    "type": "string"
-                },
-                "endpoints": {
+                "endpoint": {
                     "description": "路由自定义的后端路由",
                     "allOf": [
                         {
                             "$ref": "#/definitions/dto.Endpoint"
                         }
                     ]
+                },
+                "endpoint_id": {
+                    "description": "后端服务",
+                    "type": "string"
                 },
                 "id": {
                     "type": "string"
