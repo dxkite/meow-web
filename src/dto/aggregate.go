@@ -70,7 +70,7 @@ type Route struct {
 	Method      []string `json:"method"`
 	Path        string   `json:"path"`
 	// 路由的特殊匹配规则
-	Matcher []*value.MatchOption `json:"matcher"`
+	MatchOptions []*value.MatchOption `json:"match_options"`
 	// 后端服务
 	EndpointId string `json:"endpoint_id,omitempty"`
 	// 路由自定义的后端路由
@@ -89,7 +89,7 @@ func NewRoute(item *entity.Route) *Route {
 	obj.Description = item.Description
 	obj.Method = item.Method
 	obj.Path = item.Path
-	obj.Matcher = item.MatchOptions
+	obj.MatchOptions = item.MatchOptions
 	obj.CreatedAt = item.CreatedAt
 	obj.UpdatedAt = item.UpdatedAt
 	return obj

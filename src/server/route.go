@@ -24,7 +24,7 @@ type Route struct {
 // @Accept       json
 // @Produce      json
 // @Param        body body service.CreateRouteParam true "请求体"
-// @Success      201  {object} dto.ServerName
+// @Success      201  {object} dto.Route
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /routes [post]

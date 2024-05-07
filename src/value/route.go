@@ -32,6 +32,7 @@ type ForwardEndpointStatic struct {
 type ForwardEndpointTarget struct {
 	Network string `json:"network" binding:"required"`
 	Address string `json:"address" binding:"required"`
+	Weight  int    `json:"weight" binding:"required`
 }
 
 // 证书对象
