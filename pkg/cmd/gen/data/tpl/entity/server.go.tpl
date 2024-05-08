@@ -84,9 +84,9 @@ func (s *{{ .Name }}) Get(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        name query string false "{{ .Name }}"
-// @Param        limit query int false "size limit"
-// @Param        starting_after query string false "get list after id"
-// @Param        ending_before query string false "get list before id"
+// @Param        include_total query bool false "include total count"
+// @Param        page query int false "page"
+// @Param        pre_page query int false "size per page"
 // @Param        expand query []string false "expand attribute list"
 // @Success      200  {object} service.List{{ .Name }}Result
 // @Failure      400  {object} httpserver.HttpError
