@@ -610,6 +610,12 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "boolean",
+                        "description": "是否包含total",
+                        "name": "include_total",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "页码",
                         "name": "page",
@@ -1123,6 +1129,12 @@ const docTemplate = `{
                         "type": "string",
                         "description": "搜索路径",
                         "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "是否包含total",
+                        "name": "include_total",
                         "in": "query"
                     },
                     {
@@ -2439,9 +2451,6 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.Collection"
                     }
                 },
-                "has_more": {
-                    "type": "boolean"
-                },
                 "total": {
                     "type": "integer"
                 }
@@ -2469,9 +2478,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.Route"
                     }
-                },
-                "has_more": {
-                    "type": "boolean"
                 },
                 "total": {
                     "type": "integer"

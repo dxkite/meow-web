@@ -599,6 +599,12 @@
                         "in": "query"
                     },
                     {
+                        "type": "boolean",
+                        "description": "是否包含total",
+                        "name": "include_total",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
                         "description": "页码",
                         "name": "page",
@@ -1112,6 +1118,12 @@
                         "type": "string",
                         "description": "搜索路径",
                         "name": "path",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "是否包含total",
+                        "name": "include_total",
                         "in": "query"
                     },
                     {
@@ -2428,9 +2440,6 @@
                         "$ref": "#/definitions/dto.Collection"
                     }
                 },
-                "has_more": {
-                    "type": "boolean"
-                },
                 "total": {
                     "type": "integer"
                 }
@@ -2458,9 +2467,6 @@
                     "items": {
                         "$ref": "#/definitions/dto.Route"
                     }
-                },
-                "has_more": {
-                    "type": "boolean"
                 },
                 "total": {
                     "type": "integer"

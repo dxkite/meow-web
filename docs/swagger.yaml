@@ -344,8 +344,6 @@ definitions:
         items:
           $ref: '#/definitions/dto.Collection'
         type: array
-      has_more:
-        type: boolean
       total:
         type: integer
     type: object
@@ -364,8 +362,6 @@ definitions:
         items:
           $ref: '#/definitions/dto.Route'
         type: array
-      has_more:
-        type: boolean
       total:
         type: integer
     type: object
@@ -1052,6 +1048,10 @@ paths:
         in: query
         name: name
         type: string
+      - description: 是否包含total
+        in: query
+        name: include_total
+        type: boolean
       - description: 页码
         in: query
         name: page
@@ -1395,6 +1395,10 @@ paths:
         in: query
         name: path
         type: string
+      - description: 是否包含total
+        in: query
+        name: include_total
+        type: boolean
       - description: 页码
         in: query
         name: page
