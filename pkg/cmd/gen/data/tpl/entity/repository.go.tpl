@@ -13,7 +13,7 @@ type {{ .Name }} interface {
 	Get(ctx context.Context, id uint64) (*entity.{{ .Name }}, error)
 	Update(ctx context.Context, id uint64, ent *entity.{{ .Name }}) error
 	Delete(ctx context.Context, id uint64) error
-	List(ctx context.Context, param *List{{ .Name }}Param) ([]*entity.{{ .Name }}, error)
+	List(ctx context.Context, param *List{{ .Name }}Param) (*List{{ .Name }}Result, error)
 	BatchGet(ctx context.Context, ids []uint64) ([]*entity.{{ .Name }}, error)
 }
 
@@ -41,31 +41,49 @@ func (r *{{ .PrivateName }}) BatchGet(ctx context.Context, ids []uint64) ([]*ent
 }
 
 type List{{ .Name }}Param struct {
-	Limit         int
-	StartingAfter uint64
-	EndingBefore  uint64
+	// TODO external condition
+
+	// pagination
+	Page         int
+	PerPage      int
+	IncludeTotal bool
 }
 
-func (r *{{ .PrivateName }}) List(ctx context.Context, param *List{{ .Name }}Param) ([]*entity.{{ .Name }}, error) {
+type List{{ .Name }}Result struct {
+	Data  []*entity.{{ .Name }}
+	Total int64
+}
+
+
+func (r *{{ .PrivateName }}) List(ctx context.Context, param *List{{ .Name }}Param) (*List{{ .Name }}Result, error) {
 	var items []*entity.{{ .Name }}
-	db := r.dataSource(ctx).Model(entity.{{ .Name }}{})
+	db := r.dataSource(ctx)
 
-	if param.StartingAfter != 0 {
-		db = db.Where("id > ?", param.StartingAfter)
+	// condition
+	condition := func(db *gorm.DB) *gorm.DB {
+		return db
 	}
 
-	if param.EndingBefore != 0 {
-		db = db.Where("id < ?", param.EndingBefore)
+	// pagination
+	query := db.Scopes(condition)
+	if param.Page > 0 && param.PerPage > 0 {
+		query.Offset((param.Page - 1) * param.PerPage).Limit(param.PerPage)
 	}
 
-	if param.Limit != 0 {
-		db = db.Limit(param.Limit)
-	}
-
-	if err := db.Find(&items).Error; err != nil {
+	if err := query.Find(&items).Error; err != nil {
 		return nil, err
 	}
-	return items, nil
+
+	rst := &List{{ .Name }}Result{}
+	rst.Data = items
+
+	if param.IncludeTotal {
+		if err := db.Model(entity.{{ .Name }}{}).Scopes(condition).Count(&rst.Total).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	return rst, nil
 }
 
 func (r *{{ .PrivateName }}) Create(ctx context.Context, {{ .PrivateName }} *entity.{{ .Name }}) (*entity.{{ .Name }}, error) {

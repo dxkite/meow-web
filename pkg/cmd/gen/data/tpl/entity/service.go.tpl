@@ -69,42 +69,50 @@ func (s *{{ .PrivateName }}) Delete(ctx context.Context, param *Delete{{ .Name }
 }
 
 type List{{ .Name }}Param struct {
-	Limit         int      `form:"limit" binding:"max=1000"`
-	StartingAfter string   `form:"starting_after"`
-	EndingBefore  string   `form:"ending_before"`
+	Page         int  `json:"page" form:"page" binding:"min=1"`
+	PerPage      int  `json:"per_page" form:"per_page" binding:"max=1000"`
+	IncludeTotal bool `json:"include_total" form:"include_total"`
 	Expand        []string `json:"expand" form:"expand"`
 }
 
 type List{{ .Name }}Result struct {
-	HasMore bool               `json:"has_more"`
 	Data    []*dto.{{ .Name }} `json:"data"`
+	HasMore bool         `json:"has_more"`
+	Total   int64        `json:"total,omitempty"`
 }
 
 func (s *{{ .PrivateName }}) List(ctx context.Context, param *List{{ .Name }}Param) (*List{{ .Name }}Result, error) {
-	if param.Limit == 0 {
-		param.Limit = 10
+	if param.Page == 0 {
+		param.Page = 1
 	}
 
-	entities, err := s.r.List(ctx, &repository.List{{ .Name }}Param{
-		Limit:         param.Limit,
-		StartingAfter: identity.Parse(constant.{{ .Name }}Prefix, param.StartingAfter),
-		EndingBefore:  identity.Parse(constant.{{ .Name }}Prefix, param.EndingBefore),
-	})
+	if param.PerPage == 0 {
+		param.PerPage = 10
+	}
+
+	listParam := &repository.List{{ .Name }}Param{
+		Page:         param.Page,
+		PerPage:      param.PerPage,
+		IncludeTotal: param.IncludeTotal,
+	}
+
+	listRst, err := s.r.List(ctx, listParam)
 	if err != nil {
 		return nil, err
 	}
 
-	n := len(entities)
+	n := len(listRst.Data)
 
 	items := make([]*dto.{{ .Name }}, n)
 
-	for i, v := range entities {
+	for i, v := range listRst.Data {
 		items[i] = dto.New{{ .Name }}(v)
 	}
 
 	rst := &List{{ .Name }}Result{}
 	rst.Data = items
-	rst.HasMore = n == param.Limit
+	rst.HasMore = n == param.PerPage
+	rst.Total = listRst.Total
 	return rst, nil
 }
 

@@ -118,7 +118,7 @@ func (s *{{ .Name }}) List(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "{{ .Name }} ID"
 // @Param        body body service.Update{{ .Name }}Param true "data"
-// @Success      200  {object} service.{{ .Name }}
+// @Success      200  {object} dto.{{ .Name }}
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /{{ .URI }}/{id} [post]
