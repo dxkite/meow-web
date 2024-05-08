@@ -162,9 +162,8 @@ type ListCollectionParam struct {
 }
 
 type ListCollectionResult struct {
-	Data    []*dto.Collection `json:"data"`
-	HasMore bool              `json:"has_more"`
-	Total   int64             `json:"total,omitempty"`
+	Data  []*dto.Collection `json:"data"`
+	Total int64             `json:"total,omitempty"`
 }
 
 func (s *collection) List(ctx context.Context, param *ListCollectionParam) (*ListCollectionResult, error) {
@@ -201,7 +200,6 @@ func (s *collection) List(ctx context.Context, param *ListCollectionParam) (*Lis
 
 	rst := &ListCollectionResult{}
 	rst.Data = items
-	rst.HasMore = n == param.PerPage
 	rst.Total = listRst.Total
 	return rst, nil
 }

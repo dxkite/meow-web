@@ -118,12 +118,15 @@ type ListRouteParam struct {
 }
 
 type ListRouteResult struct {
-	Data    []*dto.Route `json:"data"`
-	HasMore bool         `json:"has_more"`
-	Total   int64        `json:"total,omitempty"`
+	Data  []*dto.Route `json:"data"`
+	Total int64        `json:"total,omitempty"`
 }
 
 func (s *route) List(ctx context.Context, param *ListRouteParam) (*ListRouteResult, error) {
+	if param.Page == 0 {
+		param.Page = 1
+	}
+
 	if param.PerPage == 0 {
 		param.PerPage = 10
 	}
@@ -176,7 +179,6 @@ func (s *route) List(ctx context.Context, param *ListRouteParam) (*ListRouteResu
 
 	rst := &ListRouteResult{}
 	rst.Data = items
-	rst.HasMore = n == param.PerPage
 	rst.Total = listRst.Total
 	return rst, nil
 }
