@@ -346,6 +346,8 @@ definitions:
         type: array
       has_more:
         type: boolean
+      total:
+        type: integer
     type: object
   service.ListEndpointResult:
     properties:
@@ -1050,18 +1052,14 @@ paths:
         in: query
         name: name
         type: string
-      - description: 限制
+      - description: 页码
         in: query
-        name: limit
+        name: page
         type: integer
-      - description: 从当前ID开始
+      - description: 每页数量
         in: query
-        name: starting_after
-        type: string
-      - description: 从当前ID结束
-        in: query
-        name: ending_before
-        type: string
+        name: pre_page
+        type: integer
       - collectionFormat: csv
         description: 展开数据
         in: query
@@ -1199,7 +1197,8 @@ paths:
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/dto.Collection'
         "400":
           description: Bad Request
           schema:
@@ -1396,18 +1395,14 @@ paths:
         in: query
         name: path
         type: string
-      - description: 限制
+      - description: 页码
         in: query
-        name: limit
+        name: page
         type: integer
-      - description: 从当前ID开始
+      - description: 每页数量
         in: query
-        name: starting_after
-        type: string
-      - description: 从当前ID结束
-        in: query
-        name: ending_before
-        type: string
+        name: pre_page
+        type: integer
       - collectionFormat: csv
         description: 展开数据
         in: query

@@ -611,20 +611,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "限制",
-                        "name": "limit",
+                        "description": "页码",
+                        "name": "page",
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "从当前ID开始",
-                        "name": "starting_after",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "从当前ID结束",
-                        "name": "ending_before",
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "pre_page",
                         "in": "query"
                     },
                     {
@@ -790,7 +784,9 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {}
+                        "schema": {
+                            "$ref": "#/definitions/dto.Collection"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -1131,20 +1127,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "description": "限制",
-                        "name": "limit",
+                        "description": "页码",
+                        "name": "page",
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "从当前ID开始",
-                        "name": "starting_after",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "从当前ID结束",
-                        "name": "ending_before",
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "pre_page",
                         "in": "query"
                     },
                     {
@@ -2451,6 +2441,9 @@ const docTemplate = `{
                 },
                 "has_more": {
                     "type": "boolean"
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
