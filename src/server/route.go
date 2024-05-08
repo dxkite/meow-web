@@ -88,6 +88,7 @@ func (s *Route) Get(c *gin.Context) {
 // @Produce      json
 // @Param        name query string false "搜索名称"
 // @Param        path query string false "搜索路径"
+// @Param		 include_total query bool false "是否包含total"
 // @Param        page query int false "页码"
 // @Param        pre_page query int false "每页数量"
 // @Param        expand query []string false "展开数据"

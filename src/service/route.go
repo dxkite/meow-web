@@ -112,7 +112,7 @@ type ListRouteParam struct {
 	Path         string `json:"path" form:"path"`
 	CollectionId string `json:"collection_id" form:"collection_id"`
 
-	Page         int  `json:"page" form:"page" binding:"min=1"`
+	Page         int  `json:"page" form:"page"`
 	PerPage      int  `json:"per_page" form:"per_page" binding:"max=1000"`
 	IncludeTotal bool `json:"include_total" form:"include_total"`
 }
