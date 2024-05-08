@@ -12,7 +12,7 @@ type Route interface {
 	Create(ctx context.Context, route *entity.Route) (*entity.Route, error)
 	Get(ctx context.Context, id uint64) (*entity.Route, error)
 	BatchGet(ctx context.Context, ids []uint64) ([]*entity.Route, error)
-	List(ctx context.Context, param *ListRouteParam) ([]*entity.Route, error)
+	List(ctx context.Context, param *ListRouteParam) (*ListRouteResult, error)
 	Delete(ctx context.Context, id uint64) error
 	Update(ctx context.Context, id uint64, ent *entity.Route) error
 	Batch(ctx context.Context, batchFn func(item *entity.Route) error) error
@@ -63,46 +63,66 @@ func (r *route) Update(ctx context.Context, id uint64, ent *entity.Route) error 
 }
 
 type ListRouteParam struct {
-	Name          string
-	Path          string
-	Limit         int
-	StartingAfter uint64
-	EndingBefore  uint64
-	IdIn          []uint64
+	Name string
+	Path string
+	IdIn []uint64
+
+	// pagination
+	Page         int
+	PerPage      int
+	IncludeTotal bool
 }
 
-func (r *route) List(ctx context.Context, param *ListRouteParam) ([]*entity.Route, error) {
+type ListRouteResult struct {
+	Data  []*entity.Route
+	Total int64
+}
+
+func (r *route) List(ctx context.Context, param *ListRouteParam) (*ListRouteResult, error) {
 	var items []*entity.Route
-	db := r.dataSource(ctx).Model(entity.Route{})
+	db := r.dataSource(ctx)
 
-	if param.Name != "" {
-		db = db.Where("name like ?", "%"+param.Name+"%")
+	// condition
+	condition := func(db *gorm.DB) *gorm.DB {
+		if param.Name != "" {
+			db.Where("name like ?", "%"+param.Name+"%")
+		}
+
+		if param.Path != "" {
+			db.Where("path like ?", "%"+param.Path+"%")
+		}
+
+		if len(param.IdIn) > 0 {
+			db.Where("id in ?", param.IdIn)
+		}
+		return db
 	}
 
-	if param.Path != "" {
-		db = db.Where("path like ?", "%"+param.Path+"%")
+	query := db.Scopes(condition)
+
+	// pagination
+	if param.Page > 0 {
+		query.Offset((param.Page - 1) * param.PerPage)
 	}
 
-	if param.StartingAfter != 0 {
-		db = db.Where("id > ?", param.StartingAfter)
+	if param.PerPage != 0 {
+		query.Limit(param.PerPage)
 	}
 
-	if len(param.IdIn) > 0 {
-		db = db.Where("id in ?", param.IdIn)
-	}
-
-	if param.EndingBefore != 0 {
-		db = db.Where("id < ?", param.EndingBefore)
-	}
-
-	if param.Limit != 0 {
-		db = db.Limit(param.Limit)
-	}
-
-	if err := db.Find(&items).Error; err != nil {
+	if err := query.Find(&items).Error; err != nil {
 		return nil, err
 	}
-	return items, nil
+
+	rst := &ListRouteResult{}
+	rst.Data = items
+
+	if param.IncludeTotal {
+		if err := db.Model(entity.Route{}).Scopes(condition).Count(&rst.Total).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	return rst, nil
 }
 
 func (r *route) Batch(ctx context.Context, batchFn func(item *entity.Route) error) error {
