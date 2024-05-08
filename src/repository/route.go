@@ -101,12 +101,8 @@ func (r *route) List(ctx context.Context, param *ListRouteParam) (*ListRouteResu
 	query := db.Scopes(condition)
 
 	// pagination
-	if param.Page > 0 {
-		query.Offset((param.Page - 1) * param.PerPage)
-	}
-
-	if param.PerPage != 0 {
-		query.Limit(param.PerPage)
+	if param.Page > 0 && param.PerPage > 0 {
+		query.Offset((param.Page - 1) * param.PerPage).Limit(param.PerPage)
 	}
 
 	if err := query.Find(&items).Error; err != nil {

@@ -151,46 +151,58 @@ func (s *collection) Get(ctx context.Context, param *GetCollectionParam) (*dto.C
 }
 
 type ListCollectionParam struct {
-	ParentId      string `form:"parent_id"`
-	Name          string `form:"name"`
-	Depth         int    `form:"depth" binding:"max=10"`
-	Limit         int    `form:"limit" binding:"max=1000"`
-	StartingAfter string `form:"starting_after"`
-	EndingBefore  string `form:"ending_before"`
+	ParentId string `form:"parent_id"`
+	Name     string `form:"name"`
+	Depth    int    `form:"depth" binding:"max=10"`
+
+	// pagination
+	Page         int  `json:"page" form:"page" binding:"min=1"`
+	PerPage      int  `json:"per_page" form:"per_page" binding:"max=1000"`
+	IncludeTotal bool `json:"include_total" form:"include_total"`
 }
 
 type ListCollectionResult struct {
-	HasMore bool              `json:"has_more"`
 	Data    []*dto.Collection `json:"data"`
+	HasMore bool              `json:"has_more"`
+	Total   int64             `json:"total,omitempty"`
 }
 
 func (s *collection) List(ctx context.Context, param *ListCollectionParam) (*ListCollectionResult, error) {
-	if param.Limit == 0 {
-		param.Limit = 10
+	if param.Page == 0 {
+		param.Page = 1
 	}
 
-	entities, err := s.r.List(ctx, &repository.ListCollectionParam{
-		Name:          param.Name,
-		ParentId:      identity.Parse(constant.CollectionPrefix, param.ParentId),
-		Depth:         param.Depth,
-		Limit:         param.Limit,
-		StartingAfter: identity.Parse(constant.CollectionPrefix, param.StartingAfter),
-		EndingBefore:  identity.Parse(constant.CollectionPrefix, param.EndingBefore),
-	})
+	if param.PerPage == 0 {
+		param.PerPage = 10
+	}
+
+	listParam := &repository.ListCollectionParam{
+		Name:     param.Name,
+		ParentId: identity.Parse(constant.CollectionPrefix, param.ParentId),
+		Depth:    param.Depth,
+
+		Page:         param.Page,
+		PerPage:      param.PerPage,
+		IncludeTotal: param.IncludeTotal,
+	}
+
+	listRst, err := s.r.List(ctx, listParam)
 	if err != nil {
 		return nil, err
 	}
 
-	n := len(entities)
+	n := len(listRst.Data)
 
 	items := make([]*dto.Collection, n)
-	for i, v := range entities {
+
+	for i, v := range listRst.Data {
 		items[i] = dto.NewCollection(v)
 	}
 
 	rst := &ListCollectionResult{}
 	rst.Data = items
-	rst.HasMore = n == param.Limit
+	rst.HasMore = n == param.PerPage
+	rst.Total = listRst.Total
 	return rst, nil
 }
 

@@ -14,7 +14,7 @@ type Collection interface {
 	Get(ctx context.Context, id uint64) (*entity.Collection, error)
 	Update(ctx context.Context, id uint64, ent *entity.Collection) error
 	Delete(ctx context.Context, id uint64) error
-	List(ctx context.Context, param *ListCollectionParam) ([]*entity.Collection, error)
+	List(ctx context.Context, param *ListCollectionParam) (*ListCollectionResult, error)
 	BatchGet(ctx context.Context, ids []uint64) ([]*entity.Collection, error)
 	GetChildren(ctx context.Context, id uint64) ([]*entity.Collection, error)
 }
@@ -86,54 +86,71 @@ type ListCollectionParam struct {
 	ParentId uint64
 	// depth = 0 只获取当前层级
 	// depth > 0 获取当前层级 > depth
-	Depth         int
-	Name          string
-	Limit         int
-	StartingAfter uint64
-	EndingBefore  uint64
+	Depth int
+	Name  string
+
+	// pagination
+	Page         int
+	PerPage      int
+	IncludeTotal bool
 }
 
-func (r *collection) List(ctx context.Context, param *ListCollectionParam) ([]*entity.Collection, error) {
-	var items []*entity.Collection
-	db := r.dataSource(ctx).Model(entity.Collection{})
+type ListCollectionResult struct {
+	Data  []*entity.Collection
+	Total int64
+}
 
-	if param.Name != "" {
-		db = db.Where("name like ?", "%"+param.Name+"%")
+func (r *collection) List(ctx context.Context, param *ListCollectionParam) (*ListCollectionResult, error) {
+	var items []*entity.Collection
+	db := r.dataSource(ctx)
+
+	// condition
+	condition := func(db *gorm.DB) *gorm.DB {
+		if param.Name != "" {
+			db = db.Where("name like ?", "%"+param.Name+"%")
+		}
+
+		deep := param.Depth
+		if param.ParentId != 0 {
+			db = db.Where("parent_id = ?", param.ParentId)
+			if param.Depth != 0 {
+				parent, err := r.Get(ctx, param.ParentId)
+				if err != nil {
+					db.AddError(err)
+					return db
+				}
+				deep = parent.Depth + deep
+				db = db.Where("`index` like ?", parent.Index+"%")
+			}
+		}
+
+		if deep != 0 {
+			db = db.Where("depth <= ?", deep)
+		}
+
+		return db
 	}
 
-	deep := param.Depth
-	if param.ParentId != 0 {
-		db = db.Where("parent_id = ?", param.ParentId)
-		if param.Depth != 0 {
-			parent, err := r.Get(ctx, param.ParentId)
-			if err != nil {
-				return nil, err
-			}
-			deep = parent.Depth + deep
-			db = db.Where("`index` like ?", parent.Index+"%")
+	// pagination
+	query := db.Scopes(condition)
+	if param.Page > 0 && param.PerPage > 0 {
+		query.Offset((param.Page - 1) * param.PerPage).Limit(param.PerPage)
+	}
+
+	if err := query.Find(&items).Error; err != nil {
+		return nil, err
+	}
+
+	rst := &ListCollectionResult{}
+	rst.Data = items
+
+	if param.IncludeTotal {
+		if err := db.Model(entity.Collection{}).Scopes(condition).Count(&rst.Total).Error; err != nil {
+			return nil, err
 		}
 	}
 
-	if deep != 0 {
-		db = db.Where("depth <= ?", deep)
-	}
-
-	if param.StartingAfter != 0 {
-		db = db.Where("id > ?", param.StartingAfter)
-	}
-
-	if param.EndingBefore != 0 {
-		db = db.Where("id < ?", param.EndingBefore)
-	}
-
-	if param.Limit != 0 {
-		db = db.Limit(param.Limit)
-	}
-
-	if err := db.Find(&items).Error; err != nil {
-		return nil, err
-	}
-	return items, nil
+	return rst, nil
 }
 
 func (r *collection) Update(ctx context.Context, id uint64, ent *entity.Collection) error {
