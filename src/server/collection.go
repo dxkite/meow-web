@@ -86,9 +86,8 @@ func (s *Collection) Get(c *gin.Context) {
 // @Param        parent_id query string false "父级ID"
 // @Param		 depth query int false "获取深度"
 // @Param        name query string false "Collection"
-// @Param        limit query int false "限制"
-// @Param        starting_after query string false "从当前ID开始"
-// @Param        ending_before query string false "从当前ID结束"
+// @Param        page query int false "页码"
+// @Param        pre_page query int false "每页数量"
 // @Param        expand query []string false "展开数据"
 // @Success      200  {object} service.ListCollectionResult
 // @Failure      400  {object} httpserver.HttpError
@@ -120,7 +119,7 @@ func (s *Collection) List(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "Collection ID"
 // @Param        body body service.UpdateCollectionParam true "data"
-// @Success      200  {object} service.Collection
+// @Success      200  {object} dto.Collection
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /collections/{id} [post]

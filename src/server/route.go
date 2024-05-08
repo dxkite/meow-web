@@ -88,9 +88,8 @@ func (s *Route) Get(c *gin.Context) {
 // @Produce      json
 // @Param        name query string false "搜索名称"
 // @Param        path query string false "搜索路径"
-// @Param        limit query int false "限制"
-// @Param        starting_after query string false "从当前ID开始"
-// @Param        ending_before query string false "从当前ID结束"
+// @Param        page query int false "页码"
+// @Param        pre_page query int false "每页数量"
 // @Param        expand query []string false "展开数据"
 // @Success      200  {object} service.ListRouteResult
 // @Failure      400  {object} httpserver.HttpError
