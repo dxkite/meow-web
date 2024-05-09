@@ -79,8 +79,11 @@ type Route struct {
 	AuthorizeId string `json:"authorize_id,omitempty"`
 	// 鉴权信息
 	Authorize *Authorize `json:"authorize,omitempty"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
+	// 分组ID
+	CollectionId string `json:"collection_id"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func NewRoute(item *entity.Route) *Route {
@@ -90,6 +93,7 @@ func NewRoute(item *entity.Route) *Route {
 	obj.Method = item.Method
 	obj.Path = item.Path
 	obj.MatchOptions = item.MatchOptions
+	obj.CollectionId = identity.Format(constant.CollectionPrefix, item.CollectionId)
 	obj.CreatedAt = item.CreatedAt
 	obj.UpdatedAt = item.UpdatedAt
 	return obj
