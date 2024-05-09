@@ -75,44 +75,49 @@ func (s *authorize) Delete(ctx context.Context, param *DeleteAuthorizeParam) err
 }
 
 type ListAuthorizeParam struct {
-	Name          string   `form:"name"`
-	Limit         int      `form:"limit" binding:"max=1000"`
-	StartingAfter string   `form:"starting_after"`
-	EndingBefore  string   `form:"ending_before"`
-	Expand        []string `json:"expand" form:"expand"`
+	Name string `form:"name"`
+
+	// pagination
+	Page         int  `json:"page" form:"page"`
+	PerPage      int  `json:"per_page" form:"per_page" binding:"max=1000"`
+	IncludeTotal bool `json:"include_total" form:"include_total"`
 }
 
 type ListAuthorizeResult struct {
-	HasMore bool             `json:"has_more"`
-	Data    []*dto.Authorize `json:"data"`
+	Data  []*dto.Authorize `json:"data"`
+	Total int64            `json:"total,omitempty"`
 }
 
 func (s *authorize) List(ctx context.Context, param *ListAuthorizeParam) (*ListAuthorizeResult, error) {
-	if param.Limit == 0 {
-		param.Limit = 10
+	if param.Page == 0 {
+		param.Page = 1
 	}
 
-	entities, err := s.r.List(ctx, &repository.ListAuthorizeParam{
-		Name:          param.Name,
-		Limit:         param.Limit,
-		StartingAfter: identity.Parse(constant.AuthorizePrefix, param.StartingAfter),
-		EndingBefore:  identity.Parse(constant.AuthorizePrefix, param.EndingBefore),
+	if param.PerPage == 0 {
+		param.PerPage = 10
+	}
+
+	listRst, err := s.r.List(ctx, &repository.ListAuthorizeParam{
+		Name:         param.Name,
+		Page:         param.Page,
+		PerPage:      param.PerPage,
+		IncludeTotal: param.IncludeTotal,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	n := len(entities)
+	n := len(listRst.Data)
 
 	items := make([]*dto.Authorize, n)
 
-	for i, v := range entities {
+	for i, v := range listRst.Data {
 		items[i] = dto.NewAuthorize(v)
 	}
 
 	rst := &ListAuthorizeResult{}
 	rst.Data = items
-	rst.HasMore = n == param.Limit
+	rst.Total = listRst.Total
 	return rst, nil
 }
 

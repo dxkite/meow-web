@@ -13,7 +13,7 @@ type Authorize interface {
 	Get(ctx context.Context, id uint64) (*entity.Authorize, error)
 	Update(ctx context.Context, id uint64, ent *entity.Authorize) error
 	Delete(ctx context.Context, id uint64) error
-	List(ctx context.Context, param *ListAuthorizeParam) ([]*entity.Authorize, error)
+	List(ctx context.Context, param *ListAuthorizeParam) (*ListAuthorizeResult, error)
 	BatchGet(ctx context.Context, ids []uint64) ([]*entity.Authorize, error)
 }
 
@@ -41,36 +41,50 @@ func (r *authorize) BatchGet(ctx context.Context, ids []uint64) ([]*entity.Autho
 }
 
 type ListAuthorizeParam struct {
-	Name          string
-	Limit         int
-	StartingAfter uint64
-	EndingBefore  uint64
+	Name string
+	// pagination
+	Page         int
+	PerPage      int
+	IncludeTotal bool
 }
 
-func (r *authorize) List(ctx context.Context, param *ListAuthorizeParam) ([]*entity.Authorize, error) {
+type ListAuthorizeResult struct {
+	Data  []*entity.Authorize
+	Total int64
+}
+
+func (r *authorize) List(ctx context.Context, param *ListAuthorizeParam) (*ListAuthorizeResult, error) {
 	var items []*entity.Authorize
-	db := r.dataSource(ctx).Model(entity.Authorize{})
+	db := r.dataSource(ctx)
 
-	if param.Name != "" {
-		db = db.Where("name like ?", "%"+param.Name+"%")
+	// condition
+	condition := func(db *gorm.DB) *gorm.DB {
+		if param.Name != "" {
+			db = db.Where("name like ?", "%"+param.Name+"%")
+		}
+		return db
 	}
 
-	if param.StartingAfter != 0 {
-		db = db.Where("id > ?", param.StartingAfter)
+	// pagination
+	query := db.Scopes(condition)
+	if param.Page > 0 && param.PerPage > 0 {
+		query.Offset((param.Page - 1) * param.PerPage).Limit(param.PerPage)
 	}
 
-	if param.EndingBefore != 0 {
-		db = db.Where("id < ?", param.EndingBefore)
-	}
-
-	if param.Limit != 0 {
-		db = db.Limit(param.Limit)
-	}
-
-	if err := db.Find(&items).Error; err != nil {
+	if err := query.Find(&items).Error; err != nil {
 		return nil, err
 	}
-	return items, nil
+
+	rst := &ListAuthorizeResult{}
+	rst.Data = items
+
+	if param.IncludeTotal {
+		if err := db.Model(entity.Authorize{}).Scopes(condition).Count(&rst.Total).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	return rst, nil
 }
 
 func (r *authorize) Create(ctx context.Context, authorize *entity.Authorize) (*entity.Authorize, error) {

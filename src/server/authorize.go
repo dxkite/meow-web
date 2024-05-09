@@ -88,9 +88,9 @@ func (s *Authorize) Get(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        name query string false "Authorize"
-// @Param        limit query int false "限制"
-// @Param        starting_after query string false "从当前ID开始"
-// @Param        ending_before query string false "从当前ID结束"
+// @Param		 include_total query bool false "是否包含total"
+// @Param        page query int false "页码"
+// @Param        pre_page query int false "每页数量"
 // @Param        expand query []string false "展开数据"
 // @Success      200  {object} service.ListAuthorizeResult
 // @Failure      400  {object} httpserver.HttpError
