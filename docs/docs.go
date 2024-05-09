@@ -68,21 +68,21 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "boolean",
+                        "description": "是否包含total",
+                        "name": "include_total",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
-                        "description": "限制",
-                        "name": "limit",
+                        "description": "页码",
+                        "name": "page",
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "从当前ID开始",
-                        "name": "starting_after",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "从当前ID结束",
-                        "name": "ending_before",
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "pre_page",
                         "in": "query"
                     },
                     {
@@ -869,21 +869,21 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "boolean",
+                        "description": "是否包含total",
+                        "name": "include_total",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
-                        "description": "size limit",
-                        "name": "limit",
+                        "description": "页码",
+                        "name": "page",
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "get list after id",
-                        "name": "starting_after",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "get list before id",
-                        "name": "ending_before",
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "pre_page",
                         "in": "query"
                     },
                     {
@@ -892,7 +892,7 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "collectionFormat": "csv",
-                        "description": "expand attribute list",
+                        "description": "展开数据",
                         "name": "expand",
                         "in": "query"
                     }
@@ -1049,7 +1049,9 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {}
+                        "schema": {
+                            "$ref": "#/definitions/dto.Endpoint"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -1370,263 +1372,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/server_names": {
-            "get": {
-                "description": "域名列表",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "域名"
-                ],
-                "summary": "域名列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "域名",
-                        "name": "name",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "限制",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "从当前ID开始",
-                        "name": "starting_after",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "从当前ID结束",
-                        "name": "ending_before",
-                        "in": "query"
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "展开数据",
-                        "name": "expand",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/service.ListServerNameResult"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httpserver.HttpError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httpserver.HttpError"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "创建域名",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "域名"
-                ],
-                "summary": "创建域名",
-                "parameters": [
-                    {
-                        "description": "请求体",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service.CreateServerNameParam"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ServerName"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httpserver.HttpError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httpserver.HttpError"
-                        }
-                    }
-                }
-            }
-        },
-        "/server_names/{id}": {
-            "get": {
-                "description": "获取域名",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "域名"
-                ],
-                "summary": "获取域名",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "域名ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "展开数据",
-                        "name": "expand",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ServerName"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httpserver.HttpError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httpserver.HttpError"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "更新域名",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "域名"
-                ],
-                "summary": "更新域名",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "域名ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "数据",
-                        "name": "body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service.UpdateServerNameParam"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {}
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httpserver.HttpError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httpserver.HttpError"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "删除域名",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "域名"
-                ],
-                "summary": "删除域名",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "域名ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httpserver.HttpError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httpserver.HttpError"
-                        }
-                    }
-                }
-            }
-        },
         "/users": {
             "get": {
                 "description": "User list",
@@ -1648,21 +1393,21 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "boolean",
+                        "description": "是否包含total",
+                        "name": "include_total",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
-                        "description": "size limit",
-                        "name": "limit",
+                        "description": "页码",
+                        "name": "page",
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "get list after id",
-                        "name": "starting_after",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "get list before id",
-                        "name": "ending_before",
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "pre_page",
                         "in": "query"
                     },
                     {
@@ -1671,7 +1416,7 @@ const docTemplate = `{
                             "type": "string"
                         },
                         "collectionFormat": "csv",
-                        "description": "expand attribute list",
+                        "description": "展开数据",
                         "name": "expand",
                         "in": "query"
                     }
@@ -2052,7 +1797,7 @@ const docTemplate = `{
                     "description": "服务域名\n外部服务访问路由的入口",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dto.ServerName"
+                        "type": "string"
                     }
                 },
                 "updated_at": {
@@ -2083,7 +1828,11 @@ const docTemplate = `{
                 },
                 "type": {
                     "description": "服务类型",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.EndpointType"
+                        }
+                    ]
                 },
                 "updated_at": {
                     "type": "string"
@@ -2103,6 +1852,10 @@ const docTemplate = `{
                 },
                 "authorize_id": {
                     "description": "鉴权信息ID",
+                    "type": "string"
+                },
+                "collection_id": {
+                    "description": "分组ID",
                     "type": "string"
                 },
                 "created_at": {
@@ -2139,41 +1892,43 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "modify_options": {
+                    "description": "数据重写规则",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/value.ModifyOption"
+                    }
+                },
                 "name": {
                     "type": "string"
                 },
                 "path": {
+                    "description": "路径",
                     "type": "string"
                 },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.ServerName": {
-            "type": "object",
-            "properties": {
-                "certificate": {
-                    "description": "证书",
+                "path_rewrite": {
+                    "description": "路由重写规则",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/dto.Certificate"
+                            "$ref": "#/definitions/value.PathRewrite"
                         }
                     ]
                 },
-                "certificate_id": {
-                    "description": "证书",
-                    "type": "string"
+                "path_type": {
+                    "description": "路径类型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.RoutePathType"
+                        }
+                    ]
                 },
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "description": "域名",
-                    "type": "string"
+                "status": {
+                    "description": "状态",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.RouteStatus"
+                        }
+                    ]
                 },
                 "updated_at": {
                     "type": "string"
@@ -2199,6 +1954,37 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "enum.EndpointType": {
+            "type": "string",
+            "enum": [
+                "static"
+            ],
+            "x-enum-varnames": [
+                "EndpointTypeStatic"
+            ]
+        },
+        "enum.RoutePathType": {
+            "type": "string",
+            "enum": [
+                "exact",
+                "prefix"
+            ],
+            "x-enum-varnames": [
+                "RoutePathTypeExact",
+                "RoutePathTypePrefix"
+            ]
+        },
+        "enum.RouteStatus": {
+            "type": "string",
+            "enum": [
+                "active",
+                "inactive"
+            ],
+            "x-enum-varnames": [
+                "RouteStatusActive",
+                "RouteStatusInactive"
+            ]
         },
         "httpserver.HttpError": {
             "type": "object",
@@ -2251,7 +2037,7 @@ const docTemplate = `{
                     "description": "父级节点",
                     "type": "string"
                 },
-                "server_name_id": {
+                "server_names": {
                     "description": "绑定的域名",
                     "type": "array",
                     "items": {
@@ -2264,7 +2050,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "endpoint",
-                "forward_header",
                 "name",
                 "type"
             ],
@@ -2277,27 +2062,17 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "forward_header": {
-                    "description": "请求头转发配置",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/value.ForwardHeaderOption"
-                    }
-                },
-                "forward_rewrite": {
-                    "description": "重写配置",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/value.ForwardRewriteOption"
-                        }
-                    ]
-                },
                 "name": {
+                    "description": "服务备注名",
                     "type": "string"
                 },
                 "type": {
                     "description": "服务类型",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.EndpointType"
+                        }
+                    ]
                 }
             }
         },
@@ -2308,7 +2083,8 @@ const docTemplate = `{
                 "match_options",
                 "method",
                 "name",
-                "path"
+                "path",
+                "path_type"
             ],
             "properties": {
                 "authorize_id": {
@@ -2341,6 +2117,13 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "modify_options": {
+                    "description": "数据编辑",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/value.ModifyOption"
+                    }
+                },
                 "name": {
                     "description": "路由名称",
                     "type": "string"
@@ -2348,29 +2131,30 @@ const docTemplate = `{
                 "path": {
                     "description": "匹配路径",
                     "type": "string"
-                }
-            }
-        },
-        "service.CreateServerNameParam": {
-            "type": "object",
-            "required": [
-                "name"
-            ],
-            "properties": {
-                "certificate": {
-                    "description": "证书信息，直接创建新证书",
+                },
+                "path_rewrite": {
+                    "description": "路径重写",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/value.Certificate"
+                            "$ref": "#/definitions/value.PathRewrite"
                         }
                     ]
                 },
-                "certificate_id": {
-                    "description": "证书ID，使用现有的证书",
-                    "type": "string"
+                "path_type": {
+                    "description": "匹配路径",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.RoutePathType"
+                        }
+                    ]
                 },
-                "name": {
-                    "type": "string"
+                "status": {
+                    "description": "路由状态",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.RouteStatus"
+                        }
+                    ]
                 }
             }
         },
@@ -2423,8 +2207,8 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.Authorize"
                     }
                 },
-                "has_more": {
-                    "type": "boolean"
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -2437,8 +2221,8 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.Certificate"
                     }
                 },
-                "has_more": {
-                    "type": "boolean"
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -2465,8 +2249,8 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.Endpoint"
                     }
                 },
-                "has_more": {
-                    "type": "boolean"
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -2484,20 +2268,6 @@ const docTemplate = `{
                 }
             }
         },
-        "service.ListServerNameResult": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.ServerName"
-                    }
-                },
-                "has_more": {
-                    "type": "boolean"
-                }
-            }
-        },
         "service.ListUserResult": {
             "type": "object",
             "properties": {
@@ -2507,8 +2277,8 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.User"
                     }
                 },
-                "has_more": {
-                    "type": "boolean"
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -2588,7 +2358,7 @@ const docTemplate = `{
                     "description": "父级节点",
                     "type": "string"
                 },
-                "server_name_id": {
+                "server_names": {
                     "description": "绑定的域名",
                     "type": "array",
                     "items": {
@@ -2601,7 +2371,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "endpoint",
-                "forward_header",
                 "id",
                 "name",
                 "type"
@@ -2615,42 +2384,28 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "forward_header": {
-                    "description": "请求头转发配置",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/value.ForwardHeaderOption"
-                    }
-                },
-                "forward_rewrite": {
-                    "description": "重写配置",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/value.ForwardRewriteOption"
-                        }
-                    ]
-                },
                 "id": {
                     "type": "string"
                 },
                 "name": {
+                    "description": "服务备注名",
                     "type": "string"
                 },
                 "type": {
                     "description": "服务类型",
-                    "type": "string"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.EndpointType"
+                        }
+                    ]
                 }
             }
         },
         "service.UpdateRouteParam": {
             "type": "object",
             "required": [
-                "collection_id",
                 "id",
-                "match_options",
-                "method",
-                "name",
-                "path"
+                "match_options"
             ],
             "properties": {
                 "authorize_id": {
@@ -2670,6 +2425,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
+                    "description": "ID",
                     "type": "string"
                 },
                 "match_options": {
@@ -2686,6 +2442,13 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "modify_options": {
+                    "description": "数据编辑",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/value.ModifyOption"
+                    }
+                },
                 "name": {
                     "description": "路由名称",
                     "type": "string"
@@ -2693,33 +2456,30 @@ const docTemplate = `{
                 "path": {
                     "description": "匹配路径",
                     "type": "string"
-                }
-            }
-        },
-        "service.UpdateServerNameParam": {
-            "type": "object",
-            "required": [
-                "id",
-                "name"
-            ],
-            "properties": {
-                "certificate": {
-                    "description": "证书信息，直接创建新证书",
+                },
+                "path_rewrite": {
+                    "description": "路径重写",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/value.Certificate"
+                            "$ref": "#/definitions/value.PathRewrite"
                         }
                     ]
                 },
-                "certificate_id": {
-                    "description": "证书ID，使用现有的证书",
-                    "type": "string"
+                "path_type": {
+                    "description": "匹配路径类型",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.RoutePathType"
+                        }
+                    ]
                 },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
+                "status": {
+                    "description": "路由状态",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.RouteStatus"
+                        }
+                    ]
                 }
             }
         },
@@ -2785,21 +2545,6 @@ const docTemplate = `{
                 }
             }
         },
-        "value.Certificate": {
-            "type": "object",
-            "required": [
-                "certificate",
-                "key"
-            ],
-            "properties": {
-                "certificate": {
-                    "type": "string"
-                },
-                "key": {
-                    "type": "string"
-                }
-            }
-        },
         "value.ForwardEndpoint": {
             "type": "object",
             "properties": {
@@ -2829,7 +2574,8 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "address",
-                "network"
+                "network",
+                "weight"
             ],
             "properties": {
                 "address": {
@@ -2840,41 +2586,6 @@ const docTemplate = `{
                 },
                 "weight": {
                     "type": "integer"
-                }
-            }
-        },
-        "value.ForwardHeaderOption": {
-            "type": "object",
-            "required": [
-                "name",
-                "type"
-            ],
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "value": {
-                    "type": "string"
-                }
-            }
-        },
-        "value.ForwardRewriteOption": {
-            "type": "object",
-            "required": [
-                "regex",
-                "replace"
-            ],
-            "properties": {
-                "regex": {
-                    "description": "转发正则",
-                    "type": "string"
-                },
-                "replace": {
-                    "description": "转发配置",
-                    "type": "string"
                 }
             }
         },
@@ -2901,6 +2612,43 @@ const docTemplate = `{
                 },
                 "value": {
                     "description": "匹配内容",
+                    "type": "string"
+                }
+            }
+        },
+        "value.ModifyOption": {
+            "type": "object",
+            "required": [
+                "name",
+                "source",
+                "type"
+            ],
+            "properties": {
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "source": {
+                    "description": "编辑源",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "编辑类型",
+                    "type": "string"
+                },
+                "value": {
+                    "description": "值",
+                    "type": "string"
+                }
+            }
+        },
+        "value.PathRewrite": {
+            "type": "object",
+            "properties": {
+                "regex": {
+                    "type": "string"
+                },
+                "replace": {
                     "type": "string"
                 }
             }

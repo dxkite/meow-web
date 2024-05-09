@@ -82,7 +82,7 @@ definitions:
           服务域名
           外部服务访问路由的入口
         items:
-          $ref: '#/definitions/dto.ServerName'
+          type: string
         type: array
       updated_at:
         type: string
@@ -101,8 +101,9 @@ definitions:
         description: 后端名
         type: string
       type:
+        allOf:
+        - $ref: '#/definitions/enum.EndpointType'
         description: 服务类型
-        type: string
       updated_at:
         type: string
     type: object
@@ -114,6 +115,9 @@ definitions:
         description: 鉴权信息
       authorize_id:
         description: 鉴权信息ID
+        type: string
+      collection_id:
+        description: 分组ID
         type: string
       created_at:
         type: string
@@ -137,29 +141,28 @@ definitions:
         items:
           type: string
         type: array
+      modify_options:
+        description: 数据重写规则
+        items:
+          $ref: '#/definitions/value.ModifyOption'
+        type: array
       name:
         type: string
       path:
+        description: 路径
         type: string
-      updated_at:
-        type: string
-    type: object
-  dto.ServerName:
-    properties:
-      certificate:
+      path_rewrite:
         allOf:
-        - $ref: '#/definitions/dto.Certificate'
-        description: 证书
-      certificate_id:
-        description: 证书
-        type: string
-      created_at:
-        type: string
-      id:
-        type: string
-      name:
-        description: 域名
-        type: string
+        - $ref: '#/definitions/value.PathRewrite'
+        description: 路由重写规则
+      path_type:
+        allOf:
+        - $ref: '#/definitions/enum.RoutePathType'
+        description: 路径类型
+      status:
+        allOf:
+        - $ref: '#/definitions/enum.RouteStatus'
+        description: 状态
       updated_at:
         type: string
     type: object
@@ -176,6 +179,28 @@ definitions:
       updated_at:
         type: string
     type: object
+  enum.EndpointType:
+    enum:
+    - static
+    type: string
+    x-enum-varnames:
+    - EndpointTypeStatic
+  enum.RoutePathType:
+    enum:
+    - exact
+    - prefix
+    type: string
+    x-enum-varnames:
+    - RoutePathTypeExact
+    - RoutePathTypePrefix
+  enum.RouteStatus:
+    enum:
+    - active
+    - inactive
+    type: string
+    x-enum-varnames:
+    - RouteStatusActive
+    - RouteStatusInactive
   httpserver.HttpError:
     properties:
       error:
@@ -209,7 +234,7 @@ definitions:
       parent_id:
         description: 父级节点
         type: string
-      server_name_id:
+      server_names:
         description: 绑定的域名
         items:
           type: string
@@ -223,23 +248,15 @@ definitions:
         allOf:
         - $ref: '#/definitions/value.ForwardEndpoint'
         description: 远程服务
-      forward_header:
-        description: 请求头转发配置
-        items:
-          $ref: '#/definitions/value.ForwardHeaderOption'
-        type: array
-      forward_rewrite:
-        allOf:
-        - $ref: '#/definitions/value.ForwardRewriteOption'
-        description: 重写配置
       name:
+        description: 服务备注名
         type: string
       type:
+        allOf:
+        - $ref: '#/definitions/enum.EndpointType'
         description: 服务类型
-        type: string
     required:
     - endpoint
-    - forward_header
     - name
     - type
     type: object
@@ -267,32 +284,36 @@ definitions:
         items:
           type: string
         type: array
+      modify_options:
+        description: 数据编辑
+        items:
+          $ref: '#/definitions/value.ModifyOption'
+        type: array
       name:
         description: 路由名称
         type: string
       path:
         description: 匹配路径
         type: string
+      path_rewrite:
+        allOf:
+        - $ref: '#/definitions/value.PathRewrite'
+        description: 路径重写
+      path_type:
+        allOf:
+        - $ref: '#/definitions/enum.RoutePathType'
+        description: 匹配路径
+      status:
+        allOf:
+        - $ref: '#/definitions/enum.RouteStatus'
+        description: 路由状态
     required:
     - collection_id
     - match_options
     - method
     - name
     - path
-    type: object
-  service.CreateServerNameParam:
-    properties:
-      certificate:
-        allOf:
-        - $ref: '#/definitions/value.Certificate'
-        description: 证书信息，直接创建新证书
-      certificate_id:
-        description: 证书ID，使用现有的证书
-        type: string
-      name:
-        type: string
-    required:
-    - name
+    - path_type
     type: object
   service.CreateSessionResult:
     properties:
@@ -326,8 +347,8 @@ definitions:
         items:
           $ref: '#/definitions/dto.Authorize'
         type: array
-      has_more:
-        type: boolean
+      total:
+        type: integer
     type: object
   service.ListCertificateResult:
     properties:
@@ -335,8 +356,8 @@ definitions:
         items:
           $ref: '#/definitions/dto.Certificate'
         type: array
-      has_more:
-        type: boolean
+      total:
+        type: integer
     type: object
   service.ListCollectionResult:
     properties:
@@ -353,8 +374,8 @@ definitions:
         items:
           $ref: '#/definitions/dto.Endpoint'
         type: array
-      has_more:
-        type: boolean
+      total:
+        type: integer
     type: object
   service.ListRouteResult:
     properties:
@@ -365,23 +386,14 @@ definitions:
       total:
         type: integer
     type: object
-  service.ListServerNameResult:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/dto.ServerName'
-        type: array
-      has_more:
-        type: boolean
-    type: object
   service.ListUserResult:
     properties:
       data:
         items:
           $ref: '#/definitions/dto.User'
         type: array
-      has_more:
-        type: boolean
+      total:
+        type: integer
     type: object
   service.UpdateAuthorizeParam:
     properties:
@@ -434,7 +446,7 @@ definitions:
       parent_id:
         description: 父级节点
         type: string
-      server_name_id:
+      server_names:
         description: 绑定的域名
         items:
           type: string
@@ -449,25 +461,17 @@ definitions:
         allOf:
         - $ref: '#/definitions/value.ForwardEndpoint'
         description: 远程服务
-      forward_header:
-        description: 请求头转发配置
-        items:
-          $ref: '#/definitions/value.ForwardHeaderOption'
-        type: array
-      forward_rewrite:
-        allOf:
-        - $ref: '#/definitions/value.ForwardRewriteOption'
-        description: 重写配置
       id:
         type: string
       name:
+        description: 服务备注名
         type: string
       type:
+        allOf:
+        - $ref: '#/definitions/enum.EndpointType'
         description: 服务类型
-        type: string
     required:
     - endpoint
-    - forward_header
     - id
     - name
     - type
@@ -487,6 +491,7 @@ definitions:
         description: 绑定的后端服务
         type: string
       id:
+        description: ID
         type: string
       match_options:
         description: 特殊匹配规则
@@ -498,36 +503,32 @@ definitions:
         items:
           type: string
         type: array
+      modify_options:
+        description: 数据编辑
+        items:
+          $ref: '#/definitions/value.ModifyOption'
+        type: array
       name:
         description: 路由名称
         type: string
       path:
         description: 匹配路径
         type: string
+      path_rewrite:
+        allOf:
+        - $ref: '#/definitions/value.PathRewrite'
+        description: 路径重写
+      path_type:
+        allOf:
+        - $ref: '#/definitions/enum.RoutePathType'
+        description: 匹配路径类型
+      status:
+        allOf:
+        - $ref: '#/definitions/enum.RouteStatus'
+        description: 路由状态
     required:
-    - collection_id
     - id
     - match_options
-    - method
-    - name
-    - path
-    type: object
-  service.UpdateServerNameParam:
-    properties:
-      certificate:
-        allOf:
-        - $ref: '#/definitions/value.Certificate'
-        description: 证书信息，直接创建新证书
-      certificate_id:
-        description: 证书ID，使用现有的证书
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-    required:
-    - id
-    - name
     type: object
   service.UpdateUserParam:
     properties:
@@ -570,16 +571,6 @@ definitions:
     - name
     - source
     type: object
-  value.Certificate:
-    properties:
-      certificate:
-        type: string
-      key:
-        type: string
-    required:
-    - certificate
-    - key
-    type: object
   value.ForwardEndpoint:
     properties:
       static:
@@ -607,30 +598,7 @@ definitions:
     required:
     - address
     - network
-    type: object
-  value.ForwardHeaderOption:
-    properties:
-      name:
-        type: string
-      type:
-        type: string
-      value:
-        type: string
-    required:
-    - name
-    - type
-    type: object
-  value.ForwardRewriteOption:
-    properties:
-      regex:
-        description: 转发正则
-        type: string
-      replace:
-        description: 转发配置
-        type: string
-    required:
-    - regex
-    - replace
+    - weight
     type: object
   value.MatchOption:
     properties:
@@ -651,6 +619,32 @@ definitions:
     - source
     - type
     - value
+    type: object
+  value.ModifyOption:
+    properties:
+      name:
+        description: 名称
+        type: string
+      source:
+        description: 编辑源
+        type: string
+      type:
+        description: 编辑类型
+        type: string
+      value:
+        description: 值
+        type: string
+    required:
+    - name
+    - source
+    - type
+    type: object
+  value.PathRewrite:
+    properties:
+      regex:
+        type: string
+      replace:
+        type: string
     type: object
 info:
   contact: {}
@@ -686,18 +680,18 @@ paths:
         in: query
         name: name
         type: string
-      - description: 限制
+      - description: 是否包含total
         in: query
-        name: limit
+        name: include_total
+        type: boolean
+      - description: 页码
+        in: query
+        name: page
         type: integer
-      - description: 从当前ID开始
+      - description: 每页数量
         in: query
-        name: starting_after
-        type: string
-      - description: 从当前ID结束
-        in: query
-        name: ending_before
-        type: string
+        name: pre_page
+        type: integer
       - collectionFormat: csv
         description: 展开数据
         in: query
@@ -1220,20 +1214,20 @@ paths:
         in: query
         name: name
         type: string
-      - description: size limit
+      - description: 是否包含total
         in: query
-        name: limit
+        name: include_total
+        type: boolean
+      - description: 页码
+        in: query
+        name: page
         type: integer
-      - description: get list after id
+      - description: 每页数量
         in: query
-        name: starting_after
-        type: string
-      - description: get list before id
-        in: query
-        name: ending_before
-        type: string
+        name: pre_page
+        type: integer
       - collectionFormat: csv
-        description: expand attribute list
+        description: 展开数据
         in: query
         items:
           type: string
@@ -1369,7 +1363,8 @@ paths:
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/dto.Endpoint'
         "400":
           description: Bad Request
           schema:
@@ -1557,177 +1552,6 @@ paths:
       summary: 更新路由
       tags:
       - 路由
-  /server_names:
-    get:
-      consumes:
-      - application/json
-      description: 域名列表
-      parameters:
-      - description: 域名
-        in: query
-        name: name
-        type: string
-      - description: 限制
-        in: query
-        name: limit
-        type: integer
-      - description: 从当前ID开始
-        in: query
-        name: starting_after
-        type: string
-      - description: 从当前ID结束
-        in: query
-        name: ending_before
-        type: string
-      - collectionFormat: csv
-        description: 展开数据
-        in: query
-        items:
-          type: string
-        name: expand
-        type: array
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/service.ListServerNameResult'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpserver.HttpError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httpserver.HttpError'
-      summary: 域名列表
-      tags:
-      - 域名
-    post:
-      consumes:
-      - application/json
-      description: 创建域名
-      parameters:
-      - description: 请求体
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/service.CreateServerNameParam'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/dto.ServerName'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpserver.HttpError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httpserver.HttpError'
-      summary: 创建域名
-      tags:
-      - 域名
-  /server_names/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: 删除域名
-      parameters:
-      - description: 域名ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpserver.HttpError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httpserver.HttpError'
-      summary: 删除域名
-      tags:
-      - 域名
-    get:
-      consumes:
-      - application/json
-      description: 获取域名
-      parameters:
-      - description: 域名ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - collectionFormat: csv
-        description: 展开数据
-        in: query
-        items:
-          type: string
-        name: expand
-        type: array
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.ServerName'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpserver.HttpError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httpserver.HttpError'
-      summary: 获取域名
-      tags:
-      - 域名
-    post:
-      consumes:
-      - application/json
-      description: 更新域名
-      parameters:
-      - description: 域名ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: 数据
-        in: body
-        name: body
-        required: true
-        schema:
-          $ref: '#/definitions/service.UpdateServerNameParam'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema: {}
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httpserver.HttpError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httpserver.HttpError'
-      summary: 更新域名
-      tags:
-      - 域名
   /users:
     get:
       consumes:
@@ -1738,20 +1562,20 @@ paths:
         in: query
         name: name
         type: string
-      - description: size limit
+      - description: 是否包含total
         in: query
-        name: limit
+        name: include_total
+        type: boolean
+      - description: 页码
+        in: query
+        name: page
         type: integer
-      - description: get list after id
+      - description: 每页数量
         in: query
-        name: starting_after
-        type: string
-      - description: get list before id
-        in: query
-        name: ending_before
-        type: string
+        name: pre_page
+        type: integer
       - collectionFormat: csv
-        description: expand attribute list
+        description: 展开数据
         in: query
         items:
           type: string
