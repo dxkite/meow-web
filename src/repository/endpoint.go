@@ -12,7 +12,7 @@ type Endpoint interface {
 	Create(ctx context.Context, endpoint *entity.Endpoint) (*entity.Endpoint, error)
 	Get(ctx context.Context, id uint64) (*entity.Endpoint, error)
 	BatchGet(ctx context.Context, ids []uint64) ([]*entity.Endpoint, error)
-	List(ctx context.Context, param *ListEndpointParam) ([]*entity.Endpoint, error)
+	List(ctx context.Context, param *ListEndpointParam) (*ListEndpointResult, error)
 	Update(ctx context.Context, id uint64, ent *entity.Endpoint) error
 	Delete(ctx context.Context, id uint64) error
 }
@@ -48,36 +48,50 @@ func (r *endpoint) BatchGet(ctx context.Context, ids []uint64) ([]*entity.Endpoi
 }
 
 type ListEndpointParam struct {
-	Name          string
-	Limit         int
-	StartingAfter uint64
-	EndingBefore  uint64
+	Name string
+	// pagination
+	Page         int
+	PerPage      int
+	IncludeTotal bool
 }
 
-func (r *endpoint) List(ctx context.Context, param *ListEndpointParam) ([]*entity.Endpoint, error) {
+type ListEndpointResult struct {
+	Data  []*entity.Endpoint
+	Total int64
+}
+
+func (r *endpoint) List(ctx context.Context, param *ListEndpointParam) (*ListEndpointResult, error) {
 	var items []*entity.Endpoint
-	db := r.dataSource(ctx).Model(entity.Endpoint{})
+	db := r.dataSource(ctx)
 
-	if param.Name != "" {
-		db = db.Where("name like ?", "%"+param.Name+"%")
+	// condition
+	condition := func(db *gorm.DB) *gorm.DB {
+		if param.Name != "" {
+			db = db.Where("name like ?", "%"+param.Name+"%")
+		}
+		return db
 	}
 
-	if param.StartingAfter != 0 {
-		db = db.Where("id > ?", param.StartingAfter)
+	// pagination
+	query := db.Scopes(condition)
+	if param.Page > 0 && param.PerPage > 0 {
+		query.Offset((param.Page - 1) * param.PerPage).Limit(param.PerPage)
 	}
 
-	if param.EndingBefore != 0 {
-		db = db.Where("id < ?", param.EndingBefore)
-	}
-
-	if param.Limit != 0 {
-		db = db.Limit(param.Limit)
-	}
-
-	if err := db.Find(&items).Error; err != nil {
+	if err := query.Find(&items).Error; err != nil {
 		return nil, err
 	}
-	return items, nil
+
+	rst := &ListEndpointResult{}
+	rst.Data = items
+
+	if param.IncludeTotal {
+		if err := db.Model(entity.Endpoint{}).Scopes(condition).Count(&rst.Total).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	return rst, nil
 }
 
 func (r *endpoint) Update(ctx context.Context, id uint64, ent *entity.Endpoint) error {

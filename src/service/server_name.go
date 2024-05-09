@@ -115,38 +115,44 @@ func (s *serverName) Delete(ctx context.Context, param *DeleteServerNameParam) e
 }
 
 type ListServerNameParam struct {
-	Name          string   `form:"name"`
-	Limit         int      `form:"limit" binding:"max=1000"`
-	StartingAfter string   `form:"starting_after"`
-	EndingBefore  string   `form:"ending_before"`
-	Expand        []string `json:"expand" form:"expand"`
+	Name string `form:"name"`
+
+	// pagination
+	Page         int      `json:"page" form:"page"`
+	PerPage      int      `json:"per_page" form:"per_page" binding:"max=1000"`
+	IncludeTotal bool     `json:"include_total" form:"include_total"`
+	Expand       []string `json:"expand" form:"expand"`
 }
 
 type ListServerNameResult struct {
-	HasMore bool              `json:"has_more"`
-	Data    []*dto.ServerName `json:"data"`
+	Data  []*dto.ServerName `json:"data"`
+	Total int64             `json:"total,omitempty"`
 }
 
 func (s *serverName) List(ctx context.Context, param *ListServerNameParam) (*ListServerNameResult, error) {
-	if param.Limit == 0 {
-		param.Limit = 10
+	if param.Page == 0 {
+		param.Page = 1
 	}
 
-	entities, err := s.r.List(ctx, &repository.ListServerNameParam{
-		Name:          param.Name,
-		Limit:         param.Limit,
-		StartingAfter: identity.Parse(constant.ServerNamePrefix, param.StartingAfter),
-		EndingBefore:  identity.Parse(constant.ServerNamePrefix, param.EndingBefore),
+	if param.PerPage == 0 {
+		param.PerPage = 10
+	}
+
+	listRst, err := s.r.List(ctx, &repository.ListServerNameParam{
+		Name:         param.Name,
+		Page:         param.Page,
+		PerPage:      param.PerPage,
+		IncludeTotal: param.IncludeTotal,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	n := len(entities)
+	n := len(listRst.Data)
 
 	items := make([]*dto.ServerName, n)
 
-	for i, v := range entities {
+	for i, v := range listRst.Data {
 		items[i] = dto.NewServerName(v)
 	}
 
@@ -154,7 +160,7 @@ func (s *serverName) List(ctx context.Context, param *ListServerNameParam) (*Lis
 		err := utils.ExpandStruct(
 			n,
 			func(i int) ([]uint64, error) {
-				return []uint64{entities[i].CertificateId}, nil
+				return []uint64{listRst.Data[i].CertificateId}, nil
 			},
 			func(i int, v []interface{}) error {
 				if len(v) > 0 {
@@ -183,7 +189,7 @@ func (s *serverName) List(ctx context.Context, param *ListServerNameParam) (*Lis
 
 	rst := &ListServerNameResult{}
 	rst.Data = items
-	rst.HasMore = n == param.Limit
+	rst.Total = listRst.Total
 	return rst, nil
 }
 

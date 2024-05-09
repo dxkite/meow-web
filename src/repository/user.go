@@ -16,7 +16,7 @@ type User interface {
 	Get(ctx context.Context, id uint64) (*entity.User, error)
 	Update(ctx context.Context, id uint64, ent *entity.User) error
 	Delete(ctx context.Context, id uint64) error
-	List(ctx context.Context, param *ListUserParam) ([]*entity.User, error)
+	List(ctx context.Context, param *ListUserParam) (*ListUserResult, error)
 	BatchGet(ctx context.Context, ids []uint64) ([]*entity.User, error)
 	GetBy(ctx context.Context, param GetUserByParam) (*entity.User, error)
 }
@@ -31,12 +31,17 @@ type user struct {
 func (r *user) Get(ctx context.Context, id uint64) (*entity.User, error) {
 	var item entity.User
 	if err := r.dataSource(ctx).Where("id = ?", id).First(&item).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, ErrUserNotExist
-		}
 		return nil, err
 	}
 	return &item, nil
+}
+
+func (r *user) BatchGet(ctx context.Context, ids []uint64) ([]*entity.User, error) {
+	var items []*entity.User
+	if err := r.dataSource(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 type GetUserByParam struct {
@@ -55,40 +60,52 @@ func (r *user) GetBy(ctx context.Context, param GetUserByParam) (*entity.User, e
 	return &item, nil
 }
 
-func (r *user) BatchGet(ctx context.Context, ids []uint64) ([]*entity.User, error) {
-	var items []*entity.User
-	if err := r.dataSource(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 type ListUserParam struct {
-	Limit         int
-	StartingAfter uint64
-	EndingBefore  uint64
+	// condition
+	Name string
+	// pagination
+	Page         int
+	PerPage      int
+	IncludeTotal bool
 }
 
-func (r *user) List(ctx context.Context, param *ListUserParam) ([]*entity.User, error) {
+type ListUserResult struct {
+	Data  []*entity.User
+	Total int64
+}
+
+func (r *user) List(ctx context.Context, param *ListUserParam) (*ListUserResult, error) {
 	var items []*entity.User
-	db := r.dataSource(ctx).Model(entity.User{})
+	db := r.dataSource(ctx)
 
-	if param.StartingAfter != 0 {
-		db = db.Where("id > ?", param.StartingAfter)
+	// condition
+	condition := func(db *gorm.DB) *gorm.DB {
+		if param.Name != "" {
+			db = db.Where("name like ?", "%"+param.Name+"%")
+		}
+		return db
 	}
 
-	if param.EndingBefore != 0 {
-		db = db.Where("id < ?", param.EndingBefore)
+	// pagination
+	query := db.Scopes(condition)
+	if param.Page > 0 && param.PerPage > 0 {
+		query.Offset((param.Page - 1) * param.PerPage).Limit(param.PerPage)
 	}
 
-	if param.Limit != 0 {
-		db = db.Limit(param.Limit)
-	}
-
-	if err := db.Find(&items).Error; err != nil {
+	if err := query.Find(&items).Error; err != nil {
 		return nil, err
 	}
-	return items, nil
+
+	rst := &ListUserResult{}
+	rst.Data = items
+
+	if param.IncludeTotal {
+		if err := db.Model(entity.User{}).Scopes(condition).Count(&rst.Total).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	return rst, nil
 }
 
 func (r *user) Create(ctx context.Context, user *entity.User) (*entity.User, error) {

@@ -13,7 +13,7 @@ type Certificate interface {
 	Get(ctx context.Context, id uint64) (*entity.Certificate, error)
 	Update(ctx context.Context, id uint64, ent *entity.Certificate) error
 	Delete(ctx context.Context, id uint64) error
-	List(ctx context.Context, param *ListCertificateParam) ([]*entity.Certificate, error)
+	List(ctx context.Context, param *ListCertificateParam) (*ListCertificateResult, error)
 	BatchGet(ctx context.Context, ids []uint64) ([]*entity.Certificate, error)
 }
 
@@ -41,36 +41,50 @@ func (r *certificate) BatchGet(ctx context.Context, ids []uint64) ([]*entity.Cer
 }
 
 type ListCertificateParam struct {
-	Name          string
-	Limit         int
-	StartingAfter uint64
-	EndingBefore  uint64
+	Name string
+	// pagination
+	Page         int
+	PerPage      int
+	IncludeTotal bool
 }
 
-func (r *certificate) List(ctx context.Context, param *ListCertificateParam) ([]*entity.Certificate, error) {
+type ListCertificateResult struct {
+	Data  []*entity.Certificate
+	Total int64
+}
+
+func (r *certificate) List(ctx context.Context, param *ListCertificateParam) (*ListCertificateResult, error) {
 	var items []*entity.Certificate
-	db := r.dataSource(ctx).Model(entity.Certificate{})
+	db := r.dataSource(ctx)
 
-	if param.Name != "" {
-		db = db.Where("name like ?", "%"+param.Name+"%")
+	// condition
+	condition := func(db *gorm.DB) *gorm.DB {
+		if param.Name != "" {
+			db = db.Where("name like ?", "%"+param.Name+"%")
+		}
+		return db
 	}
 
-	if param.StartingAfter != 0 {
-		db = db.Where("id > ?", param.StartingAfter)
+	// pagination
+	query := db.Scopes(condition)
+	if param.Page > 0 && param.PerPage > 0 {
+		query.Offset((param.Page - 1) * param.PerPage).Limit(param.PerPage)
 	}
 
-	if param.EndingBefore != 0 {
-		db = db.Where("id < ?", param.EndingBefore)
-	}
-
-	if param.Limit != 0 {
-		db = db.Limit(param.Limit)
-	}
-
-	if err := db.Find(&items).Error; err != nil {
+	if err := query.Find(&items).Error; err != nil {
 		return nil, err
 	}
-	return items, nil
+
+	rst := &ListCertificateResult{}
+	rst.Data = items
+
+	if param.IncludeTotal {
+		if err := db.Model(entity.Certificate{}).Scopes(condition).Count(&rst.Total).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	return rst, nil
 }
 
 func (r *certificate) Create(ctx context.Context, certificate *entity.Certificate) (*entity.Certificate, error) {

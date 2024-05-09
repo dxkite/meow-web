@@ -12,7 +12,7 @@ type ServerName interface {
 	Create(ctx context.Context, serverName *entity.ServerName) (*entity.ServerName, error)
 	Get(ctx context.Context, id uint64) (*entity.ServerName, error)
 	BatchGet(ctx context.Context, ids []uint64) ([]*entity.ServerName, error)
-	List(ctx context.Context, param *ListServerNameParam) ([]*entity.ServerName, error)
+	List(ctx context.Context, param *ListServerNameParam) (*ListServerNameResult, error)
 	Update(ctx context.Context, id uint64, ent *entity.ServerName) error
 	Delete(ctx context.Context, id uint64) error
 }
@@ -62,36 +62,50 @@ func (r *serverName) Update(ctx context.Context, id uint64, ent *entity.ServerNa
 }
 
 type ListServerNameParam struct {
-	Name          string
-	Limit         int
-	StartingAfter uint64
-	EndingBefore  uint64
+	Name string
+	// pagination
+	Page         int
+	PerPage      int
+	IncludeTotal bool
 }
 
-func (r *serverName) List(ctx context.Context, param *ListServerNameParam) ([]*entity.ServerName, error) {
+type ListServerNameResult struct {
+	Data  []*entity.ServerName
+	Total int64
+}
+
+func (r *serverName) List(ctx context.Context, param *ListServerNameParam) (*ListServerNameResult, error) {
 	var items []*entity.ServerName
-	db := r.dataSource(ctx).Model(entity.ServerName{})
+	db := r.dataSource(ctx)
 
-	if param.Name != "" {
-		db = db.Where("name like ?", "%"+param.Name+"%")
+	// condition
+	condition := func(db *gorm.DB) *gorm.DB {
+		if param.Name != "" {
+			db = db.Where("name like ?", "%"+param.Name+"%")
+		}
+		return db
 	}
 
-	if param.StartingAfter != 0 {
-		db = db.Where("id > ?", param.StartingAfter)
+	// pagination
+	query := db.Scopes(condition)
+	if param.Page > 0 && param.PerPage > 0 {
+		query.Offset((param.Page - 1) * param.PerPage).Limit(param.PerPage)
 	}
 
-	if param.EndingBefore != 0 {
-		db = db.Where("id < ?", param.EndingBefore)
-	}
-
-	if param.Limit != 0 {
-		db = db.Limit(param.Limit)
-	}
-
-	if err := db.Find(&items).Error; err != nil {
+	if err := query.Find(&items).Error; err != nil {
 		return nil, err
 	}
-	return items, nil
+
+	rst := &ListServerNameResult{}
+	rst.Data = items
+
+	if param.IncludeTotal {
+		if err := db.Model(entity.ServerName{}).Scopes(condition).Count(&rst.Total).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	return rst, nil
 }
 
 func (r *serverName) dataSource(ctx context.Context) *gorm.DB {

@@ -84,10 +84,10 @@ func (s *User) Get(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        name query string false "User"
-// @Param        limit query int false "size limit"
-// @Param        starting_after query string false "get list after id"
-// @Param        ending_before query string false "get list before id"
-// @Param        expand query []string false "expand attribute list"
+// @Param		 include_total query bool false "是否包含total"
+// @Param        page query int false "页码"
+// @Param        pre_page query int false "每页数量"
+// @Param        expand query []string false "展开数据"
 // @Success      200  {object} service.ListUserResult
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError

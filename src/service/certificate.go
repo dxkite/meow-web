@@ -73,44 +73,49 @@ func (s *certificate) Delete(ctx context.Context, param *DeleteCertificateParam)
 }
 
 type ListCertificateParam struct {
-	Name          string   `form:"name"`
-	Limit         int      `form:"limit" binding:"max=1000"`
-	StartingAfter string   `form:"starting_after"`
-	EndingBefore  string   `form:"ending_before"`
-	Expand        []string `json:"expand" form:"expand"`
+	Name string `form:"name"`
+
+	// pagination
+	Page         int  `json:"page" form:"page"`
+	PerPage      int  `json:"per_page" form:"per_page" binding:"max=1000"`
+	IncludeTotal bool `json:"include_total" form:"include_total"`
 }
 
 type ListCertificateResult struct {
-	HasMore bool               `json:"has_more"`
-	Data    []*dto.Certificate `json:"data"`
+	Data  []*dto.Certificate `json:"data"`
+	Total int64              `json:"total,omitempty"`
 }
 
 func (s *certificate) List(ctx context.Context, param *ListCertificateParam) (*ListCertificateResult, error) {
-	if param.Limit == 0 {
-		param.Limit = 10
+	if param.Page == 0 {
+		param.Page = 1
 	}
 
-	entities, err := s.r.List(ctx, &repository.ListCertificateParam{
-		Name:          param.Name,
-		Limit:         param.Limit,
-		StartingAfter: identity.Parse(constant.CertificatePrefix, param.StartingAfter),
-		EndingBefore:  identity.Parse(constant.CertificatePrefix, param.EndingBefore),
+	if param.PerPage == 0 {
+		param.PerPage = 10
+	}
+
+	listRst, err := s.r.List(ctx, &repository.ListCertificateParam{
+		Name:         param.Name,
+		Page:         param.Page,
+		PerPage:      param.PerPage,
+		IncludeTotal: param.IncludeTotal,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	n := len(entities)
+	n := len(listRst.Data)
 
 	items := make([]*dto.Certificate, n)
 
-	for i, v := range entities {
+	for i, v := range listRst.Data {
 		items[i] = dto.NewCertificate(v)
 	}
 
 	rst := &ListCertificateResult{}
 	rst.Data = items
-	rst.HasMore = n == param.Limit
+	rst.Total = listRst.Total
 	return rst, nil
 }
 
