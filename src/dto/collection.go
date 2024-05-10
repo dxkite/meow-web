@@ -6,6 +6,7 @@ import (
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/entity"
+	"dxkite.cn/meownest/src/value"
 )
 
 // 路由组
@@ -28,8 +29,13 @@ type Collection struct {
 	AuthorizeId string `json:"authorize_id,omitempty"`
 	// 鉴权信息
 	Authorize *Authorize `json:"authorize,omitempty"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
+	// 路由的特殊匹配规则
+	PathRewrite *value.PathRewrite `json:"path_rewrite,omitempty"`
+	// 路由的特殊匹配规则
+	ModifyOptions []*value.ModifyOption `json:"modify_options"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func NewCollection(item *entity.Collection) *Collection {
@@ -39,6 +45,8 @@ func NewCollection(item *entity.Collection) *Collection {
 	obj.ParentId = identity.Format(constant.CollectionPrefix, item.ParentId)
 	obj.EndpointId = identity.Format(constant.EndpointPrefix, item.EndpointId)
 	obj.AuthorizeId = identity.Format(constant.AuthorizePrefix, item.AuthorizeId)
+	obj.PathRewrite = item.PathRewrite
+	obj.ModifyOptions = item.ModifyOptions
 	obj.CreatedAt = item.CreatedAt
 	obj.UpdatedAt = item.UpdatedAt
 	return obj

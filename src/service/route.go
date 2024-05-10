@@ -49,6 +49,10 @@ type CreateRouteParam struct {
 	Path string `json:"path" form:"path" binding:"required"`
 	// 特殊匹配规则
 	MatchOptions []*value.MatchOption `json:"match_options" form:"match_options" binding:"dive,required"`
+	// 路径重写
+	PathRewrite *value.PathRewrite `json:"path_rewrite" form:"path_rewrite"`
+	// 数据编辑
+	ModifyOptions []*value.ModifyOption `json:"modify_options" form:"modify_options"`
 	// 路由分组ID
 	CollectionId string `json:"collection_id" form:"collection_id" binding:"required"`
 	// 绑定的后端服务
@@ -62,14 +66,16 @@ func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route
 	err := data_source.Transaction(ctx, func(ctx context.Context) error {
 
 		ent, err := s.r.Create(ctx, &entity.Route{
-			Name:         param.Name,
-			Description:  param.Description,
-			Method:       param.Method,
-			Path:         param.Path,
-			MatchOptions: param.MatchOptions,
-			CollectionId: identity.Parse(constant.CollectionPrefix, param.CollectionId),
-			AuthorizeId:  identity.Parse(constant.AuthorizePrefix, param.AuthorizeId),
-			EndpointId:   identity.Parse(constant.EndpointPrefix, param.EndpointId),
+			Name:          param.Name,
+			Description:   param.Description,
+			Method:        param.Method,
+			Path:          param.Path,
+			MatchOptions:  param.MatchOptions,
+			PathRewrite:   param.PathRewrite,
+			ModifyOptions: param.ModifyOptions,
+			CollectionId:  identity.Parse(constant.CollectionPrefix, param.CollectionId),
+			AuthorizeId:   identity.Parse(constant.AuthorizePrefix, param.AuthorizeId),
+			EndpointId:    identity.Parse(constant.EndpointPrefix, param.EndpointId),
 		})
 
 		if err != nil {

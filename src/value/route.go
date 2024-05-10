@@ -40,3 +40,15 @@ type Certificate struct {
 	Key         string `json:"key" form:"key" binding:"required"`
 	Certificate string `json:"certificate" form:"key" binding:"required"`
 }
+
+type PathRewrite struct {
+	Regex   string `json:"regex"`
+	Replace string `json:"replace"`
+}
+
+type ModifyOption struct {
+	Type   string `json:"type" binding:"required"`   // 编辑类型
+	Source string `json:"source" binding:"required"` // 编辑源
+	Name   string `json:"name" binding:"required"`   // 名称
+	Value  string `json:"value"`                     // 值
+}

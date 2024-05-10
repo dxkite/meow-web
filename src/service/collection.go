@@ -10,6 +10,7 @@ import (
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/utils"
+	"dxkite.cn/meownest/src/value"
 )
 
 type Collection interface {
@@ -34,14 +35,20 @@ type collection struct {
 }
 
 type CreateCollectionParam struct {
-	// 分组名
-	Name string `json:"name" form:"name" binding:"required"`
-	// 分组描述
-	Description string `json:"description" form:"description"`
 	// 父级节点
 	ParentId string `json:"parent_id" form:"parent_id"`
 	// 绑定的域名
 	ServerNameId []string `json:"server_name_id" form:"server_name"`
+
+	// 分组名
+	Name string `json:"name" form:"name" binding:"required"`
+	// 分组描述
+	Description string `json:"description" form:"description"`
+	// 路径重写
+	PathRewrite *value.PathRewrite `json:"path_rewrite" form:"path_rewrite"`
+	// 数据编辑
+	ModifyOptions []*value.ModifyOption `json:"modify_options" form:"modify_options"`
+
 	// 绑定的后端服务
 	EndpointId string `json:"endpoint_id" form:"endpoint_id"`
 	// 鉴权配置
@@ -53,11 +60,13 @@ func (s *collection) Create(ctx context.Context, param *CreateCollectionParam) (
 
 	data_source.Transaction(ctx, func(txCtx context.Context) error {
 		item, err := s.r.Create(ctx, &entity.Collection{
-			Name:        param.Name,
-			Description: param.Description,
-			ParentId:    identity.Parse(constant.CollectionPrefix, param.ParentId),
-			AuthorizeId: identity.Parse(constant.AuthorizePrefix, param.AuthorizeId),
-			EndpointId:  identity.Parse(constant.EndpointPrefix, param.EndpointId),
+			Name:          param.Name,
+			Description:   param.Description,
+			PathRewrite:   param.PathRewrite,
+			ModifyOptions: param.ModifyOptions,
+			ParentId:      identity.Parse(constant.CollectionPrefix, param.ParentId),
+			AuthorizeId:   identity.Parse(constant.AuthorizePrefix, param.AuthorizeId),
+			EndpointId:    identity.Parse(constant.EndpointPrefix, param.EndpointId),
 		})
 
 		if err != nil {
