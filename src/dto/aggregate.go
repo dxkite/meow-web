@@ -71,16 +71,16 @@ type Route struct {
 	Path        string   `json:"path"`
 	// 路由的特殊匹配规则
 	MatchOptions []*value.MatchOption `json:"match_options"`
-	// 路由的特殊匹配规则
+	// 路由重写规则
 	PathRewrite *value.PathRewrite `json:"path_rewrite,omitempty"`
-	// 路由的特殊匹配规则
+	// 数据重写规则
 	ModifyOptions []*value.ModifyOption `json:"modify_options"`
 	// 后端服务
-	EndpointId string `json:"endpoint_id,omitempty"`
+	EndpointId string `json:"endpoint_id"`
 	// 路由自定义的后端路由
 	Endpoint *Endpoint `json:"endpoint,omitempty"`
 	// 鉴权信息ID
-	AuthorizeId string `json:"authorize_id,omitempty"`
+	AuthorizeId string `json:"authorize_id"`
 	// 鉴权信息
 	Authorize *Authorize `json:"authorize,omitempty"`
 	// 分组ID

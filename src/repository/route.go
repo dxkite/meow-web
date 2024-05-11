@@ -14,7 +14,7 @@ type Route interface {
 	BatchGet(ctx context.Context, ids []uint64) ([]*entity.Route, error)
 	List(ctx context.Context, param *ListRouteParam) (*ListRouteResult, error)
 	Delete(ctx context.Context, id uint64) error
-	Update(ctx context.Context, id uint64, ent *entity.Route) error
+	Update(ctx context.Context, id uint64, fields []string, ent *entity.Route) error
 	Batch(ctx context.Context, batchFn func(item *entity.Route) error) error
 }
 
@@ -55,8 +55,8 @@ func (r *route) Delete(ctx context.Context, id uint64) error {
 	return nil
 }
 
-func (r *route) Update(ctx context.Context, id uint64, ent *entity.Route) error {
-	if err := r.dataSource(ctx).Where("id = ?", id).Updates(&ent).Error; err != nil {
+func (r *route) Update(ctx context.Context, id uint64, fields []string, ent *entity.Route) error {
+	if err := r.dataSource(ctx).Select(fields).Where("id = ?", id).Updates(&ent).Error; err != nil {
 		return err
 	}
 	return nil

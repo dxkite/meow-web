@@ -1,9 +1,16 @@
 package entity
 
-import "dxkite.cn/meownest/src/value"
+import (
+	"time"
+
+	"dxkite.cn/meownest/src/value"
+)
 
 type Route struct {
-	Base
+	Id        uint64 `gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
 	Method      []string `json:"method" gorm:"serializer:json"`
@@ -20,4 +27,8 @@ type Route struct {
 	AuthorizeId uint64 `gorm:"index"`
 	// 后端服务ID
 	EndpointId uint64 `gorm:"index"`
+}
+
+func NewRoute() *Route {
+	return new(Route)
 }

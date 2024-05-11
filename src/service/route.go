@@ -202,31 +202,89 @@ func (s *route) Delete(ctx context.Context, param *DeleteRouteParam) error {
 }
 
 type UpdateRouteParam struct {
+	// ID
 	Id string `json:"id" uri:"id" binding:"required"`
-	CreateRouteParam
+	// 路由名称
+	Name *string `json:"name" form:"name"`
+	// 路由描述
+	Description *string `json:"description" form:"description"`
+	// 支持方法
+	Method []string `json:"method" form:"method"`
+	// 匹配路径
+	Path *string `json:"path" form:"path"`
+	// 特殊匹配规则
+	MatchOptions []*value.MatchOption `json:"match_options" form:"match_options" binding:"dive,required"`
+	// 路径重写
+	PathRewrite *value.PathRewrite `json:"path_rewrite" form:"path_rewrite"`
+	// 数据编辑
+	ModifyOptions []*value.ModifyOption `json:"modify_options" form:"modify_options"`
+	// 路由分组ID
+	CollectionId *string `json:"collection_id" form:"collection_id"`
+	// 绑定的后端服务
+	EndpointId *string `json:"endpoint_id" form:"endpoint_id"`
+	// 鉴权配置
+	AuthorizeId *string `json:"authorize_id" form:"authorize_id"`
 }
 
 func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route, error) {
-	err := data_source.Transaction(ctx, func(txCtx context.Context) error {
+	updateFields := []string{}
 
-		entId := identity.Parse(constant.RoutePrefix, param.Id)
+	entId := identity.Parse(constant.RoutePrefix, param.Id)
 
-		err := s.r.Update(txCtx, entId, &entity.Route{
-			Name:         param.Name,
-			Description:  param.Description,
-			Method:       param.Method,
-			Path:         param.Path,
-			MatchOptions: param.MatchOptions,
-			CollectionId: identity.Parse(constant.CollectionPrefix, param.CollectionId),
-			AuthorizeId:  identity.Parse(constant.AuthorizePrefix, param.AuthorizeId),
-			EndpointId:   identity.Parse(constant.EndpointPrefix, param.EndpointId),
-		})
-		if err != nil {
-			return err
-		}
+	ent := entity.NewRoute()
 
-		return nil
-	})
+	if param.Name != nil {
+		updateFields = append(updateFields, "name")
+		ent.Name = *param.Name
+	}
+
+	if param.Description != nil {
+		updateFields = append(updateFields, "description")
+		ent.Description = *param.Description
+	}
+
+	if param.Method != nil {
+		updateFields = append(updateFields, "method")
+		ent.Method = param.Method
+	}
+
+	if param.Path != nil {
+		updateFields = append(updateFields, "path")
+		ent.Path = *param.Path
+	}
+
+	if param.MatchOptions != nil {
+		updateFields = append(updateFields, "match_options")
+		ent.MatchOptions = param.MatchOptions
+	}
+
+	if param.ModifyOptions != nil {
+		updateFields = append(updateFields, "modify_options")
+		ent.ModifyOptions = param.ModifyOptions
+	}
+
+	if param.PathRewrite != nil {
+		updateFields = append(updateFields, "path_rewrite")
+		ent.PathRewrite = param.PathRewrite
+	}
+
+	if param.CollectionId != nil {
+		updateFields = append(updateFields, "collection_id")
+		ent.CollectionId = identity.Parse(constant.CollectionPrefix, *param.CollectionId)
+	}
+
+	if param.CollectionId != nil {
+		updateFields = append(updateFields, "authorize_id")
+		ent.AuthorizeId = identity.Parse(constant.AuthorizePrefix, *param.AuthorizeId)
+	}
+
+	if param.CollectionId != nil {
+		updateFields = append(updateFields, "endpoint_id")
+		ent.EndpointId = identity.Parse(constant.EndpointPrefix, *param.EndpointId)
+	}
+
+	err := s.r.Update(ctx, entId, updateFields, ent)
+
 	if err != nil {
 		return nil, err
 	}
