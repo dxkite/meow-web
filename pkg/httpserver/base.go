@@ -35,6 +35,7 @@ func (e *HttpError) Respond(c *gin.Context) {
 
 func New() *HttpServer {
 	g := gin.Default()
+	g.ContextWithFallback = true
 	s := &HttpServer{engine: g}
 	return s
 }

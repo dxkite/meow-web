@@ -3,11 +3,11 @@ package database
 import (
 	"context"
 	"errors"
-
-	"github.com/gin-gonic/gin"
 )
 
-var DataSourceKey = "pkg/data_source"
+type dataSourceKey string
+
+var DataSourceKey dataSourceKey = "pkg/data_source"
 
 var ErrMissSource = errors.New("missing data source")
 
@@ -40,12 +40,6 @@ func GetDefault(ctx context.Context, defaultSource DataSource) DataSource {
 // 注入数据源到 context
 func With(ctx context.Context, ds DataSource) context.Context {
 	return context.WithValue(ctx, DataSourceKey, ds)
-}
-
-func GinDataSource(ds DataSource) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		ctx.Set(DataSourceKey, ds)
-	}
 }
 
 // 开启事务

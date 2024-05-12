@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"dxkite.cn/meownest/pkg/agent"
-	data_source "dxkite.cn/meownest/pkg/database"
+	"dxkite.cn/meownest/pkg/database"
 	"dxkite.cn/meownest/pkg/database/sqlite"
 	"dxkite.cn/meownest/pkg/httpserver"
 	"dxkite.cn/meownest/pkg/identity"
@@ -16,6 +16,7 @@ import (
 	"dxkite.cn/meownest/src/server"
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
@@ -108,7 +109,9 @@ func main() {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	httpServer.Use(data_source.GinDataSource(ds))
+	httpServer.Use(func(ctx *gin.Context) {
+		ctx.Request = ctx.Request.WithContext(database.With(ctx.Request.Context(), ds))
+	})
 
 	httpServer.RegisterPrefix("/api/v1", certificateServer)
 	httpServer.RegisterPrefix("/api/v1", userServer)
@@ -122,6 +125,6 @@ func main() {
 
 	go httpServer.Run(":2333")
 
-	agentService.LoadRoute(data_source.With(context.Background(), ds))
+	agentService.LoadRoute(database.With(context.Background(), ds))
 	agentService.Run(":80")
 }
