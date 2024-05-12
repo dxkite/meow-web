@@ -6,6 +6,7 @@ import (
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/entity"
+	"dxkite.cn/meownest/src/enum"
 	"dxkite.cn/meownest/src/value"
 )
 
@@ -15,7 +16,7 @@ type Endpoint struct {
 	// 后端名
 	Name string `json:"name"`
 	// 服务类型
-	Type string `json:"type"`
+	Type enum.EndpointType `json:"type"`
 	// 远程服务
 	Endpoint *value.ForwardEndpoint `gorm:"serializer:json" json:"endpoint"`
 

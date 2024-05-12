@@ -118,7 +118,7 @@ func (s *Endpoint) List(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "Endpoint ID"
 // @Param        body body service.UpdateEndpointParam true "data"
-// @Success      200  {object} service.Endpoint
+// @Success      200  {object} dto.Endpoint
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /endpoints/{id} [post]

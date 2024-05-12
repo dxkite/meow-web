@@ -7,18 +7,16 @@ import (
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/dto"
 	"dxkite.cn/meownest/src/entity"
+	"dxkite.cn/meownest/src/enum"
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/value"
 )
 
 type CreateEndpointParam struct {
+	// 服务备注名
 	Name string `json:"name" form:"name" binding:"required"`
 	// 服务类型
-	Type string `json:"type" binding:"required"`
-	// 重写配置
-	ForwardRewrite *value.ForwardRewriteOption `json:"forward_rewrite"`
-	// 请求头转发配置
-	ForwardHeader []*value.ForwardHeaderOption `json:"forward_header" binding:"dive,required"`
+	Type enum.EndpointType `json:"type" binding:"required"`
 	// 远程服务
 	Endpoint *value.ForwardEndpoint `json:"endpoint" binding:"required"`
 }
