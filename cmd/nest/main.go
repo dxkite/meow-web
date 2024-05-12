@@ -48,8 +48,7 @@ func main() {
 	}
 
 	db := ds.Engine().(*gorm.DB)
-	db.AutoMigrate(entity.Certificate{},
-		entity.Link{}, entity.User{},
+	db.AutoMigrate(entity.Certificate{}, entity.User{},
 		entity.Collection{}, entity.Route{}, entity.Endpoint{}, entity.Authorize{})
 
 	certificateRepository := repository.NewCertificate()
@@ -68,17 +67,15 @@ func main() {
 	endpointService := service.NewEndpoint(endpointRepository)
 	endpointServer := server.NewEndpoint(endpointService)
 
-	linkRepository := repository.NewLink()
-
 	routeRepository := repository.NewRoute()
 	collectionRepository := repository.NewCollection()
 	collectionService := service.NewCollection(
-		collectionRepository, linkRepository, routeRepository,
+		collectionRepository, routeRepository,
 		endpointRepository, authorizeRepository,
 	)
 
 	routeService := service.NewRoute(
-		routeRepository, linkRepository, endpointRepository,
+		routeRepository, endpointRepository,
 		collectionRepository, authorizeRepository,
 	)
 	routeServer := server.NewRoute(routeService)
@@ -88,7 +85,7 @@ func main() {
 	ag := agent.New()
 	agentService := service.NewAgent(ag,
 		routeRepository, collectionRepository,
-		endpointRepository, authorizeRepository, linkRepository,
+		endpointRepository, authorizeRepository,
 	)
 	agentServer := server.NewAgent(agentService)
 

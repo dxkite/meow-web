@@ -26,13 +26,12 @@ type Route interface {
 	Delete(ctx context.Context, param *DeleteRouteParam) error
 }
 
-func NewRoute(r repository.Route, rl repository.Link, re repository.Endpoint, rc repository.Collection, ra repository.Authorize) Route {
-	return &route{r: r, rl: rl, re: re, rc: rc, ra: ra}
+func NewRoute(r repository.Route, re repository.Endpoint, rc repository.Collection, ra repository.Authorize) Route {
+	return &route{r: r, re: re, rc: rc, ra: ra}
 }
 
 type route struct {
 	r  repository.Route
-	rl repository.Link
 	re repository.Endpoint
 	rc repository.Collection
 	ra repository.Authorize
@@ -161,16 +160,7 @@ func (s *route) List(ctx context.Context, param *ListRouteParam) (*ListRouteResu
 			collIdList = append(collIdList, v.Id)
 		}
 
-		routeLink, err := s.rl.Linked(ctx, constant.LinkDirectCollectionRoute, collIdList)
-		if err != nil {
-			return nil, err
-		}
-
-		routeIdList := []uint64{}
-		for _, v := range routeLink {
-			routeIdList = append(routeIdList, v.LinkedId)
-		}
-		listParam.IdIn = routeIdList
+		listParam.CollectionIdIn = collIdList
 	}
 
 	listRst, err := s.r.List(ctx, listParam)

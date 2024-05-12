@@ -20,13 +20,12 @@ type Collection interface {
 	List(ctx context.Context, param *ListCollectionParam) (*ListCollectionResult, error)
 }
 
-func NewCollection(r repository.Collection, rl repository.Link, rr repository.Route, re repository.Endpoint, ra repository.Authorize) Collection {
-	return &collection{r: r, rr: rr, rl: rl, re: re, ra: ra}
+func NewCollection(r repository.Collection, rr repository.Route, re repository.Endpoint, ra repository.Authorize) Collection {
+	return &collection{r: r, rr: rr, re: re, ra: ra}
 }
 
 type collection struct {
 	r  repository.Collection
-	rl repository.Link
 	rr repository.Route
 	re repository.Endpoint
 	ra repository.Authorize

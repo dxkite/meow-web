@@ -20,14 +20,13 @@ type Agent interface {
 type agent struct {
 	svr *ag.Server
 	rc  repository.Collection
-	rl  repository.Link
 	rr  repository.Route
 	re  repository.Endpoint
 	ra  repository.Authorize
 }
 
-func NewAgent(svr *ag.Server, rr repository.Route, rc repository.Collection, re repository.Endpoint, ra repository.Authorize, rl repository.Link) Agent {
-	return &agent{svr: svr, rr: rr, rc: rc, rl: rl, re: re, ra: ra}
+func NewAgent(svr *ag.Server, rr repository.Route, rc repository.Collection, re repository.Endpoint, ra repository.Authorize) Agent {
+	return &agent{svr: svr, rr: rr, rc: rc, re: re, ra: ra}
 }
 
 func (s *agent) Run(addr string) {

@@ -63,9 +63,9 @@ func (r *route) Update(ctx context.Context, id uint64, fields []string, ent *ent
 }
 
 type ListRouteParam struct {
-	Name string
-	Path string
-	IdIn []uint64
+	Name           string
+	Path           string
+	CollectionIdIn []uint64
 
 	// pagination
 	Page         int
@@ -92,8 +92,8 @@ func (r *route) List(ctx context.Context, param *ListRouteParam) (*ListRouteResu
 			db.Where("path like ?", "%"+param.Path+"%")
 		}
 
-		if len(param.IdIn) > 0 {
-			db.Where("id in ?", param.IdIn)
+		if len(param.CollectionIdIn) > 0 {
+			db.Where("collection_id in ?", param.CollectionIdIn)
 		}
 		return db
 	}
