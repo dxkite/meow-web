@@ -6,7 +6,6 @@ import (
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/entity"
-	"dxkite.cn/meownest/src/value"
 )
 
 // 路由组
@@ -17,7 +16,7 @@ type Collection struct {
 	Description string `json:"description"`
 	// 服务域名
 	// 外部服务访问路由的入口
-	ServerNames []*ServerName `json:"server_names,omitempty"`
+	ServerName []string `json:"server_names"`
 	// 路由信息
 	Routes []*Route `json:"routes,omitempty"`
 	// 后端服务
@@ -29,10 +28,6 @@ type Collection struct {
 	AuthorizeId string `json:"authorize_id,omitempty"`
 	// 鉴权信息
 	Authorize *Authorize `json:"authorize,omitempty"`
-	// 路由的特殊匹配规则
-	PathRewrite *value.PathRewrite `json:"path_rewrite,omitempty"`
-	// 路由的特殊匹配规则
-	ModifyOptions []*value.ModifyOption `json:"modify_options"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -42,11 +37,10 @@ func NewCollection(item *entity.Collection) *Collection {
 	obj := &Collection{Id: identity.Format(constant.CollectionPrefix, item.Id)}
 	obj.Name = item.Name
 	obj.Description = item.Description
+	obj.ServerName = item.ServerNames
 	obj.ParentId = identity.Format(constant.CollectionPrefix, item.ParentId)
 	obj.EndpointId = identity.Format(constant.EndpointPrefix, item.EndpointId)
 	obj.AuthorizeId = identity.Format(constant.AuthorizePrefix, item.AuthorizeId)
-	obj.PathRewrite = item.PathRewrite
-	obj.ModifyOptions = item.ModifyOptions
 	obj.CreatedAt = item.CreatedAt
 	obj.UpdatedAt = item.UpdatedAt
 	return obj

@@ -9,27 +9,6 @@ import (
 	"dxkite.cn/meownest/src/value"
 )
 
-// 域名
-type ServerName struct {
-	Id            string       `json:"id"`
-	Name          string       `json:"name"`                     // 域名
-	CertificateId string       `json:"certificate_id,omitempty"` // 证书
-	Certificate   *Certificate `json:"certificate,omitempty"`    // 证书
-	CreatedAt     time.Time    `json:"created_at"`
-	UpdatedAt     time.Time    `json:"updated_at"`
-}
-
-func NewServerName(item *entity.ServerName) *ServerName {
-	obj := &ServerName{
-		Id: identity.Format(constant.ServerNamePrefix, item.Id),
-	}
-	obj.Name = item.Name
-	obj.CertificateId = identity.Format(constant.CertificatePrefix, item.CertificateId)
-	obj.CreatedAt = item.CreatedAt
-	obj.UpdatedAt = item.UpdatedAt
-	return obj
-}
-
 // SSL证书
 type Certificate struct {
 	Id string `json:"id"`

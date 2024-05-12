@@ -48,7 +48,7 @@ func main() {
 	}
 
 	db := ds.Engine().(*gorm.DB)
-	db.AutoMigrate(entity.ServerName{}, entity.Certificate{},
+	db.AutoMigrate(entity.Certificate{},
 		entity.Link{}, entity.User{},
 		entity.Collection{}, entity.Route{}, entity.Endpoint{}, entity.Authorize{})
 
@@ -64,10 +64,6 @@ func main() {
 	authorizeService := service.NewAuthorize(authorizeRepository)
 	authorizeServer := server.NewAuthorize(authorizeService)
 
-	nameServerRepository := repository.NewServerName()
-	serverNameService := service.NewServerName(nameServerRepository, certificateRepository)
-	serverNameServer := server.NewServerName(serverNameService)
-
 	endpointRepository := repository.NewEndpoint()
 	endpointService := service.NewEndpoint(endpointRepository)
 	endpointServer := server.NewEndpoint(endpointService)
@@ -78,7 +74,7 @@ func main() {
 	collectionRepository := repository.NewCollection()
 	collectionService := service.NewCollection(
 		collectionRepository, linkRepository, routeRepository,
-		endpointRepository, nameServerRepository, authorizeRepository,
+		endpointRepository, authorizeRepository,
 	)
 
 	routeService := service.NewRoute(
@@ -115,7 +111,6 @@ func main() {
 
 	httpServer.RegisterPrefix("/api/v1", certificateServer)
 	httpServer.RegisterPrefix("/api/v1", userServer)
-	httpServer.RegisterPrefix("/api/v1", serverNameServer)
 	httpServer.RegisterPrefix("/api/v1", routeServer)
 	httpServer.RegisterPrefix("/api/v1", endpointServer)
 	httpServer.RegisterPrefix("/api/v1", authorizeServer)

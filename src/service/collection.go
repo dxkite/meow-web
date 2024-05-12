@@ -10,7 +10,6 @@ import (
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/utils"
-	"dxkite.cn/meownest/src/value"
 )
 
 type Collection interface {
@@ -21,14 +20,13 @@ type Collection interface {
 	List(ctx context.Context, param *ListCollectionParam) (*ListCollectionResult, error)
 }
 
-func NewCollection(r repository.Collection, rl repository.Link, rr repository.Route, re repository.Endpoint, rs repository.ServerName, ra repository.Authorize) Collection {
-	return &collection{r: r, rr: rr, rl: rl, re: re, rs: rs, ra: ra}
+func NewCollection(r repository.Collection, rl repository.Link, rr repository.Route, re repository.Endpoint, ra repository.Authorize) Collection {
+	return &collection{r: r, rr: rr, rl: rl, re: re, ra: ra}
 }
 
 type collection struct {
 	r  repository.Collection
 	rl repository.Link
-	rs repository.ServerName
 	rr repository.Route
 	re repository.Endpoint
 	ra repository.Authorize
@@ -38,17 +36,11 @@ type CreateCollectionParam struct {
 	// 父级节点
 	ParentId string `json:"parent_id" form:"parent_id"`
 	// 绑定的域名
-	ServerNameId []string `json:"server_name_id" form:"server_name"`
-
+	ServerNames []string `json:"server_names" form:"server_names"`
 	// 分组名
 	Name string `json:"name" form:"name" binding:"required"`
 	// 分组描述
 	Description string `json:"description" form:"description"`
-	// 路径重写
-	PathRewrite *value.PathRewrite `json:"path_rewrite" form:"path_rewrite"`
-	// 数据编辑
-	ModifyOptions []*value.ModifyOption `json:"modify_options" form:"modify_options"`
-
 	// 绑定的后端服务
 	EndpointId string `json:"endpoint_id" form:"endpoint_id"`
 	// 鉴权配置
@@ -60,46 +52,22 @@ func (s *collection) Create(ctx context.Context, param *CreateCollectionParam) (
 
 	database.Transaction(ctx, func(txCtx context.Context) error {
 		item, err := s.r.Create(ctx, &entity.Collection{
-			Name:          param.Name,
-			Description:   param.Description,
-			PathRewrite:   param.PathRewrite,
-			ModifyOptions: param.ModifyOptions,
-			ParentId:      identity.Parse(constant.CollectionPrefix, param.ParentId),
-			AuthorizeId:   identity.Parse(constant.AuthorizePrefix, param.AuthorizeId),
-			EndpointId:    identity.Parse(constant.EndpointPrefix, param.EndpointId),
+			Name:        param.Name,
+			Description: param.Description,
+			ServerNames: param.ServerNames,
+			ParentId:    identity.Parse(constant.CollectionPrefix, param.ParentId),
+			AuthorizeId: identity.Parse(constant.AuthorizePrefix, param.AuthorizeId),
+			EndpointId:  identity.Parse(constant.EndpointPrefix, param.EndpointId),
 		})
 
 		if err != nil {
 			return err
 		}
-
-		if err := s.batchLinkOnce(ctx, constant.LinkDirectCollectionServerName, item.Id, identity.ParseSlice(constant.ServerNamePrefix, param.ServerNameId)); err != nil {
-			return err
-		}
-
 		obj = dto.NewCollection(item)
 		return nil
 	})
 
 	return obj, nil
-}
-
-func (s *collection) batchLinkOnce(ctx context.Context, direct string, id uint64, linkedId []uint64) error {
-	return s.batchLink(ctx, direct, id, linkedId, true)
-}
-
-func (s *collection) batchLink(ctx context.Context, direct string, id uint64, linkedId []uint64, once bool) error {
-	if once {
-		if err := s.rl.DeleteSourceLink(ctx, direct, id); err != nil {
-			return err
-		}
-	}
-
-	if err := s.rl.BatchLink(ctx, direct, id, linkedId); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 type GetCollectionParam struct {
@@ -114,31 +82,6 @@ func (s *collection) Get(ctx context.Context, param *GetCollectionParam) (*dto.C
 	}
 
 	collection := dto.NewCollection(rst)
-
-	if utils.InStringSlice("server_names", param.Expand) {
-		entityIds := []uint64{}
-
-		linked, err := s.rl.Linked(ctx, constant.LinkDirectCollectionServerName, []uint64{rst.Id})
-		if err != nil {
-			return nil, err
-		}
-
-		for _, v := range linked {
-			entityIds = append(entityIds, v.LinkedId)
-		}
-
-		entities, err := s.rs.BatchGet(ctx, entityIds)
-		if err != nil {
-			return nil, err
-		}
-
-		items := make([]*dto.ServerName, len(entities))
-		for i, v := range entities {
-			items[i] = dto.NewServerName(v)
-		}
-
-		collection.ServerNames = items
-	}
 
 	if utils.InStringSlice("endpoint", param.Expand) {
 		ent, err := s.re.Get(ctx, rst.EndpointId)
@@ -224,15 +167,12 @@ func (s *collection) Update(ctx context.Context, param *UpdateCollectionParam) (
 
 		err := s.r.Update(ctx, id, &entity.Collection{
 			Name:        param.Name,
+			ServerNames: param.ServerNames,
 			AuthorizeId: identity.Parse(constant.AuthorizePrefix, param.AuthorizeId),
 			EndpointId:  identity.Parse(constant.EndpointPrefix, param.EndpointId),
 		})
 
 		if err != nil {
-			return err
-		}
-
-		if err := s.batchLinkOnce(ctx, constant.LinkDirectCollectionServerName, id, identity.ParseSlice(constant.ServerNamePrefix, param.ServerNameId)); err != nil {
 			return err
 		}
 
