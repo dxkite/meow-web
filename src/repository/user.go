@@ -31,9 +31,16 @@ type user struct {
 func (r *user) Get(ctx context.Context, id uint64) (*entity.User, error) {
 	var item entity.User
 	if err := r.dataSource(ctx).Where("id = ?", id).First(&item).Error; err != nil {
-		return nil, err
+		return nil, r.wrap(err)
 	}
 	return &item, nil
+}
+
+func (r *user) wrap(err error) error {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return ErrUserNotExist
+	}
+	return err
 }
 
 func (r *user) BatchGet(ctx context.Context, ids []uint64) ([]*entity.User, error) {
@@ -55,7 +62,7 @@ func (r *user) GetBy(ctx context.Context, param GetUserByParam) (*entity.User, e
 		db = db.Where("name = ?", param.Name)
 	}
 	if err := db.First(&item).Error; err != nil {
-		return nil, err
+		return nil, r.wrap(err)
 	}
 	return &item, nil
 }
