@@ -68,7 +68,10 @@ type Route struct {
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
 	Method      []string `json:"method"`
-	Path        string   `json:"path"`
+	// 路径
+	Path string `json:"path"`
+	// 路径类型
+	PathType string `json:"path_type"`
 	// 路由的特殊匹配规则
 	MatchOptions []*value.MatchOption `json:"match_options"`
 	// 路由重写规则
@@ -96,6 +99,7 @@ func NewRoute(item *entity.Route) *Route {
 	obj.Description = item.Description
 	obj.Method = item.Method
 	obj.Path = item.Path
+	obj.PathType = item.PathType
 	obj.MatchOptions = item.MatchOptions
 	obj.PathRewrite = item.PathRewrite
 	obj.ModifyOptions = item.ModifyOptions

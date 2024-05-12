@@ -14,7 +14,10 @@ type Route struct {
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
 	Method      []string `json:"method" gorm:"serializer:json"`
-	Path        string   `json:"path"`
+	//路径
+	Path string `json:"path"`
+	// 路径类型
+	PathType string `json:"path_type"`
 	// 匹配规则
 	MatchOptions []*value.MatchOption `json:"match_options" gorm:"serializer:json"`
 	// 路径重写

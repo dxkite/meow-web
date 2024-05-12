@@ -47,6 +47,8 @@ type CreateRouteParam struct {
 	Method []string `json:"method" form:"method" binding:"required"`
 	// 匹配路径
 	Path string `json:"path" form:"path" binding:"required"`
+	// 匹配路径
+	PathType string `json:"path_type" form:"path" binding:"required"`
 	// 特殊匹配规则
 	MatchOptions []*value.MatchOption `json:"match_options" form:"match_options" binding:"dive,required"`
 	// 路径重写
@@ -70,6 +72,7 @@ func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route
 			Description:   param.Description,
 			Method:        param.Method,
 			Path:          param.Path,
+			PathType:      param.PathType,
 			MatchOptions:  param.MatchOptions,
 			PathRewrite:   param.PathRewrite,
 			ModifyOptions: param.ModifyOptions,
@@ -212,6 +215,8 @@ type UpdateRouteParam struct {
 	Method []string `json:"method" form:"method"`
 	// 匹配路径
 	Path *string `json:"path" form:"path"`
+	// 匹配路径类型
+	PathType *string `json:"path_type" form:"path_type"`
 	// 特殊匹配规则
 	MatchOptions []*value.MatchOption `json:"match_options" form:"match_options" binding:"dive,required"`
 	// 路径重写
@@ -251,6 +256,11 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 	if param.Path != nil {
 		updateFields = append(updateFields, "path")
 		ent.Path = *param.Path
+	}
+
+	if param.PathType != nil {
+		updateFields = append(updateFields, "path_type")
+		ent.PathType = *param.PathType
 	}
 
 	if param.MatchOptions != nil {
