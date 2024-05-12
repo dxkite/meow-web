@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"dxkite.cn/meownest/pkg/data_source"
+	"dxkite.cn/meownest/pkg/database"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/dto"
@@ -63,7 +63,7 @@ type CreateRouteParam struct {
 
 func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route, error) {
 	var obj *dto.Route
-	err := data_source.Transaction(ctx, func(ctx context.Context) error {
+	err := database.Transaction(ctx, func(ctx context.Context) error {
 
 		ent, err := s.r.Create(ctx, &entity.Route{
 			Name:          param.Name,

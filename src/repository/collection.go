@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	"dxkite.cn/meownest/pkg/data_source"
+	"dxkite.cn/meownest/pkg/database"
 	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
@@ -168,5 +168,5 @@ func (r *collection) Delete(ctx context.Context, id uint64) error {
 }
 
 func (r *collection) dataSource(ctx context.Context) *gorm.DB {
-	return data_source.Get(ctx).RawSource().(*gorm.DB)
+	return database.Get(ctx).Engine().(*gorm.DB)
 }

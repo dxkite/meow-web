@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"dxkite.cn/meownest/pkg/data_source"
+	"dxkite.cn/meownest/pkg/database"
 	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
@@ -35,7 +35,7 @@ func (r *link) Link(ctx context.Context, direct string, sourceId, linkedId uint6
 }
 
 func (r *link) BatchLink(ctx context.Context, direct string, sourceId uint64, linkedIds []uint64) error {
-	return data_source.Transaction(ctx, func(txCtx context.Context) error {
+	return database.Transaction(ctx, func(txCtx context.Context) error {
 		for _, v := range linkedIds {
 			if err := r.Link(txCtx, direct, sourceId, v); err != nil {
 				return err
@@ -102,5 +102,5 @@ func (r *link) DeleteSourceLink(ctx context.Context, direct string, sourceId uin
 }
 
 func (r *link) dataSource(ctx context.Context) *gorm.DB {
-	return data_source.Get(ctx).RawSource().(*gorm.DB)
+	return database.Get(ctx).Engine().(*gorm.DB)
 }

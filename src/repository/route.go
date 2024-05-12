@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"dxkite.cn/meownest/pkg/data_source"
+	"dxkite.cn/meownest/pkg/database"
 	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
@@ -137,5 +137,5 @@ func (r *route) Batch(ctx context.Context, batchFn func(item *entity.Route) erro
 }
 
 func (r *route) dataSource(ctx context.Context) *gorm.DB {
-	return data_source.Get(ctx).RawSource().(*gorm.DB)
+	return database.Get(ctx).Engine().(*gorm.DB)
 }

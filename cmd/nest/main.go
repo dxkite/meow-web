@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"dxkite.cn/meownest/pkg/agent"
-	"dxkite.cn/meownest/pkg/data_source"
-	"dxkite.cn/meownest/pkg/data_source/sqlite"
+	data_source "dxkite.cn/meownest/pkg/database"
+	"dxkite.cn/meownest/pkg/database/sqlite"
 	"dxkite.cn/meownest/pkg/httpserver"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/entity"
@@ -46,7 +46,7 @@ func main() {
 		panic(err)
 	}
 
-	db := ds.RawSource().(*gorm.DB)
+	db := ds.Engine().(*gorm.DB)
 	db.AutoMigrate(entity.ServerName{}, entity.Certificate{},
 		entity.Link{}, entity.User{},
 		entity.Collection{}, entity.Route{}, entity.Endpoint{}, entity.Authorize{})

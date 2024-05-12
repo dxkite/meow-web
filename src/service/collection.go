@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"dxkite.cn/meownest/pkg/data_source"
+	"dxkite.cn/meownest/pkg/database"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/dto"
@@ -58,7 +58,7 @@ type CreateCollectionParam struct {
 func (s *collection) Create(ctx context.Context, param *CreateCollectionParam) (*dto.Collection, error) {
 	var obj *dto.Collection
 
-	data_source.Transaction(ctx, func(txCtx context.Context) error {
+	database.Transaction(ctx, func(txCtx context.Context) error {
 		item, err := s.r.Create(ctx, &entity.Collection{
 			Name:          param.Name,
 			Description:   param.Description,
@@ -219,7 +219,7 @@ type UpdateCollectionParam struct {
 }
 
 func (s *collection) Update(ctx context.Context, param *UpdateCollectionParam) (*dto.Collection, error) {
-	data_source.Transaction(ctx, func(txCtx context.Context) error {
+	database.Transaction(ctx, func(txCtx context.Context) error {
 		id := identity.Parse(constant.CollectionPrefix, param.Id)
 
 		err := s.r.Update(ctx, id, &entity.Collection{
