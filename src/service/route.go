@@ -8,6 +8,7 @@ import (
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/dto"
 	"dxkite.cn/meownest/src/entity"
+	"dxkite.cn/meownest/src/enum"
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/utils"
 	"dxkite.cn/meownest/src/value"
@@ -47,7 +48,7 @@ type CreateRouteParam struct {
 	// 匹配路径
 	Path string `json:"path" form:"path" binding:"required"`
 	// 匹配路径
-	PathType string `json:"path_type" form:"path" binding:"required"`
+	PathType enum.RoutePathType `json:"path_type" form:"path" binding:"required"`
 	// 特殊匹配规则
 	MatchOptions []*value.MatchOption `json:"match_options" form:"match_options" binding:"dive,required"`
 	// 路径重写
@@ -60,6 +61,8 @@ type CreateRouteParam struct {
 	EndpointId string `json:"endpoint_id" form:"endpoint_id"`
 	// 鉴权配置
 	AuthorizeId string `json:"authorize_id" form:"authorize_id"`
+	// 路由状态
+	Status enum.RouteStatus `json:"status"`
 }
 
 func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route, error) {
@@ -75,6 +78,7 @@ func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route
 			MatchOptions:  param.MatchOptions,
 			PathRewrite:   param.PathRewrite,
 			ModifyOptions: param.ModifyOptions,
+			Status:        param.Status,
 			CollectionId:  identity.Parse(constant.CollectionPrefix, param.CollectionId),
 			AuthorizeId:   identity.Parse(constant.AuthorizePrefix, param.AuthorizeId),
 			EndpointId:    identity.Parse(constant.EndpointPrefix, param.EndpointId),
@@ -206,7 +210,7 @@ type UpdateRouteParam struct {
 	// 匹配路径
 	Path *string `json:"path" form:"path"`
 	// 匹配路径类型
-	PathType *string `json:"path_type" form:"path_type"`
+	PathType *enum.RoutePathType `json:"path_type" form:"path_type"`
 	// 特殊匹配规则
 	MatchOptions []*value.MatchOption `json:"match_options" form:"match_options" binding:"dive,required"`
 	// 路径重写
@@ -219,6 +223,8 @@ type UpdateRouteParam struct {
 	EndpointId *string `json:"endpoint_id" form:"endpoint_id"`
 	// 鉴权配置
 	AuthorizeId *string `json:"authorize_id" form:"authorize_id"`
+	// 路由状态
+	Status *enum.RouteStatus `json:"status"`
 }
 
 func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route, error) {
@@ -266,6 +272,11 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 	if param.PathRewrite != nil {
 		updateFields = append(updateFields, "path_rewrite")
 		ent.PathRewrite = param.PathRewrite
+	}
+
+	if param.Status != nil {
+		updateFields = append(updateFields, "status")
+		ent.Status = *param.Status
 	}
 
 	if param.CollectionId != nil {

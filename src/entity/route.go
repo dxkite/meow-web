@@ -3,6 +3,7 @@ package entity
 import (
 	"time"
 
+	"dxkite.cn/meownest/src/enum"
 	"dxkite.cn/meownest/src/value"
 )
 
@@ -17,7 +18,7 @@ type Route struct {
 	//路径
 	Path string `json:"path"`
 	// 路径类型
-	PathType string `json:"path_type"`
+	PathType enum.RoutePathType `json:"path_type"`
 	// 匹配规则
 	MatchOptions []*value.MatchOption `json:"match_options" gorm:"serializer:json"`
 	// 路径重写
@@ -30,6 +31,8 @@ type Route struct {
 	AuthorizeId uint64 `gorm:"index"`
 	// 后端服务ID
 	EndpointId uint64 `gorm:"index"`
+	// 路由状态
+	Status enum.RouteStatus
 }
 
 func NewRoute() *Route {
