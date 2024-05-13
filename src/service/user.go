@@ -36,8 +36,9 @@ type user struct {
 }
 
 type CreateUserParam struct {
-	Name     string `json:"name"`
-	Password string `json:"password"`
+	Name     string   `json:"name"`
+	Scope    []string `json:"scope"`
+	Password string   `json:"password"`
 }
 
 func (s *user) Create(ctx context.Context, param *CreateUserParam) (*dto.User, error) {
@@ -59,6 +60,7 @@ func (s *user) Create(ctx context.Context, param *CreateUserParam) (*dto.User, e
 	}
 
 	ent.Password = passwdHash
+	ent.Scope = param.Scope
 
 	resp, err := s.r.Create(ctx, ent)
 	if err != nil {
@@ -149,6 +151,7 @@ type UpdateUserParam struct {
 func (s *user) Update(ctx context.Context, param *UpdateUserParam) (*dto.User, error) {
 	id := identity.Parse(constant.UserPrefix, param.Id)
 	ent := entity.NewUser()
+	ent.Scope = param.Scope
 
 	err := s.r.Update(ctx, id, ent)
 	if err != nil {
