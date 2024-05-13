@@ -65,6 +65,7 @@ func Error(c *gin.Context, status int, code, message string) {
 		Code:    code,
 		Message: message,
 	}).Respond(c)
+
 }
 
 func Result(c *gin.Context, status int, data interface{}) {

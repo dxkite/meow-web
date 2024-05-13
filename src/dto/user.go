@@ -17,7 +17,7 @@ type User struct {
 	// 用户名
 	Name string `json:"name"`
 	// 用户权限
-	Scope []string `json:"scope"`
+	Scopes []string `json:"scopes"`
 	// 用户状态
 	Status enum.UserStatus `json:"status"`
 }
@@ -28,6 +28,7 @@ func NewUser(ent *entity.User) *User {
 	obj.CreatedAt = ent.CreatedAt
 	obj.UpdatedAt = ent.UpdatedAt
 	obj.Name = ent.Name
+	obj.Scopes = ent.Scopes
 	obj.Status = ent.Status
 	return obj
 }

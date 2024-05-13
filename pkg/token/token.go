@@ -52,6 +52,7 @@ func (t *BinaryToken) Decrypt(token string, c Crypto) error {
 	if err != nil {
 		return err
 	}
+
 	tokDec, err := c.Decrypt(buf)
 	if err != nil {
 		return err

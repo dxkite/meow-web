@@ -5,7 +5,6 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"errors"
-	"fmt"
 	"io"
 )
 
@@ -26,7 +25,7 @@ func (c *aesCrypto) Encrypt(data []byte) (encryptData []byte, err error) {
 }
 
 func (c *aesCrypto) Decrypt(encryptData []byte) (data []byte, err error) {
-	return aesDecrypt(c.key, data)
+	return aesDecrypt(c.key, encryptData)
 }
 
 func aesEncrypt(key, data []byte) ([]byte, error) {
@@ -36,7 +35,7 @@ func aesEncrypt(key, data []byte) ([]byte, error) {
 	}
 	gcm, err := cipher.NewGCM(c)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {

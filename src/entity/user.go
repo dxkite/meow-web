@@ -13,7 +13,7 @@ type User struct {
 	// 密码
 	Password string
 	// 权限
-	Scope []string `gorm:"serializer:json"`
+	Scopes []string `gorm:"serializer:json"`
 	// 用户状态
 	Status enum.UserStatus
 

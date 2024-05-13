@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"reflect"
 	"strings"
 	"time"
@@ -48,16 +49,19 @@ func main() {
 	}
 
 	db := ds.Engine().(*gorm.DB)
-	db.AutoMigrate(entity.Certificate{}, entity.User{},
+	db.AutoMigrate(entity.Certificate{}, entity.User{}, entity.Session{},
 		entity.Collection{}, entity.Route{}, entity.Endpoint{}, entity.Authorize{})
 
 	certificateRepository := repository.NewCertificate()
 	certificateService := service.NewCertificate(certificateRepository)
 	certificateServer := server.NewCertificate(certificateService)
 
+	SessionIdName := "session_id"
+
 	userRepository := repository.NewUser()
-	userService := service.NewUser(userRepository, []byte("12345678901234567890123456789012"))
-	userServer := server.NewUser(userService)
+	sessionRepository := repository.NewSession()
+	userService := service.NewUser(userRepository, sessionRepository, []byte("12345678901234567890123456789012"))
+	userServer := server.NewUser(userService, SessionIdName)
 
 	authorizeRepository := repository.NewAuthorize()
 	authorizeService := service.NewAuthorize(authorizeRepository)
@@ -105,6 +109,27 @@ func main() {
 	httpServer.Use(func(ctx *gin.Context) {
 		ctx.Request = ctx.Request.WithContext(database.With(ctx.Request.Context(), ds))
 	})
+
+	httpServer.Use(httpserver.Identity(httpserver.IdentityConfig{
+		Ident: func(ctx *gin.Context) (id uint64, scopes []string, err error) {
+			cookie, _ := ctx.Cookie(SessionIdName)
+			if cookie != "" {
+				return userService.GetSession(ctx, cookie)
+			}
+
+			auth := ctx.Request.Header.Get("Authorization")
+			if auth == "" {
+				return
+			}
+			tks := strings.SplitN(auth, " ", 2)
+			if tks[0] != "Bearer" {
+				httpserver.Error(ctx, http.StatusUnauthorized, "invalid_token", "invalid token type")
+				ctx.Abort()
+				return
+			}
+			return userService.GetSession(ctx, tks[1])
+		},
+	}))
 
 	httpServer.RegisterPrefix("/api/v1", certificateServer)
 	httpServer.RegisterPrefix("/api/v1", userServer)

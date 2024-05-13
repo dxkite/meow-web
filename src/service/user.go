@@ -24,20 +24,22 @@ type User interface {
 	Delete(ctx context.Context, param *DeleteUserParam) error
 	List(ctx context.Context, param *ListUserParam) (*ListUserResult, error)
 	Session(ctx context.Context, param *CreateUserSessionParam) (*CreateSessionResult, error)
+	GetSession(ctx context.Context, tokStr string) (uint64, []string, error)
 }
 
-func NewUser(r repository.User, aseKey []byte) User {
-	return &user{r: r, aseKey: aseKey}
+func NewUser(r repository.User, rs repository.Session, aseKey []byte) User {
+	return &user{r: r, rs: rs, aseKey: aseKey}
 }
 
 type user struct {
 	r      repository.User
+	rs     repository.Session
 	aseKey []byte
 }
 
 type CreateUserParam struct {
 	Name     string   `json:"name"`
-	Scope    []string `json:"scope"`
+	Scopes   []string `json:"scopes"`
 	Password string   `json:"password"`
 }
 
@@ -60,7 +62,7 @@ func (s *user) Create(ctx context.Context, param *CreateUserParam) (*dto.User, e
 	}
 
 	ent.Password = passwdHash
-	ent.Scope = param.Scope
+	ent.Scopes = param.Scopes
 
 	resp, err := s.r.Create(ctx, ent)
 	if err != nil {
@@ -151,7 +153,7 @@ type UpdateUserParam struct {
 func (s *user) Update(ctx context.Context, param *UpdateUserParam) (*dto.User, error) {
 	id := identity.Parse(constant.UserPrefix, param.Id)
 	ent := entity.NewUser()
-	ent.Scope = param.Scope
+	ent.Scopes = param.Scopes
 
 	err := s.r.Update(ctx, id, ent)
 	if err != nil {
@@ -164,11 +166,16 @@ func (s *user) Update(ctx context.Context, param *UpdateUserParam) (*dto.User, e
 type CreateUserSessionParam struct {
 	Name     string `json:"name" binding:"required"`
 	Password string `json:"password" binding:"required"`
+	Address  string `json:"-"`
+	Agent    string `json:"-"`
 }
 
 type CreateSessionResult struct {
 	Type     string    `json:"type"`
+	UserId   string    `json:"user_id"`
+	Name     string    `json:"name"`
 	Token    string    `json:"token"`
+	Scopes   []string  `json:"scopes"`
 	ExpireAt time.Time `json:"expire_at"`
 }
 
@@ -185,14 +192,24 @@ func (s *user) Session(ctx context.Context, param *CreateUserSessionParam) (*Cre
 	// 一小时过期
 	expireAt := time.Now().Add(time.Hour)
 
+	// 创建会话
+	ent, err := s.rs.Create(ctx, &entity.Session{UserId: user.Id, Address: param.Address, Agent: param.Agent, ExpireAt: expireAt})
+	if err != nil {
+		return nil, err
+	}
+
+	// 创建 token
 	tok := &token.BinaryToken{
-		Id:       user.Id,
+		Id:       ent.Id,
 		ExpireAt: uint64(expireAt.Unix()),
 	}
 
 	rst := &CreateSessionResult{}
 	rst.Type = "Bearer"
+	rst.Name = user.Name
+	rst.UserId = identity.Format(constant.UserPrefix, user.Id)
 	rst.ExpireAt = expireAt
+	rst.Scopes = user.Scopes
 	rst.Token, err = tok.Encrypt(token.NewAesCrypto(s.aseKey))
 
 	if err != nil {
@@ -200,4 +217,28 @@ func (s *user) Session(ctx context.Context, param *CreateUserSessionParam) (*Cre
 	}
 
 	return rst, nil
+}
+
+func (s *user) GetSession(ctx context.Context, tokStr string) (uint64, []string, error) {
+	tok := &token.BinaryToken{}
+	err := tok.Decrypt(tokStr, token.NewAesCrypto(s.aseKey))
+	if err != nil {
+		return 0, nil, err
+	}
+
+	if uint64(time.Now().Unix()) > tok.ExpireAt {
+		return 0, nil, nil
+	}
+
+	session, err := s.rs.Get(ctx, tok.Id)
+	if err != nil {
+		return 0, nil, nil
+	}
+
+	user, err := s.r.Get(ctx, session.UserId)
+	if err != nil {
+		return 0, nil, nil
+	}
+
+	return tok.Id, user.Scopes, nil
 }

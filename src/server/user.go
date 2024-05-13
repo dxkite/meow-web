@@ -8,12 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func NewUser(s service.User) *User {
-	return &User{s: s}
+func NewUser(s service.User, session string) *User {
+	return &User{s: s, session: session}
 }
 
 type User struct {
-	s service.User
+	s       service.User
+	session string
 }
 
 // Create User
@@ -193,14 +194,16 @@ func (s *User) Session(c *gin.Context) {
 		return
 	}
 
+	c.SetCookie(s.session, rst.Token, 360, "", "", true, true)
+
 	httpserver.Result(c, http.StatusOK, rst)
 }
 
 func (s *User) RegisterToHttp(route gin.IRouter) {
-	route.POST("/users", s.Create)
-	route.GET("/users", s.List)
-	route.GET("/users/:id", s.Get)
-	route.POST("/users/:id", s.Update)
-	route.DELETE("/users/:id", s.Delete)
+	route.POST("/users", httpserver.ScopeRequired("user:write"), s.Create)
+	route.GET("/users", httpserver.ScopeRequired("user:read"), s.List)
+	route.GET("/users/:id", httpserver.ScopeRequired("user:read"), s.Get)
+	route.POST("/users/:id", httpserver.ScopeRequired("user:write"), s.Update)
+	route.DELETE("/users/:id", httpserver.ScopeRequired("user:write"), s.Delete)
 	route.POST("/users/session", s.Session)
 }
