@@ -15,6 +15,8 @@ import (
 type CreateEndpointParam struct {
 	// 服务备注名
 	Name string `json:"name" form:"name" binding:"required"`
+	// 服务描述
+	Description string `json:"description" form:"description"`
 	// 服务类型
 	Type enum.EndpointType `json:"type" binding:"required"`
 	// 远程服务
@@ -44,9 +46,10 @@ type endpoint struct {
 
 func (s *endpoint) Create(ctx context.Context, param *CreateEndpointParam) (*dto.Endpoint, error) {
 	rst, err := s.r.Create(ctx, &entity.Endpoint{
-		Name:     param.Name,
-		Type:     param.Type,
-		Endpoint: param.Endpoint,
+		Name:        param.Name,
+		Type:        param.Type,
+		Description: param.Description,
+		Endpoint:    param.Endpoint,
 	})
 	if err != nil {
 		return nil, err
@@ -129,9 +132,10 @@ type UpdateEndpointParam struct {
 func (s *endpoint) Update(ctx context.Context, param *UpdateEndpointParam) (*dto.Endpoint, error) {
 	id := identity.Parse(constant.EndpointPrefix, param.Id)
 	err := s.r.Update(ctx, id, &entity.Endpoint{
-		Name:     param.Name,
-		Type:     param.Type,
-		Endpoint: param.Endpoint,
+		Name:        param.Name,
+		Type:        param.Type,
+		Description: param.Description,
+		Endpoint:    param.Endpoint,
 	})
 	if err != nil {
 		return nil, err

@@ -13,6 +13,8 @@ type Endpoint struct {
 	Base
 	// 服务名称
 	Name string `json:"name"`
+	// 服务描述
+	Description string
 	// 服务类型
 	Type enum.EndpointType `json:"type"`
 	// 远程服务

@@ -15,6 +15,8 @@ type Endpoint struct {
 	Id string `json:"id"`
 	// 后端名
 	Name string `json:"name"`
+	// 服务描述
+	Description string
 	// 服务类型
 	Type enum.EndpointType `json:"type"`
 	// 远程服务
@@ -28,6 +30,7 @@ func NewEndpoint(item *entity.Endpoint) *Endpoint {
 	obj := &Endpoint{Id: identity.Format(constant.EndpointPrefix, item.Id)}
 	obj.Name = item.Name
 	obj.Type = item.Type
+	obj.Description = item.Description
 	obj.Endpoint = item.Endpoint
 	obj.CreatedAt = item.CreatedAt
 	obj.UpdatedAt = item.UpdatedAt
