@@ -1811,6 +1811,10 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
+                "description": {
+                    "description": "服务描述",
+                    "type": "string"
+                },
                 "endpoint": {
                     "description": "远程服务",
                     "allOf": [
@@ -1945,10 +1949,23 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "description": "用户名",
                     "type": "string"
                 },
+                "scopes": {
+                    "description": "用户权限",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "status": {
-                    "type": "string"
+                    "description": "用户状态",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/enum.UserStatus"
+                        }
+                    ]
                 },
                 "updated_at": {
                     "type": "string"
@@ -1984,6 +2001,17 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "RouteStatusActive",
                 "RouteStatusInactive"
+            ]
+        },
+        "enum.UserStatus": {
+            "type": "string",
+            "enum": [
+                "active",
+                "inactive"
+            ],
+            "x-enum-varnames": [
+                "UserStatusActive",
+                "UserStatusInactive"
             ]
         },
         "httpserver.HttpError": {
@@ -2054,6 +2082,10 @@ const docTemplate = `{
                 "type"
             ],
             "properties": {
+                "description": {
+                    "description": "服务描述",
+                    "type": "string"
+                },
                 "endpoint": {
                     "description": "远程服务",
                     "allOf": [
@@ -2164,10 +2196,22 @@ const docTemplate = `{
                 "expire_at": {
                     "type": "string"
                 },
+                "name": {
+                    "type": "string"
+                },
+                "scopes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "token": {
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                },
+                "user_id": {
                     "type": "string"
                 }
             }
@@ -2180,6 +2224,12 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                },
+                "scopes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -2376,6 +2426,10 @@ const docTemplate = `{
                 "type"
             ],
             "properties": {
+                "description": {
+                    "description": "服务描述",
+                    "type": "string"
+                },
                 "endpoint": {
                     "description": "远程服务",
                     "allOf": [
@@ -2497,6 +2551,12 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                },
+                "scopes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

@@ -91,6 +91,9 @@ definitions:
     properties:
       created_at:
         type: string
+      description:
+        description: 服务描述
+        type: string
       endpoint:
         allOf:
         - $ref: '#/definitions/value.ForwardEndpoint'
@@ -173,9 +176,17 @@ definitions:
       id:
         type: string
       name:
+        description: 用户名
         type: string
+      scopes:
+        description: 用户权限
+        items:
+          type: string
+        type: array
       status:
-        type: string
+        allOf:
+        - $ref: '#/definitions/enum.UserStatus'
+        description: 用户状态
       updated_at:
         type: string
     type: object
@@ -201,6 +212,14 @@ definitions:
     x-enum-varnames:
     - RouteStatusActive
     - RouteStatusInactive
+  enum.UserStatus:
+    enum:
+    - active
+    - inactive
+    type: string
+    x-enum-varnames:
+    - UserStatusActive
+    - UserStatusInactive
   httpserver.HttpError:
     properties:
       error:
@@ -244,6 +263,9 @@ definitions:
     type: object
   service.CreateEndpointParam:
     properties:
+      description:
+        description: 服务描述
+        type: string
       endpoint:
         allOf:
         - $ref: '#/definitions/value.ForwardEndpoint'
@@ -319,9 +341,17 @@ definitions:
     properties:
       expire_at:
         type: string
+      name:
+        type: string
+      scopes:
+        items:
+          type: string
+        type: array
       token:
         type: string
       type:
+        type: string
+      user_id:
         type: string
     type: object
   service.CreateUserParam:
@@ -330,6 +360,10 @@ definitions:
         type: string
       password:
         type: string
+      scopes:
+        items:
+          type: string
+        type: array
     type: object
   service.CreateUserSessionParam:
     properties:
@@ -457,6 +491,9 @@ definitions:
     type: object
   service.UpdateEndpointParam:
     properties:
+      description:
+        description: 服务描述
+        type: string
       endpoint:
         allOf:
         - $ref: '#/definitions/value.ForwardEndpoint'
@@ -538,6 +575,10 @@ definitions:
         type: string
       password:
         type: string
+      scopes:
+        items:
+          type: string
+        type: array
     required:
     - id
     type: object
