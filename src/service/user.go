@@ -23,7 +23,8 @@ type User interface {
 	Get(ctx context.Context, param *GetUserParam) (*dto.User, error)
 	Delete(ctx context.Context, param *DeleteUserParam) error
 	List(ctx context.Context, param *ListUserParam) (*ListUserResult, error)
-	Session(ctx context.Context, param *CreateUserSessionParam) (*CreateSessionResult, error)
+	CreateSession(ctx context.Context, param *CreateUserSessionParam) (*CreateSessionResult, error)
+	DeleteSession(ctx context.Context, userId uint64) error
 	GetSession(ctx context.Context, tokStr string) (uint64, []string, error)
 }
 
@@ -179,7 +180,7 @@ type CreateSessionResult struct {
 	ExpireAt time.Time `json:"expire_at"`
 }
 
-func (s *user) Session(ctx context.Context, param *CreateUserSessionParam) (*CreateSessionResult, error) {
+func (s *user) CreateSession(ctx context.Context, param *CreateUserSessionParam) (*CreateSessionResult, error) {
 	user, err := s.r.GetBy(ctx, repository.GetUserByParam{Name: param.Name})
 	if err != nil {
 		return nil, ErrNamePasswordError
@@ -240,5 +241,13 @@ func (s *user) GetSession(ctx context.Context, tokStr string) (uint64, []string,
 		return 0, nil, nil
 	}
 
-	return tok.Id, user.Scopes, nil
+	return user.Id, user.Scopes, nil
+}
+
+func (s *user) DeleteSession(ctx context.Context, userId uint64) error {
+	err := s.rs.SetDeletedByUser(ctx, userId)
+	if err != nil {
+		return err
+	}
+	return nil
 }

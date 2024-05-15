@@ -15,6 +15,7 @@ type Session interface {
 	Delete(ctx context.Context, id uint64) error
 	List(ctx context.Context, param *ListSessionParam) (*ListSessionResult, error)
 	BatchGet(ctx context.Context, ids []uint64) ([]*entity.Session, error)
+	SetDeletedByUser(ctx context.Context, userId uint64) error
 }
 
 func NewSession() Session {
@@ -26,7 +27,7 @@ type session struct {
 
 func (r *session) Get(ctx context.Context, id uint64) (*entity.Session, error) {
 	var item entity.Session
-	if err := r.dataSource(ctx).Where("id = ?", id).First(&item).Error; err != nil {
+	if err := r.dataSource(ctx).Where("id = ? and deleted = 0", id).First(&item).Error; err != nil {
 		return nil, err
 	}
 	return &item, nil
@@ -94,6 +95,13 @@ func (r *session) Create(ctx context.Context, session *entity.Session) (*entity.
 
 func (r *session) Update(ctx context.Context, id uint64, ent *entity.Session) error {
 	if err := r.dataSource(ctx).Where("id = ?", id).Updates(&ent).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *session) SetDeletedByUser(ctx context.Context, userId uint64) error {
+	if err := r.dataSource(ctx).Where("user_id = ?", userId).Updates(entity.Session{Deleted: 1}).Error; err != nil {
 		return err
 	}
 	return nil

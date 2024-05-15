@@ -169,10 +169,10 @@ func (s *User) Delete(c *gin.Context) {
 	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
-// Create User Session
+// Create User CreateSession
 //
-// @Summary      Create User Session
-// @Description  Create User Session
+// @Summary      Create User CreateSession
+// @Description  Create User CreateSession
 // @Tags         User
 // @Accept       json
 // @Produce      json
@@ -181,7 +181,7 @@ func (s *User) Delete(c *gin.Context) {
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /users/session [post]
-func (s *User) Session(c *gin.Context) {
+func (s *User) CreateSession(c *gin.Context) {
 	var param service.CreateUserSessionParam
 
 	if err := c.ShouldBind(&param); err != nil {
@@ -189,7 +189,7 @@ func (s *User) Session(c *gin.Context) {
 		return
 	}
 
-	rst, err := s.s.Session(c, &param)
+	rst, err := s.s.CreateSession(c, &param)
 	if err != nil {
 		httpserver.ResultError(c, err)
 		return
@@ -200,11 +200,37 @@ func (s *User) Session(c *gin.Context) {
 	httpserver.Result(c, http.StatusOK, rst)
 }
 
+// Delete User Session
+//
+// @Summary      Delete User Session
+// @Description  Delete User Session
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Success      200
+// @Failure      400  {object} httpserver.HttpError
+// @Failure      500  {object} httpserver.HttpError
+// @Router       /users/session [delete]
+func (s *User) DeleteSession(c *gin.Context) {
+
+	userId := httpserver.IdentityFrom(c)
+
+	err := s.s.DeleteSession(c, userId)
+	if err != nil {
+		httpserver.ResultError(c, err)
+		return
+	}
+
+	httpserver.ResultEmpty(c, http.StatusOK)
+}
+
 func (s *User) RegisterToHttp(route gin.IRouter) {
+	route.POST("/users/session", s.CreateSession)
+	route.DELETE("/users/session", httpserver.IdentityRequired(), s.DeleteSession)
 	route.POST("/users", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Create)
 	route.GET("/users", httpserver.ScopeRequired(constant.ScopeUserRead), s.List)
+
 	route.GET("/users/:id", httpserver.ScopeRequired(constant.ScopeUserRead), s.Get)
 	route.POST("/users/:id", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Update)
 	route.DELETE("/users/:id", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Delete)
-	route.POST("/users/session", s.Session)
 }

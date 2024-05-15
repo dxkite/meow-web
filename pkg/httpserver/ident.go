@@ -19,7 +19,7 @@ func Identity(cfg IdentityConfig) gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-		ctx.Set("ident", id)
+		ctx.Set("identity", id)
 		ctx.Set("scopes", scopes)
 	}
 }
@@ -53,11 +53,15 @@ func ScopeRequired(scopes ...string) gin.HandlerFunc {
 
 func IdentityRequired() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		ident := ctx.GetUint64("ident")
+		ident := ctx.GetUint64("identity")
 		if ident == 0 {
 			Error(ctx, http.StatusUnauthorized, "invalid_ident", "identity required")
 			ctx.Abort()
 			return
 		}
 	}
+}
+
+func IdentityFrom(c *gin.Context) uint64 {
+	return c.GetUint64("identity")
 }
