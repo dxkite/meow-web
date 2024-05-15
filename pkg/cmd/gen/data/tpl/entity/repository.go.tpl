@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"{{ .Pkg }}/pkg/data_source"
+	"{{ .Pkg }}/pkg/database"
 	"{{ .Pkg }}/src/entity"
 	"gorm.io/gorm"
 )
@@ -108,5 +108,5 @@ func (r *{{ .PrivateName }}) Delete(ctx context.Context, id uint64) error {
 }
 
 func (r *{{ .PrivateName }}) dataSource(ctx context.Context) *gorm.DB {
-	return data_source.Get(ctx).RawSource().(*gorm.DB)
+	return database.Get(ctx).Engine().(*gorm.DB)
 }

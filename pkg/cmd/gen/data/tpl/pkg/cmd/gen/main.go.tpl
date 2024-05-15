@@ -12,7 +12,7 @@ import (
 	"strings"
 	"text/template"
 
-	"dxkite.cn/meownest/pkg"
+	"{{ .Pkg }}/pkg"
 )
 
 //go:embed data/tpl
