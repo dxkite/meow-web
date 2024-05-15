@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"dxkite.cn/meownest/pkg/httpserver"
+	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-gonic/gin"
 )
@@ -200,10 +201,10 @@ func (s *User) Session(c *gin.Context) {
 }
 
 func (s *User) RegisterToHttp(route gin.IRouter) {
-	route.POST("/users", httpserver.ScopeRequired("user:write"), s.Create)
-	route.GET("/users", httpserver.ScopeRequired("user:read"), s.List)
-	route.GET("/users/:id", httpserver.ScopeRequired("user:read"), s.Get)
-	route.POST("/users/:id", httpserver.ScopeRequired("user:write"), s.Update)
-	route.DELETE("/users/:id", httpserver.ScopeRequired("user:write"), s.Delete)
+	route.POST("/users", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Create)
+	route.GET("/users", httpserver.ScopeRequired(constant.ScopeUserRead), s.List)
+	route.GET("/users/:id", httpserver.ScopeRequired(constant.ScopeUserRead), s.Get)
+	route.POST("/users/:id", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Update)
+	route.DELETE("/users/:id", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Delete)
 	route.POST("/users/session", s.Session)
 }
