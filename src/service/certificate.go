@@ -38,6 +38,8 @@ func (s *certificate) Create(ctx context.Context, param *CreateCertificateParam)
 		return nil, err
 	}
 
+	entity.Name = param.Name
+
 	resp, err := s.r.Create(ctx, entity)
 	if err != nil {
 		return nil, err
@@ -126,10 +128,15 @@ type UpdateCertificateParam struct {
 
 func (s *certificate) Update(ctx context.Context, param *UpdateCertificateParam) (*dto.Certificate, error) {
 	id := identity.Parse(constant.CertificatePrefix, param.Id)
-	err := s.r.Update(ctx, id, &entity.Certificate{
-		Name: param.Name,
-	})
+
+	entity, err := entity.NewCertificateWithCertificateKey(param.Certificate, param.Key)
 	if err != nil {
+		return nil, err
+	}
+
+	entity.Name = param.Name
+
+	if err := s.r.Update(ctx, id, entity); err != nil {
 		return nil, err
 	}
 
