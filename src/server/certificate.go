@@ -23,8 +23,7 @@ type Certificate struct {
 // @Tags         证书
 // @Accept       json
 // @Produce      json
-// @Param        id path string true "证书ID"
-// @Param        expand query []string false "展开数据"
+// @Param        body body service.CreateCertificateParam true "数据"
 // @Success      200  {object} dto.Certificate
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
@@ -88,9 +87,9 @@ func (s *Certificate) Get(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        name query string false "证书"
-// @Param        limit query int false "限制"
-// @Param        starting_after query string false "从当前ID开始"
-// @Param        ending_before query string false "从当前ID结束"
+// @Param		 include_total query bool false "是否包含total"
+// @Param        page query int false "页码"
+// @Param        pre_page query int false "每页数量"
 // @Param        expand query []string false "展开数据"
 // @Success      200  {object} service.ListCertificateResult
 // @Failure      400  {object} httpserver.HttpError
@@ -122,7 +121,7 @@ func (s *Certificate) List(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "证书ID"
 // @Param        body body service.UpdateCertificateParam true "数据"
-// @Success      200  {object} service.Certificate
+// @Success      200  {object} dto.Authorize
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /certificates/{id} [post]

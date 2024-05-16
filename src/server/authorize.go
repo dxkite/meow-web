@@ -23,8 +23,7 @@ type Authorize struct {
 // @Tags         Authorize
 // @Accept       json
 // @Produce      json
-// @Param        id path string true "Authorize ID"
-// @Param        expand query []string false "expand attribute list"
+// @Param        body body service.CreateAuthorizeParam true "数据"
 // @Success      200  {object} dto.Authorize
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
@@ -122,7 +121,7 @@ func (s *Authorize) List(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "Authorize ID"
 // @Param        body body service.UpdateAuthorizeParam true "data"
-// @Success      200  {object} service.Authorize
+// @Success      200  {object} dto.Authorize
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /authorizes/{id} [post]
