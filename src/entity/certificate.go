@@ -34,8 +34,5 @@ func NewCertificateWithCertificateKey(certStr, keyStr string) (*Certificate, err
 	entity.NotBefore = leaf.NotBefore
 	entity.NotAfter = leaf.NotAfter
 	entity.DNSNames = leaf.DNSNames
-	if len(entity.DNSNames) > 0 {
-		entity.Name = entity.DNSNames[0]
-	}
 	return entity, nil
 }

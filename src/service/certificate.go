@@ -59,6 +59,8 @@ func (s *certificate) Get(ctx context.Context, param *GetCertificateParam) (*dto
 		return nil, err
 	}
 	obj := dto.NewCertificate(ent)
+	obj.Key = ent.Key
+	obj.Certificate = ent.Certificate
 	return obj, nil
 }
 

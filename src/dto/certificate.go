@@ -37,7 +37,5 @@ func NewCertificate(item *entity.Certificate) *Certificate {
 	obj.DNSNames = item.DNSNames
 	obj.CreatedAt = item.CreatedAt
 	obj.UpdatedAt = item.UpdatedAt
-	obj.Key = item.Key
-	obj.Certificate = item.Certificate
 	return obj
 }
