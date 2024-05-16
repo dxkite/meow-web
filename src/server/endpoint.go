@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"dxkite.cn/meownest/pkg/httpserver"
+	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-gonic/gin"
 )
@@ -168,9 +169,9 @@ func (s *Endpoint) Delete(c *gin.Context) {
 }
 
 func (s *Endpoint) RegisterToHttp(route gin.IRouter) {
-	route.POST("/endpoints", s.Create)
-	route.GET("/endpoints", s.List)
-	route.GET("/endpoints/:id", s.Get)
-	route.POST("/endpoints/:id", s.Update)
-	route.DELETE("/endpoints/:id", s.Delete)
+	route.POST("/endpoints", httpserver.ScopeRequired(constant.ScopeEndpointWrite), s.Create)
+	route.GET("/endpoints", httpserver.ScopeRequired(constant.ScopeEndpointRead), s.List)
+	route.GET("/endpoints/:id", httpserver.ScopeRequired(constant.ScopeEndpointRead), s.Get)
+	route.POST("/endpoints/:id", httpserver.ScopeRequired(constant.ScopeEndpointWrite), s.Update)
+	route.DELETE("/endpoints/:id", httpserver.ScopeRequired(constant.ScopeEndpointWrite), s.Delete)
 }
