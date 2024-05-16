@@ -236,6 +236,32 @@ definitions:
       message:
         type: string
     type: object
+  service.CreateAuthorizeParam:
+    properties:
+      attribute:
+        $ref: '#/definitions/value.AuthorizeAttribute'
+      name:
+        type: string
+      type:
+        type: string
+    required:
+    - attribute
+    - name
+    - type
+    type: object
+  service.CreateCertificateParam:
+    properties:
+      certificate:
+        type: string
+      key:
+        type: string
+      name:
+        type: string
+    required:
+    - certificate
+    - key
+    - name
+    type: object
   service.CreateCollectionParam:
     properties:
       authorize_id:
@@ -763,18 +789,12 @@ paths:
       - application/json
       description: Create Authorize
       parameters:
-      - description: Authorize ID
-        in: path
-        name: id
+      - description: 数据
+        in: body
+        name: body
         required: true
-        type: string
-      - collectionFormat: csv
-        description: expand attribute list
-        in: query
-        items:
-          type: string
-        name: expand
-        type: array
+        schema:
+          $ref: '#/definitions/service.CreateAuthorizeParam'
       produces:
       - application/json
       responses:
@@ -898,18 +918,18 @@ paths:
         in: query
         name: name
         type: string
-      - description: 限制
+      - description: 是否包含total
         in: query
-        name: limit
+        name: include_total
+        type: boolean
+      - description: 页码
+        in: query
+        name: page
         type: integer
-      - description: 从当前ID开始
+      - description: 每页数量
         in: query
-        name: starting_after
-        type: string
-      - description: 从当前ID结束
-        in: query
-        name: ending_before
-        type: string
+        name: pre_page
+        type: integer
       - collectionFormat: csv
         description: 展开数据
         in: query
@@ -940,18 +960,12 @@ paths:
       - application/json
       description: 创建证书
       parameters:
-      - description: 证书ID
-        in: path
-        name: id
+      - description: 数据
+        in: body
+        name: body
         required: true
-        type: string
-      - collectionFormat: csv
-        description: 展开数据
-        in: query
-        items:
-          type: string
-        name: expand
-        type: array
+        schema:
+          $ref: '#/definitions/service.CreateCertificateParam'
       produces:
       - application/json
       responses:
@@ -1766,10 +1780,30 @@ paths:
       tags:
       - User
   /users/session:
+    delete:
+      consumes:
+      - application/json
+      description: Delete User Session
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: Delete User Session
+      tags:
+      - User
     post:
       consumes:
       - application/json
-      description: Create User Session
+      description: Create User CreateSession
       parameters:
       - description: data
         in: body
@@ -1792,7 +1826,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/httpserver.HttpError'
-      summary: Create User Session
+      summary: Create User CreateSession
       tags:
       - User
 swagger: "2.0"

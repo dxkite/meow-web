@@ -131,21 +131,13 @@ const docTemplate = `{
                 "summary": "Create Authorize",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Authorize ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "expand attribute list",
-                        "name": "expand",
-                        "in": "query"
+                        "description": "数据",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateAuthorizeParam"
+                        }
                     }
                 ],
                 "responses": {
@@ -333,21 +325,21 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "type": "boolean",
+                        "description": "是否包含total",
+                        "name": "include_total",
+                        "in": "query"
+                    },
+                    {
                         "type": "integer",
-                        "description": "限制",
-                        "name": "limit",
+                        "description": "页码",
+                        "name": "page",
                         "in": "query"
                     },
                     {
-                        "type": "string",
-                        "description": "从当前ID开始",
-                        "name": "starting_after",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "从当前ID结束",
-                        "name": "ending_before",
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "pre_page",
                         "in": "query"
                     },
                     {
@@ -396,21 +388,13 @@ const docTemplate = `{
                 "summary": "创建证书",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "证书ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        },
-                        "collectionFormat": "csv",
-                        "description": "展开数据",
-                        "name": "expand",
-                        "in": "query"
+                        "description": "数据",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.CreateCertificateParam"
+                        }
                     }
                 ],
                 "responses": {
@@ -1489,7 +1473,7 @@ const docTemplate = `{
         },
         "/users/session": {
             "post": {
-                "description": "Create User Session",
+                "description": "Create User CreateSession",
                 "consumes": [
                     "application/json"
                 ],
@@ -1499,7 +1483,7 @@ const docTemplate = `{
                 "tags": [
                     "User"
                 ],
-                "summary": "Create User Session",
+                "summary": "Create User CreateSession",
                 "parameters": [
                     {
                         "description": "data",
@@ -1517,6 +1501,36 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/service.CreateSessionResult"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete User Session",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Delete User Session",
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -2035,6 +2049,44 @@ const docTemplate = `{
                     }
                 },
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.CreateAuthorizeParam": {
+            "type": "object",
+            "required": [
+                "attribute",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "attribute": {
+                    "$ref": "#/definitions/value.AuthorizeAttribute"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.CreateCertificateParam": {
+            "type": "object",
+            "required": [
+                "certificate",
+                "key",
+                "name"
+            ],
+            "properties": {
+                "certificate": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
