@@ -20,9 +20,10 @@ type Authorize interface {
 }
 
 type CreateAuthorizeParam struct {
-	Name      string                    `json:"name" binding:"required"`
-	Type      string                    `json:"type" binding:"required"`
-	Attribute *value.AuthorizeAttribute `json:"attribute"  binding:"required"`
+	Name        string                    `json:"name" binding:"required"`
+	Description string                    `json:"description" binding:"required"`
+	Type        string                    `json:"type" binding:"required"`
+	Attribute   *value.AuthorizeAttribute `json:"attribute"  binding:"required"`
 }
 
 func NewAuthorize(r repository.Authorize) Authorize {
@@ -38,6 +39,7 @@ func (s *authorize) Create(ctx context.Context, param *CreateAuthorizeParam) (*d
 
 	ent.Name = param.Name
 	ent.Type = param.Type
+	ent.Description = param.Description
 	ent.Attribute = param.Attribute
 
 	resp, err := s.r.Create(ctx, ent)
@@ -132,6 +134,7 @@ func (s *authorize) Update(ctx context.Context, param *UpdateAuthorizeParam) (*d
 	ent := entity.NewAuthorize()
 	ent.Name = param.Name
 	ent.Type = param.Type
+	ent.Description = param.Description
 	ent.Attribute = param.Attribute
 
 	err := s.r.Update(ctx, id, ent)

@@ -11,8 +11,10 @@ type Authorize struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
-	Name      string
-	Type      string
+	Name        string
+	Description string
+	Type        string
+
 	Attribute *value.AuthorizeAttribute `gorm:"serializer:json"`
 }
 
