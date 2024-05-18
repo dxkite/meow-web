@@ -1,8 +1,9 @@
-package value
+package entity
 
 // 动态统计数据
 type DynamicStat struct {
-	Time           int64   `json:"time"`
+	Id             uint64  `gorm:"primarykey"`
+	Time           uint64  `json:"time"`
 	CpuPercent     float64 `json:"cpu_percent"`
 	Load1          float64 `json:"load_1"`
 	Load5          float64 `json:"load_5"`

@@ -16,17 +16,36 @@ func NewMonitor(s service.Monitor) *Monitor {
 	return &Monitor{s: s}
 }
 
-func (s *Monitor) GetLoadStat(c *gin.Context) {
-	stat, err := s.s.GetRealtimeStat(c)
+// List Dynamic Stat
+//
+// @Summary      List Dynamic Stat
+// @Description  List Dynamic Stat
+// @Tags         Monitor
+// @Accept       json
+// @Produce      json
+// @Param        start_time query string false "开始时间。默认-1h"
+// @Param		 end_time query string false "结束时间，默认当前时间"
+// @Success      200  {object} service.DynamicStatResult
+// @Failure      400  {object} httpserver.HttpError
+// @Failure      500  {object} httpserver.HttpError
+// @Router       /monitor/dynamic-stat [get]
+func (s *Monitor) ListDynamicStat(c *gin.Context) {
+	var param service.ListDynamicStatParam
 
+	if err := c.ShouldBindQuery(&param); err != nil {
+		httpserver.ResultErrorBind(c, err)
+		return
+	}
+
+	rst, err := s.s.ListDynamicStat(c, &param)
 	if err != nil {
 		httpserver.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusOK, stat)
+	httpserver.Result(c, http.StatusOK, rst)
 }
 
 func (s *Monitor) RegisterToHttp(r gin.IRouter) {
-	r.GET("/monitor/realtime-stat", s.GetLoadStat)
+	r.GET("/monitor/dynamic-stat", s.ListDynamicStat)
 }

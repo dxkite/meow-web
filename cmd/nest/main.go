@@ -50,6 +50,7 @@ func main() {
 
 	db := ds.Engine().(*gorm.DB)
 	db.AutoMigrate(entity.Certificate{}, entity.User{}, entity.Session{},
+		entity.DynamicStat{},
 		entity.Collection{}, entity.Route{}, entity.Endpoint{}, entity.Authorize{})
 
 	certificateRepository := repository.NewCertificate()
@@ -93,7 +94,13 @@ func main() {
 	)
 	agentServer := server.NewAgent(agentService)
 
-	monitorService := service.NewMonitor(5, 5*60)
+	monitorRepository := repository.NewMonitor()
+	// 5秒 统计一次，记录最新1小时数据，5分钟聚合一次
+	monitorService := service.NewMonitor(&service.MonitorConfig{
+		Interval:     3,
+		RollInterval: 300,
+		MaxInterval:  3600,
+	}, monitorRepository)
 	monitorServer := server.NewMonitor(monitorService)
 
 	go monitorService.Collection(database.With(context.Background(), ds))

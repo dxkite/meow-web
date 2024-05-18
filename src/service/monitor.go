@@ -4,77 +4,138 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"sync"
 	"time"
 
 	"dxkite.cn/meownest/pkg/stat"
 	"dxkite.cn/meownest/src/dto"
-	"dxkite.cn/meownest/src/value"
+	"dxkite.cn/meownest/src/entity"
+	"dxkite.cn/meownest/src/repository"
 )
 
 type Monitor interface {
 	Collection(ctx context.Context) error
-	GetRealtimeStat(ctx context.Context) (*GetRealtimeLoadStatResult, error)
+	ListDynamicStat(ctx context.Context, param *ListDynamicStatParam) (*DynamicStatResult, error)
+}
+
+type MonitorConfig struct {
+	// 统计间隔
+	Interval int
+	// 实时数据保留时长
+	MaxInterval int
+	// 聚合间隔
+	RollInterval int
 }
 
 type monitor struct {
 	interval        int
 	maxInterval     int
+	rollInterval    int
 	memSwapTotal    uint64
 	memVirtualTotal uint64
 	diskTotal       uint64
-	status          []*value.DynamicStat
+	status          []*entity.DynamicStat
+	r               repository.Monitor
+	roll            []*entity.DynamicStat
+	mtx             *sync.Mutex
 }
 
-func NewMonitor(interval, maxInterval int) Monitor {
-	return &monitor{interval: interval, maxInterval: maxInterval}
+func NewMonitor(cfg *MonitorConfig, r repository.Monitor) Monitor {
+	m := &monitor{r: r}
+	m.interval = cfg.Interval
+	m.maxInterval = cfg.MaxInterval
+	m.rollInterval = cfg.RollInterval
+	m.mtx = &sync.Mutex{}
+	return m
 }
 
-type GetRealtimeLoadStatResult struct {
-	Collection      *dto.LoadStatCollection `json:"collection"`
-	MemSwapTotal    uint64                  `json:"mem_swap_total"`
-	MemVirtualTotal uint64                  `json:"mem_virtual_total"`
-	DiskTotal       uint64                  `json:"disk_total"`
+type DynamicStatResult struct {
+	Collection      *dto.DynamicStatCollection `json:"collection"`
+	MemSwapTotal    uint64                     `json:"mem_swap_total"`
+	MemVirtualTotal uint64                     `json:"mem_virtual_total"`
+	DiskTotal       uint64                     `json:"disk_total"`
 }
 
-func (m monitor) GetRealtimeStat(ctx context.Context) (*GetRealtimeLoadStatResult, error) {
-	coll := &dto.LoadStatCollection{}
+type ListDynamicStatParam struct {
+	StartTime string `json:"start_time" form:"start_time"`
+	EndTime   string `json:"end_time" form:"end_time"`
+}
 
-	for _, v := range m.status {
-		coll.Time = append(coll.Time, v.Time)
-		coll.CpuPercent = append(coll.CpuPercent, v.CpuPercent)
-		coll.Load1 = append(coll.Load1, v.Load1)
-		coll.Load5 = append(coll.Load5, v.Load5)
-		coll.Load15 = append(coll.Load15, v.Load15)
-		coll.MemSwapUsed = append(coll.MemSwapUsed, v.MemSwapUsed)
-		coll.MemVirtualUsed = append(coll.MemVirtualUsed, v.MemVirtualUsed)
-		coll.NetRecv = append(coll.NetRecv, v.NetRecv)
-		coll.NetSent = append(coll.NetSent, v.NetSent)
-		coll.DiskUsage = append(coll.DiskUsage, v.DiskUsage)
-		coll.DiskWrite = append(coll.DiskWrite, v.DiskWrite)
-		coll.DiskRead = append(coll.DiskRead, v.DiskRead)
+func (m monitor) ListDynamicStat(ctx context.Context, param *ListDynamicStatParam) (*DynamicStatResult, error) {
+	var startTime, endTime uint64
+
+	if param.StartTime != "" {
+		v, err := time.Parse(time.RFC3339, param.StartTime)
+		if err != nil {
+			return nil, err
+		}
+		startTime = uint64(v.Unix())
+	} else {
+		startTime = uint64(time.Now().Add(time.Duration(-m.maxInterval) * time.Second).Unix())
 	}
 
-	resp := &GetRealtimeLoadStatResult{}
+	if param.EndTime != "" {
+		v, err := time.Parse(time.RFC3339, param.EndTime)
+		if err != nil {
+			return nil, err
+		}
+		endTime = uint64(v.Unix())
+	} else {
+		endTime = uint64(time.Now().Unix())
+	}
+
+	realTimeStart := uint64(time.Now().Unix())
+	if len(m.status) > 0 {
+		realTimeStart = m.status[0].Time
+	}
+
+	// 取实时数据
+	output := []*entity.DynamicStat{}
+	for _, v := range m.status {
+		if v.Time < startTime {
+			continue
+		}
+		if v.Time > endTime {
+			continue
+		}
+		output = append(output, v)
+	}
+
+	// 取历史数据 -> 实时数据
+
+	if startTime < realTimeStart {
+		entities, err := m.r.ListDynamicStat(ctx, &repository.ListDynamicStatParam{
+			StartTime: startTime,
+			EndTime:   realTimeStart,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		output = append(entities, output...)
+	}
+
+	resp := &DynamicStatResult{}
+	resp.Collection = dto.NewDynamicStatCollection(output, m.memSwapTotal, m.memVirtualTotal, m.diskTotal)
 	resp.MemSwapTotal = m.memSwapTotal
 	resp.MemVirtualTotal = m.memVirtualTotal
 	resp.DiskTotal = m.diskTotal
-	resp.Collection = coll
 	return resp, nil
 }
 
-func (m *monitor) Collection(ctx context.Context) error {
+func (s *monitor) Collection(ctx context.Context) error {
 	for {
 
-		v := &value.DynamicStat{}
-		v.Time = time.Now().Unix()
+		v := &entity.DynamicStat{}
+		v.Time = uint64(time.Now().Unix())
 		vv, err := stat.Dynamic()
 		if err != nil {
 			continue
 		}
-		v.CpuPercent = formatFloat64(vv.CpuPercent)
-		v.Load1 = formatFloat64(vv.Load1)
-		v.Load5 = formatFloat64(vv.Load5)
-		v.Load15 = formatFloat64(vv.Load15)
+		v.CpuPercent = vv.CpuPercent
+		v.Load1 = vv.Load1
+		v.Load5 = vv.Load5
+		v.Load15 = vv.Load15
 		v.MemSwapUsed = vv.MemSwapUsed
 		v.MemVirtualUsed = vv.MemVirtualUsed
 		v.NetRecv = vv.NetRecv
@@ -83,20 +144,62 @@ func (m *monitor) Collection(ctx context.Context) error {
 		v.DiskWrite = vv.DiskWrite
 		v.DiskRead = vv.DiskRead
 
-		m.memSwapTotal = vv.MemSwapTotal
-		m.memVirtualTotal = vv.MemVirtualTotal
-		m.diskTotal = vv.DiskTotal
+		s.collect(ctx, v)
 
-		m.status = append(m.status, v)
-		if len(m.status) > m.maxInterval {
-			m.status = m.status[1:]
-		}
+		s.memSwapTotal = vv.MemSwapTotal
+		s.memVirtualTotal = vv.MemVirtualTotal
+		s.diskTotal = vv.DiskTotal
 
-		time.Sleep(time.Duration(m.interval) * time.Second)
+		time.Sleep(time.Duration(s.interval) * time.Second)
 	}
 }
 
+func (s *monitor) collect(ctx context.Context, ent *entity.DynamicStat) {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+
+	s.status = append(s.status, ent)
+	s.roll = append(s.roll, ent)
+
+	if len(s.status) > 0 && ent.Time-s.status[0].Time >= uint64(s.maxInterval) {
+		s.status = s.status[1:]
+	}
+
+	if len(s.status) > 0 && ent.Time-s.roll[0].Time >= uint64(s.rollInterval) {
+		s.rollCollect(ctx, s.roll)
+		s.roll = s.roll[0:0]
+	}
+}
+
+func (s *monitor) rollCollect(ctx context.Context, entities []*entity.DynamicStat) error {
+	avg := &entity.DynamicStat{}
+	n := len(entities)
+	end := entities[n-1]
+
+	for _, v := range entities {
+		avg.CpuPercent += v.CpuPercent
+		avg.Load1 += v.Load1
+		avg.Load5 += v.Load5
+		avg.Load15 += v.Load15
+	}
+
+	avg.Time = end.Time
+	avg.CpuPercent = formatFloat64(avg.CpuPercent / float64(n))
+	avg.Load1 = formatFloat64(avg.Load1 / float64(n))
+	avg.Load5 = formatFloat64(avg.Load5 / float64(n))
+	avg.Load15 = formatFloat64(avg.Load15 / float64(n))
+	avg.MemSwapUsed = end.MemSwapUsed
+	avg.MemVirtualUsed = end.MemVirtualUsed
+	avg.NetRecv = end.NetRecv
+	avg.NetSent = end.NetSent
+	avg.DiskUsage = end.DiskUsage
+	avg.DiskWrite = end.DiskWrite
+	avg.DiskRead = end.DiskRead
+	_, err := s.r.SaveDynamicStat(ctx, avg)
+	return err
+}
+
 func formatFloat64(v float64) float64 {
-	vv, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", v), 64)
+	vv, _ := strconv.ParseFloat(fmt.Sprintf("%.4f", v), 64)
 	return vv
 }
