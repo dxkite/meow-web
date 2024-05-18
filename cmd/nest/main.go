@@ -93,6 +93,11 @@ func main() {
 	)
 	agentServer := server.NewAgent(agentService)
 
+	monitorService := service.NewMonitor(5, 5*60)
+	monitorServer := server.NewMonitor(monitorService)
+
+	go monitorService.Collection(database.With(context.Background(), ds))
+
 	httpServer := httpserver.New()
 
 	httpServer.Use(cors.New(cors.Config{
@@ -138,6 +143,7 @@ func main() {
 	httpServer.RegisterPrefix("/api/v1", authorizeServer)
 	httpServer.RegisterPrefix("/api/v1", collectionServer)
 	httpServer.RegisterPrefix("/api/v1", agentServer)
+	httpServer.RegisterPrefix("/api/v1", monitorServer)
 	httpServer.Register(server.NewSwagger())
 
 	go httpServer.Run(":2333")
