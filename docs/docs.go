@@ -248,7 +248,9 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {}
+                        "schema": {
+                            "$ref": "#/definitions/dto.Authorize"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -505,7 +507,9 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {}
+                        "schema": {
+                            "$ref": "#/definitions/dto.Authorize"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -1075,6 +1079,55 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpserver.HttpError"
+                        }
+                    }
+                }
+            }
+        },
+        "/monitor/dynamic-stat": {
+            "get": {
+                "description": "List Dynamic Stat",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Monitor"
+                ],
+                "summary": "List Dynamic Stat",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "开始时间。默认-1h",
+                        "name": "start_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "结束时间，默认当前时间",
+                        "name": "end_time",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.DynamicStatResult"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -1697,18 +1750,29 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "attribute": {
-                    "$ref": "#/definitions/value.AuthorizeAttribute"
+                    "description": "鉴权属性",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/value.AuthorizeAttribute"
+                        }
+                    ]
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "description": "描述",
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
                 "name": {
+                    "description": "鉴权备注",
                     "type": "string"
                 },
                 "type": {
+                    "description": "鉴权类型",
                     "type": "string"
                 },
                 "updated_at": {
@@ -1816,6 +1880,107 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.DynamicStatCollection": {
+            "type": "object",
+            "properties": {
+                "cpu_percent": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "disk_read": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "disk_read_speed": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "disk_usage": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "disk_write": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "disk_write_speed": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "load_1": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "load_15": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "load_5": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "mem_swap_used": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "mem_virtual_used": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "net_recv": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "net_recv_speed": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "net_send": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "net_send_speed": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "time": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 }
             }
         },
@@ -2057,12 +2222,16 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "attribute",
+                "description",
                 "name",
                 "type"
             ],
             "properties": {
                 "attribute": {
                     "$ref": "#/definitions/value.AuthorizeAttribute"
+                },
+                "description": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
@@ -2300,6 +2469,23 @@ const docTemplate = `{
                 }
             }
         },
+        "service.DynamicStatResult": {
+            "type": "object",
+            "properties": {
+                "collection": {
+                    "$ref": "#/definitions/dto.DynamicStatCollection"
+                },
+                "disk_total": {
+                    "type": "integer"
+                },
+                "mem_swap_total": {
+                    "type": "integer"
+                },
+                "mem_virtual_total": {
+                    "type": "integer"
+                }
+            }
+        },
         "service.ListAuthorizeResult": {
             "type": "object",
             "properties": {
@@ -2388,6 +2574,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "attribute",
+                "description",
                 "id",
                 "name",
                 "type"
@@ -2395,6 +2582,9 @@ const docTemplate = `{
             "properties": {
                 "attribute": {
                     "$ref": "#/definitions/value.AuthorizeAttribute"
+                },
+                "description": {
+                    "type": "string"
                 },
                 "id": {
                     "type": "string"

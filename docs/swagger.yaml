@@ -2,14 +2,21 @@ definitions:
   dto.Authorize:
     properties:
       attribute:
-        $ref: '#/definitions/value.AuthorizeAttribute'
+        allOf:
+        - $ref: '#/definitions/value.AuthorizeAttribute'
+        description: 鉴权属性
       created_at:
+        type: string
+      description:
+        description: 描述
         type: string
       id:
         type: string
       name:
+        description: 鉴权备注
         type: string
       type:
+        description: 鉴权类型
         type: string
       updated_at:
         type: string
@@ -86,6 +93,73 @@ definitions:
         type: array
       updated_at:
         type: string
+    type: object
+  dto.DynamicStatCollection:
+    properties:
+      cpu_percent:
+        items:
+          type: number
+        type: array
+      disk_read:
+        items:
+          type: integer
+        type: array
+      disk_read_speed:
+        items:
+          type: number
+        type: array
+      disk_usage:
+        items:
+          type: number
+        type: array
+      disk_write:
+        items:
+          type: integer
+        type: array
+      disk_write_speed:
+        items:
+          type: number
+        type: array
+      load_1:
+        items:
+          type: number
+        type: array
+      load_5:
+        items:
+          type: number
+        type: array
+      load_15:
+        items:
+          type: number
+        type: array
+      mem_swap_used:
+        items:
+          type: number
+        type: array
+      mem_virtual_used:
+        items:
+          type: number
+        type: array
+      net_recv:
+        items:
+          type: integer
+        type: array
+      net_recv_speed:
+        items:
+          type: number
+        type: array
+      net_send:
+        items:
+          type: integer
+        type: array
+      net_send_speed:
+        items:
+          type: number
+        type: array
+      time:
+        items:
+          type: integer
+        type: array
     type: object
   dto.Endpoint:
     properties:
@@ -240,12 +314,15 @@ definitions:
     properties:
       attribute:
         $ref: '#/definitions/value.AuthorizeAttribute'
+      description:
+        type: string
       name:
         type: string
       type:
         type: string
     required:
     - attribute
+    - description
     - name
     - type
     type: object
@@ -401,6 +478,17 @@ definitions:
     - name
     - password
     type: object
+  service.DynamicStatResult:
+    properties:
+      collection:
+        $ref: '#/definitions/dto.DynamicStatCollection'
+      disk_total:
+        type: integer
+      mem_swap_total:
+        type: integer
+      mem_virtual_total:
+        type: integer
+    type: object
   service.ListAuthorizeResult:
     properties:
       data:
@@ -459,6 +547,8 @@ definitions:
     properties:
       attribute:
         $ref: '#/definitions/value.AuthorizeAttribute'
+      description:
+        type: string
       id:
         type: string
       name:
@@ -467,6 +557,7 @@ definitions:
         type: string
     required:
     - attribute
+    - description
     - id
     - name
     - type
@@ -896,7 +987,8 @@ paths:
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/dto.Authorize'
         "400":
           description: Bad Request
           schema:
@@ -1067,7 +1159,8 @@ paths:
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/dto.Authorize'
         "400":
           description: Bad Request
           schema:
@@ -1431,6 +1524,38 @@ paths:
       summary: Update Endpoint
       tags:
       - Endpoint
+  /monitor/dynamic-stat:
+    get:
+      consumes:
+      - application/json
+      description: List Dynamic Stat
+      parameters:
+      - description: 开始时间。默认-1h
+        in: query
+        name: start_time
+        type: string
+      - description: 结束时间，默认当前时间
+        in: query
+        name: end_time
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.DynamicStatResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpserver.HttpError'
+      summary: List Dynamic Stat
+      tags:
+      - Monitor
   /routes:
     get:
       consumes:
