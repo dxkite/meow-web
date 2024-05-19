@@ -224,13 +224,15 @@ func (s *User) DeleteSession(c *gin.Context) {
 	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *User) RegisterToHttp(route gin.IRouter) {
-	route.POST("/users/session", s.CreateSession)
-	route.DELETE("/users/session", httpserver.IdentityRequired(), s.DeleteSession)
-	route.POST("/users", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Create)
-	route.GET("/users", httpserver.ScopeRequired(constant.ScopeUserRead), s.List)
+func (s *User) API() httpserver.RouteHandleFunc {
+	return func(route gin.IRouter) {
+		route.POST("/users/session", s.CreateSession)
+		route.DELETE("/users/session", httpserver.IdentityRequired(), s.DeleteSession)
+		route.POST("/users", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Create)
+		route.GET("/users", httpserver.ScopeRequired(constant.ScopeUserRead), s.List)
 
-	route.GET("/users/:id", httpserver.ScopeRequired(constant.ScopeUserRead), s.Get)
-	route.POST("/users/:id", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Update)
-	route.DELETE("/users/:id", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Delete)
+		route.GET("/users/:id", httpserver.ScopeRequired(constant.ScopeUserRead), s.Get)
+		route.POST("/users/:id", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Update)
+		route.DELETE("/users/:id", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Delete)
+	}
 }

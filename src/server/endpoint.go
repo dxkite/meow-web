@@ -168,10 +168,12 @@ func (s *Endpoint) Delete(c *gin.Context) {
 	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *Endpoint) RegisterToHttp(route gin.IRouter) {
-	route.POST("/endpoints", httpserver.ScopeRequired(constant.ScopeEndpointWrite), s.Create)
-	route.GET("/endpoints", httpserver.ScopeRequired(constant.ScopeEndpointRead), s.List)
-	route.GET("/endpoints/:id", httpserver.ScopeRequired(constant.ScopeEndpointRead), s.Get)
-	route.POST("/endpoints/:id", httpserver.ScopeRequired(constant.ScopeEndpointWrite), s.Update)
-	route.DELETE("/endpoints/:id", httpserver.ScopeRequired(constant.ScopeEndpointWrite), s.Delete)
+func (s *Endpoint) API() httpserver.RouteHandleFunc {
+	return func(route gin.IRouter) {
+		route.POST("/endpoints", httpserver.ScopeRequired(constant.ScopeEndpointWrite), s.Create)
+		route.GET("/endpoints", httpserver.ScopeRequired(constant.ScopeEndpointRead), s.List)
+		route.GET("/endpoints/:id", httpserver.ScopeRequired(constant.ScopeEndpointRead), s.Get)
+		route.POST("/endpoints/:id", httpserver.ScopeRequired(constant.ScopeEndpointWrite), s.Update)
+		route.DELETE("/endpoints/:id", httpserver.ScopeRequired(constant.ScopeEndpointWrite), s.Delete)
+	}
 }

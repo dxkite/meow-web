@@ -171,11 +171,12 @@ func (s *Certificate) Delete(c *gin.Context) {
 	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *Certificate) RegisterToHttp(group gin.IRouter) {
-	group.POST("/certificates", httpserver.ScopeRequired(constant.ScopeCertificateWrite), s.Create)
-	group.GET("/certificates", httpserver.ScopeRequired(constant.ScopeAuthorizeRead), s.List)
-	group.GET("/certificates/:id", httpserver.ScopeRequired(constant.ScopeAuthorizeRead), s.Get)
-	group.POST("/certificates/:id", httpserver.ScopeRequired(constant.ScopeCertificateWrite), s.Update)
-	group.DELETE("/certificates/:id", httpserver.ScopeRequired(constant.ScopeCertificateWrite), s.Delete)
-
+func (s *Certificate) API() httpserver.RouteHandleFunc {
+	return func(route gin.IRouter) {
+		route.POST("/certificates", httpserver.ScopeRequired(constant.ScopeCertificateWrite), s.Create)
+		route.GET("/certificates", httpserver.ScopeRequired(constant.ScopeAuthorizeRead), s.List)
+		route.GET("/certificates/:id", httpserver.ScopeRequired(constant.ScopeAuthorizeRead), s.Get)
+		route.POST("/certificates/:id", httpserver.ScopeRequired(constant.ScopeCertificateWrite), s.Update)
+		route.DELETE("/certificates/:id", httpserver.ScopeRequired(constant.ScopeCertificateWrite), s.Delete)
+	}
 }

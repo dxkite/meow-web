@@ -143,15 +143,16 @@ func main() {
 		},
 	}))
 
-	httpServer.RegisterPrefix("/api/v1", certificateServer)
-	httpServer.RegisterPrefix("/api/v1", userServer)
-	httpServer.RegisterPrefix("/api/v1", routeServer)
-	httpServer.RegisterPrefix("/api/v1", endpointServer)
-	httpServer.RegisterPrefix("/api/v1", authorizeServer)
-	httpServer.RegisterPrefix("/api/v1", collectionServer)
-	httpServer.RegisterPrefix("/api/v1", agentServer)
-	httpServer.RegisterPrefix("/api/v1", monitorServer)
-	httpServer.Register(server.NewSwagger())
+	const APIBase = "/api/v1"
+	httpServer.HandlePrefix(APIBase, certificateServer.API())
+	httpServer.HandlePrefix(APIBase, userServer.API())
+	httpServer.HandlePrefix(APIBase, routeServer.API())
+	httpServer.HandlePrefix(APIBase, endpointServer.API())
+	httpServer.HandlePrefix(APIBase, authorizeServer.API())
+	httpServer.HandlePrefix(APIBase, collectionServer.API())
+	httpServer.HandlePrefix(APIBase, agentServer.API())
+	httpServer.HandlePrefix(APIBase, monitorServer.API())
+	httpServer.Handle(server.NewSwagger().API())
 
 	go httpServer.Run(":2333")
 

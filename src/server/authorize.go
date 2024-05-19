@@ -172,10 +172,12 @@ func (s *Authorize) Delete(c *gin.Context) {
 	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *Authorize) RegisterToHttp(route gin.IRouter) {
-	route.POST("/authorizes", httpserver.ScopeRequired(constant.ScopeAuthorizeWrite), s.Create)
-	route.GET("/authorizes", httpserver.ScopeRequired(constant.ScopeAuthorizeRead), s.List)
-	route.GET("/authorizes/:id", httpserver.ScopeRequired(constant.ScopeAuthorizeRead), s.Get)
-	route.POST("/authorizes/:id", httpserver.ScopeRequired(constant.ScopeAuthorizeWrite), s.Update)
-	route.DELETE("/authorizes/:id", httpserver.ScopeRequired(constant.ScopeAuthorizeWrite), s.Delete)
+func (s *Authorize) API() httpserver.RouteHandleFunc {
+	return func(route gin.IRouter) {
+		route.POST("/authorizes", httpserver.ScopeRequired(constant.ScopeAuthorizeWrite), s.Create)
+		route.GET("/authorizes", httpserver.ScopeRequired(constant.ScopeAuthorizeRead), s.List)
+		route.GET("/authorizes/:id", httpserver.ScopeRequired(constant.ScopeAuthorizeRead), s.Get)
+		route.POST("/authorizes/:id", httpserver.ScopeRequired(constant.ScopeAuthorizeWrite), s.Update)
+		route.DELETE("/authorizes/:id", httpserver.ScopeRequired(constant.ScopeAuthorizeWrite), s.Delete)
+	}
 }

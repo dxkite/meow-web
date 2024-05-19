@@ -46,6 +46,8 @@ func (s *Monitor) ListDynamicStat(c *gin.Context) {
 	httpserver.Result(c, http.StatusOK, rst)
 }
 
-func (s *Monitor) RegisterToHttp(r gin.IRouter) {
-	r.GET("/monitor/dynamic-stat", s.ListDynamicStat)
+func (s *Monitor) API() httpserver.RouteHandleFunc {
+	return func(route gin.IRouter) {
+		route.GET("/monitor/dynamic-stat", s.ListDynamicStat)
+	}
 }

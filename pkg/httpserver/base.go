@@ -10,9 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type RegisterHandler interface {
-	RegisterToHttp(c gin.IRouter)
-}
+type RouteHandleFunc func(route gin.IRouter)
 
 type HttpError struct {
 	status int
@@ -52,12 +50,12 @@ func (s *HttpServer) Use(middleware ...gin.HandlerFunc) {
 	s.engine.Use(middleware...)
 }
 
-func (s *HttpServer) Register(h RegisterHandler) {
-	h.RegisterToHttp(s.engine)
+func (s *HttpServer) Handle(fn RouteHandleFunc) {
+	fn(s.engine)
 }
 
-func (s *HttpServer) RegisterPrefix(prefix string, h RegisterHandler) {
-	h.RegisterToHttp(s.engine.Group(prefix))
+func (s *HttpServer) HandlePrefix(prefix string, fn RouteHandleFunc) {
+	fn(s.engine.Group(prefix))
 }
 
 func Error(c *gin.Context, status int, code, message string) {

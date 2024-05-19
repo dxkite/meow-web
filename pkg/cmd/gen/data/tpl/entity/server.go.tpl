@@ -167,10 +167,12 @@ func (s *{{ .Name }}) Delete(c *gin.Context) {
 	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *{{ .Name }}) RegisterToHttp(route gin.IRouter) {
-	route.POST("/{{ .URI }}", s.Create)
-	route.GET("/{{ .URI }}", s.List)
-	route.GET("/{{ .URI }}/:id", s.Get)
-	route.POST("/{{ .URI }}/:id", s.Update)
-	route.DELETE("/{{ .URI }}/:id", s.Delete)
+func (s *{{ .Name }}) API() httpserver.RouteHandleFunc {
+	return func(route gin.IRouter) {
+		route.POST("/{{ .URI }}", s.Create)
+		route.GET("/{{ .URI }}", s.List)
+		route.GET("/{{ .URI }}/:id", s.Get)
+		route.POST("/{{ .URI }}/:id", s.Update)
+		route.DELETE("/{{ .URI }}/:id", s.Delete)
+	}
 }

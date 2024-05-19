@@ -172,10 +172,12 @@ func (s *Route) Delete(c *gin.Context) {
 	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *Route) RegisterToHttp(group gin.IRouter) {
-	group.GET("/routes", httpserver.ScopeRequired(constant.ScopeRouteRead), s.List)
-	group.POST("/routes", httpserver.ScopeRequired(constant.ScopeRouteWrite), s.Create)
-	group.GET("/routes/:id", httpserver.ScopeRequired(constant.ScopeRouteRead), s.Get)
-	group.DELETE("/routes/:id", httpserver.ScopeRequired(constant.ScopeRouteWrite), s.Delete)
-	group.POST("/routes/:id", httpserver.ScopeRequired(constant.ScopeRouteWrite), s.Update)
+func (s *Route) API() httpserver.RouteHandleFunc {
+	return func(route gin.IRouter) {
+		route.GET("/routes", httpserver.ScopeRequired(constant.ScopeRouteRead), s.List)
+		route.POST("/routes", httpserver.ScopeRequired(constant.ScopeRouteWrite), s.Create)
+		route.GET("/routes/:id", httpserver.ScopeRequired(constant.ScopeRouteRead), s.Get)
+		route.DELETE("/routes/:id", httpserver.ScopeRequired(constant.ScopeRouteWrite), s.Delete)
+		route.POST("/routes/:id", httpserver.ScopeRequired(constant.ScopeRouteWrite), s.Update)
+	}
 }

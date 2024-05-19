@@ -170,10 +170,12 @@ func (s *Collection) Delete(c *gin.Context) {
 	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *Collection) RegisterToHttp(route gin.IRouter) {
-	route.POST("/collections", httpserver.ScopeRequired(constant.ScopeCollectionWrite), s.Create)
-	route.GET("/collections", httpserver.ScopeRequired(constant.ScopeCollectionRead), s.List)
-	route.GET("/collections/:id", httpserver.ScopeRequired(constant.ScopeCollectionRead), s.Get)
-	route.POST("/collections/:id", httpserver.ScopeRequired(constant.ScopeCollectionWrite), s.Update)
-	route.DELETE("/collections/:id", httpserver.ScopeRequired(constant.ScopeCollectionWrite), s.Delete)
+func (s *Collection) API() httpserver.RouteHandleFunc {
+	return func(route gin.IRouter) {
+		route.POST("/collections", httpserver.ScopeRequired(constant.ScopeCollectionWrite), s.Create)
+		route.GET("/collections", httpserver.ScopeRequired(constant.ScopeCollectionRead), s.List)
+		route.GET("/collections/:id", httpserver.ScopeRequired(constant.ScopeCollectionRead), s.Get)
+		route.POST("/collections/:id", httpserver.ScopeRequired(constant.ScopeCollectionWrite), s.Update)
+		route.DELETE("/collections/:id", httpserver.ScopeRequired(constant.ScopeCollectionWrite), s.Delete)
+	}
 }
