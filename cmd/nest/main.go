@@ -8,10 +8,12 @@ import (
 	"time"
 
 	"dxkite.cn/meownest/pkg/agent"
+	"dxkite.cn/meownest/pkg/config/env"
 	"dxkite.cn/meownest/pkg/database"
 	"dxkite.cn/meownest/pkg/database/sqlite"
 	"dxkite.cn/meownest/pkg/httpserver"
 	"dxkite.cn/meownest/pkg/identity"
+	"dxkite.cn/meownest/src/config"
 	"dxkite.cn/meownest/src/entity"
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/server"
@@ -43,7 +45,15 @@ func initBinding() {
 }
 
 func main() {
-	ds, err := sqlite.Open("data.db")
+	configProvider, err := env.NewDotEnvConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	cfg := config.Config{}
+	configProvider.Bind(&cfg)
+
+	ds, err := sqlite.Open(cfg.DataPath)
 	if err != nil {
 		panic(err)
 	}
@@ -57,11 +67,11 @@ func main() {
 	certificateService := service.NewCertificate(certificateRepository)
 	certificateServer := server.NewCertificate(certificateService)
 
-	SessionIdName := "session_id"
+	SessionIdName := cfg.SessionName
 
 	userRepository := repository.NewUser()
 	sessionRepository := repository.NewSession()
-	userService := service.NewUser(userRepository, sessionRepository, []byte("12345678901234567890123456789012"))
+	userService := service.NewUser(userRepository, sessionRepository, []byte(cfg.SessionCryptoKey))
 	userServer := server.NewUser(userService, SessionIdName)
 
 	authorizeRepository := repository.NewAuthorize()
