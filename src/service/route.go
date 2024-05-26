@@ -61,8 +61,6 @@ type CreateRouteParam struct {
 	EndpointId string `json:"endpoint_id" form:"endpoint_id"`
 	// 鉴权配置
 	AuthorizeId string `json:"authorize_id" form:"authorize_id"`
-	// 路由状态
-	Status enum.RouteStatus `json:"status"`
 }
 
 func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route, error) {
@@ -78,7 +76,7 @@ func (s *route) Create(ctx context.Context, param *CreateRouteParam) (*dto.Route
 			MatchOptions:  param.MatchOptions,
 			PathRewrite:   param.PathRewrite,
 			ModifyOptions: param.ModifyOptions,
-			Status:        param.Status,
+			Status:        enum.RouteStatusInactive,
 			CollectionId:  identity.Parse(constant.CollectionPrefix, param.CollectionId),
 			AuthorizeId:   identity.Parse(constant.AuthorizePrefix, param.AuthorizeId),
 			EndpointId:    identity.Parse(constant.EndpointPrefix, param.EndpointId),
@@ -284,12 +282,12 @@ func (s *route) Update(ctx context.Context, param *UpdateRouteParam) (*dto.Route
 		ent.CollectionId = identity.Parse(constant.CollectionPrefix, *param.CollectionId)
 	}
 
-	if param.CollectionId != nil {
+	if param.AuthorizeId != nil {
 		updateFields = append(updateFields, "authorize_id")
 		ent.AuthorizeId = identity.Parse(constant.AuthorizePrefix, *param.AuthorizeId)
 	}
 
-	if param.CollectionId != nil {
+	if param.EndpointId != nil {
 		updateFields = append(updateFields, "endpoint_id")
 		ent.EndpointId = identity.Parse(constant.EndpointPrefix, *param.EndpointId)
 	}

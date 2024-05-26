@@ -57,5 +57,7 @@ func NewRoute(item *entity.Route) *Route {
 	obj.Status = item.Status
 	obj.CreatedAt = item.CreatedAt
 	obj.UpdatedAt = item.UpdatedAt
+	obj.EndpointId = identity.Format(constant.EndpointPrefix, item.CollectionId)
+	obj.AuthorizeId = identity.Format(constant.AuthorizePrefix, item.AuthorizeId)
 	return obj
 }
