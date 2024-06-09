@@ -107,9 +107,9 @@ func main() {
 	monitorRepository := repository.NewMonitor()
 	// 5秒 统计一次，记录最新1小时数据，5分钟聚合一次
 	monitorService := service.NewMonitor(&service.MonitorConfig{
-		Interval:     3,
-		RollInterval: 300,
-		MaxInterval:  3600,
+		Interval:     cfg.MonitorInterval,
+		RollInterval: cfg.MonitorRollInterval,
+		MaxInterval:  cfg.MonitorRealtimeInterval,
 	}, monitorRepository)
 	monitorServer := server.NewMonitor(monitorService)
 
