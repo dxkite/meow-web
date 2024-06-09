@@ -44,7 +44,7 @@ func initBinding() {
 	}
 }
 
-func main() {
+func ExecuteContext(ctx context.Context) {
 	configProvider, err := env.NewDotEnvConfig()
 	if err != nil {
 		panic(err)
