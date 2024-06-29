@@ -164,7 +164,7 @@ func main() {
 	httpServer.HandlePrefix(APIBase, monitorServer.API())
 	httpServer.Handle(server.NewSwagger().API())
 
-	go httpServer.Run(":2333")
+	go httpServer.Run(cfg.Listen)
 
 	agentService.LoadRoute(database.With(context.Background(), ds))
 	agentService.Run(":80")

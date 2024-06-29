@@ -7,7 +7,8 @@ import (
 )
 
 type Config struct {
-	DataPath                string `env:"DATA_PATH"`
+	Listen                  string `env:"LISTEN" envDefault:":2333"`
+	DataPath                string `env:"DATA_PATH" envDefault:"data.db"`
 	SessionName             string `env:"SESSION_NAME" envDefault:"session_id"`
 	SessionCryptoKey        string `env:"SESSION_CRYPTO_KEY" envDefault:"12345678901234567890123456789012"`
 	MonitorInterval         int    `env:"MONITOR_INTERVAL" envDefault:"5s"`
