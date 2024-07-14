@@ -1,4 +1,4 @@
-package service
+package user
 
 import (
 	"context"
@@ -8,45 +8,41 @@ import (
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/pkg/passwd"
 	"dxkite.cn/meownest/pkg/token"
-	"dxkite.cn/meownest/src/constant"
-	"dxkite.cn/meownest/src/dto"
-	"dxkite.cn/meownest/src/entity"
-	"dxkite.cn/meownest/src/repository"
 )
 
 var ErrNamePasswordError = errors.New("name or password error")
 var ErrUserExist = errors.New("user exist")
 
-type User interface {
-	Create(ctx context.Context, param *CreateUserParam) (*dto.User, error)
-	Update(ctx context.Context, param *UpdateUserParam) (*dto.User, error)
-	Get(ctx context.Context, param *GetUserParam) (*dto.User, error)
-	Delete(ctx context.Context, param *DeleteUserParam) error
-	List(ctx context.Context, param *ListUserParam) (*ListUserResult, error)
-	CreateSession(ctx context.Context, param *CreateUserSessionParam) (*CreateSessionResult, error)
+type UserService interface {
+	Create(ctx context.Context, param *CreateUserRequest) (*UserDto, error)
+	Update(ctx context.Context, param *UpdateUserRequest) (*UserDto, error)
+	Get(ctx context.Context, param *GetUserRequest) (*UserDto, error)
+	Delete(ctx context.Context, param *DeleteUserRequest) error
+	List(ctx context.Context, param *ListUserRequest) (*ListUserResponse, error)
+	CreateSession(ctx context.Context, param *CreateUserSessionRequest) (*CreateSessionResponse, error)
 	DeleteSession(ctx context.Context, userId uint64) error
 	GetSession(ctx context.Context, tokStr string) (uint64, []string, error)
 }
 
-func NewUser(r repository.User, rs repository.Session, aseKey []byte) User {
+func NewUserService(r UserRepository, rs SessionRepository, aseKey []byte) UserService {
 	return &user{r: r, rs: rs, aseKey: aseKey}
 }
 
 type user struct {
-	r      repository.User
-	rs     repository.Session
+	r      UserRepository
+	rs     SessionRepository
 	aseKey []byte
 }
 
-type CreateUserParam struct {
+type CreateUserRequest struct {
 	Name     string   `json:"name"`
 	Scopes   []string `json:"scopes"`
 	Password string   `json:"password"`
 }
 
-func (s *user) Create(ctx context.Context, param *CreateUserParam) (*dto.User, error) {
-	user, err := s.r.GetBy(ctx, repository.GetUserByParam{Name: param.Name})
-	if err != nil && !errors.Is(err, repository.ErrUserNotExist) {
+func (s *user) Create(ctx context.Context, param *CreateUserRequest) (*UserDto, error) {
+	user, err := s.r.GetBy(ctx, GetUserByParam{Name: param.Name})
+	if err != nil && !errors.Is(err, ErrUserNotExist) {
 		return nil, err
 	}
 
@@ -54,7 +50,7 @@ func (s *user) Create(ctx context.Context, param *CreateUserParam) (*dto.User, e
 		return nil, ErrUserExist
 	}
 
-	ent := entity.NewUser()
+	ent := NewUser()
 	ent.Name = param.Name
 
 	passwdHash, err := passwd.NewHash(param.Password)
@@ -70,36 +66,36 @@ func (s *user) Create(ctx context.Context, param *CreateUserParam) (*dto.User, e
 		return nil, err
 	}
 
-	return dto.NewUser(resp), nil
+	return NewUserDto(resp), nil
 }
 
-type GetUserParam struct {
+type GetUserRequest struct {
 	Id     string   `json:"id" uri:"id" binding:"required"`
 	Expand []string `json:"expand" form:"expand"`
 }
 
-func (s *user) Get(ctx context.Context, param *GetUserParam) (*dto.User, error) {
-	ent, err := s.r.Get(ctx, identity.Parse(constant.UserPrefix, param.Id))
+func (s *user) Get(ctx context.Context, param *GetUserRequest) (*UserDto, error) {
+	ent, err := s.r.Get(ctx, identity.Parse(UserPrefix, param.Id))
 	if err != nil {
 		return nil, err
 	}
-	obj := dto.NewUser(ent)
+	obj := NewUserDto(ent)
 	return obj, nil
 }
 
-type DeleteUserParam struct {
+type DeleteUserRequest struct {
 	Id string `json:"id" uri:"id" binding:"required"`
 }
 
-func (s *user) Delete(ctx context.Context, param *DeleteUserParam) error {
-	err := s.r.Delete(ctx, identity.Parse(constant.UserPrefix, param.Id))
+func (s *user) Delete(ctx context.Context, param *DeleteUserRequest) error {
+	err := s.r.Delete(ctx, identity.Parse(UserPrefix, param.Id))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-type ListUserParam struct {
+type ListUserRequest struct {
 	Name string `form:"name"`
 
 	// pagination
@@ -108,12 +104,12 @@ type ListUserParam struct {
 	IncludeTotal bool `json:"include_total" form:"include_total"`
 }
 
-type ListUserResult struct {
-	Data  []*dto.User `json:"data"`
-	Total int64       `json:"total,omitempty"`
+type ListUserResponse struct {
+	Data  []*UserDto `json:"data"`
+	Total int64      `json:"total,omitempty"`
 }
 
-func (s *user) List(ctx context.Context, param *ListUserParam) (*ListUserResult, error) {
+func (s *user) List(ctx context.Context, param *ListUserRequest) (*ListUserResponse, error) {
 	if param.Page == 0 {
 		param.Page = 1
 	}
@@ -122,7 +118,7 @@ func (s *user) List(ctx context.Context, param *ListUserParam) (*ListUserResult,
 		param.PerPage = 10
 	}
 
-	listRst, err := s.r.List(ctx, &repository.ListUserParam{
+	listRst, err := s.r.List(ctx, &ListUserParam{
 		Name:         param.Name,
 		Page:         param.Page,
 		PerPage:      param.PerPage,
@@ -134,26 +130,26 @@ func (s *user) List(ctx context.Context, param *ListUserParam) (*ListUserResult,
 
 	n := len(listRst.Data)
 
-	items := make([]*dto.User, n)
+	items := make([]*UserDto, n)
 
 	for i, v := range listRst.Data {
-		items[i] = dto.NewUser(v)
+		items[i] = NewUserDto(v)
 	}
 
-	rst := &ListUserResult{}
+	rst := &ListUserResponse{}
 	rst.Data = items
 	rst.Total = listRst.Total
 	return rst, nil
 }
 
-type UpdateUserParam struct {
+type UpdateUserRequest struct {
 	Id string `json:"id" uri:"id" binding:"required"`
-	CreateUserParam
+	CreateUserRequest
 }
 
-func (s *user) Update(ctx context.Context, param *UpdateUserParam) (*dto.User, error) {
-	id := identity.Parse(constant.UserPrefix, param.Id)
-	ent := entity.NewUser()
+func (s *user) Update(ctx context.Context, param *UpdateUserRequest) (*UserDto, error) {
+	id := identity.Parse(UserPrefix, param.Id)
+	ent := NewUser()
 	ent.Scopes = param.Scopes
 
 	err := s.r.Update(ctx, id, ent)
@@ -161,17 +157,17 @@ func (s *user) Update(ctx context.Context, param *UpdateUserParam) (*dto.User, e
 		return nil, err
 	}
 
-	return s.Get(ctx, &GetUserParam{Id: param.Id})
+	return s.Get(ctx, &GetUserRequest{Id: param.Id})
 }
 
-type CreateUserSessionParam struct {
+type CreateUserSessionRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Password string `json:"password" binding:"required"`
 	Address  string `json:"-"`
 	Agent    string `json:"-"`
 }
 
-type CreateSessionResult struct {
+type CreateSessionResponse struct {
 	Type     string    `json:"type"`
 	UserId   string    `json:"user_id"`
 	Name     string    `json:"name"`
@@ -180,8 +176,8 @@ type CreateSessionResult struct {
 	ExpireAt time.Time `json:"expire_at"`
 }
 
-func (s *user) CreateSession(ctx context.Context, param *CreateUserSessionParam) (*CreateSessionResult, error) {
-	user, err := s.r.GetBy(ctx, repository.GetUserByParam{Name: param.Name})
+func (s *user) CreateSession(ctx context.Context, param *CreateUserSessionRequest) (*CreateSessionResponse, error) {
+	user, err := s.r.GetBy(ctx, GetUserByParam{Name: param.Name})
 	if err != nil {
 		return nil, ErrNamePasswordError
 	}
@@ -194,7 +190,7 @@ func (s *user) CreateSession(ctx context.Context, param *CreateUserSessionParam)
 	expireAt := time.Now().Add(time.Hour)
 
 	// 创建会话
-	ent, err := s.rs.Create(ctx, &entity.Session{UserId: user.Id, Address: param.Address, Agent: param.Agent, ExpireAt: expireAt})
+	ent, err := s.rs.Create(ctx, &Session{UserId: user.Id, Address: param.Address, Agent: param.Agent, ExpireAt: expireAt})
 	if err != nil {
 		return nil, err
 	}
@@ -205,10 +201,10 @@ func (s *user) CreateSession(ctx context.Context, param *CreateUserSessionParam)
 		ExpireAt: uint64(expireAt.Unix()),
 	}
 
-	rst := &CreateSessionResult{}
+	rst := &CreateSessionResponse{}
 	rst.Type = "Bearer"
 	rst.Name = user.Name
-	rst.UserId = identity.Format(constant.UserPrefix, user.Id)
+	rst.UserId = identity.Format(UserPrefix, user.Id)
 	rst.ExpireAt = expireAt
 	rst.Scopes = user.Scopes
 	rst.Token, err = tok.Encrypt(token.NewAesCrypto(s.aseKey))

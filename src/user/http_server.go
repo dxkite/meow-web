@@ -1,20 +1,19 @@
-package server
+package user
 
 import (
 	"net/http"
 
 	"dxkite.cn/meownest/pkg/httpserver"
 	"dxkite.cn/meownest/src/constant"
-	"dxkite.cn/meownest/src/service"
 	"github.com/gin-gonic/gin"
 )
 
-func NewUser(s service.User, session string) *User {
-	return &User{s: s, session: session}
+func NewUserHttpServer(s UserService, session string) *UserHttpServer {
+	return &UserHttpServer{s: s, session: session}
 }
 
-type User struct {
-	s       service.User
+type UserHttpServer struct {
+	s       UserService
 	session string
 }
 
@@ -25,13 +24,13 @@ type User struct {
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        body body service.CreateUserParam true "User data"
+// @Param        body body CreateUserParam true "User data"
 // @Success      200  {object} dto.User
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /users [post]
-func (s *User) Create(c *gin.Context) {
-	var param service.CreateUserParam
+func (s *UserHttpServer) Create(c *gin.Context) {
+	var param CreateUserRequest
 
 	if err := c.ShouldBind(&param); err != nil {
 		httpserver.ResultErrorBind(c, err)
@@ -60,8 +59,8 @@ func (s *User) Create(c *gin.Context) {
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /users/{id} [get]
-func (s *User) Get(c *gin.Context) {
-	var param service.GetUserParam
+func (s *UserHttpServer) Get(c *gin.Context) {
+	var param GetUserRequest
 
 	param.Id = c.Param("id")
 
@@ -90,12 +89,12 @@ func (s *User) Get(c *gin.Context) {
 // @Param        page query int false "页码"
 // @Param        pre_page query int false "每页数量"
 // @Param        expand query []string false "展开数据"
-// @Success      200  {object} service.ListUserResult
+// @Success      200  {object} ListUserResult
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /users [get]
-func (s *User) List(c *gin.Context) {
-	var param service.ListUserParam
+func (s *UserHttpServer) List(c *gin.Context) {
+	var param ListUserRequest
 
 	if err := c.ShouldBindQuery(&param); err != nil {
 		httpserver.ResultErrorBind(c, err)
@@ -119,13 +118,13 @@ func (s *User) List(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        id path string true "User ID"
-// @Param        body body service.UpdateUserParam true "data"
+// @Param        body body UpdateUserParam true "data"
 // @Success      200  {object} dto.User
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /users/{id} [post]
-func (s *User) Update(c *gin.Context) {
-	var param service.UpdateUserParam
+func (s *UserHttpServer) Update(c *gin.Context) {
+	var param UpdateUserRequest
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
@@ -153,8 +152,8 @@ func (s *User) Update(c *gin.Context) {
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /users/{id} [delete]
-func (s *User) Delete(c *gin.Context) {
-	var param service.DeleteUserParam
+func (s *UserHttpServer) Delete(c *gin.Context) {
+	var param DeleteUserRequest
 
 	if err := c.ShouldBindUri(&param); err != nil {
 		httpserver.ResultErrorBind(c, err)
@@ -176,13 +175,13 @@ func (s *User) Delete(c *gin.Context) {
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        body body service.CreateUserSessionParam true "data"
-// @Success      200  {object} service.CreateSessionResult
+// @Param        body body CreateUserSessionParam true "data"
+// @Success      200  {object} CreateSessionResult
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /users/session [post]
-func (s *User) CreateSession(c *gin.Context) {
-	var param service.CreateUserSessionParam
+func (s *UserHttpServer) CreateSession(c *gin.Context) {
+	var param CreateUserSessionRequest
 
 	if err := c.ShouldBind(&param); err != nil {
 		httpserver.ResultErrorBind(c, err)
@@ -211,7 +210,7 @@ func (s *User) CreateSession(c *gin.Context) {
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /users/session [delete]
-func (s *User) DeleteSession(c *gin.Context) {
+func (s *UserHttpServer) DeleteSession(c *gin.Context) {
 
 	userId := httpserver.IdentityFrom(c)
 
@@ -224,7 +223,7 @@ func (s *User) DeleteSession(c *gin.Context) {
 	httpserver.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *User) API() httpserver.RouteHandleFunc {
+func (s *UserHttpServer) API() httpserver.RouteHandleFunc {
 	return func(route gin.IRouter) {
 		route.POST("/users/session", s.CreateSession)
 		route.DELETE("/users/session", httpserver.IdentityRequired(), s.DeleteSession)

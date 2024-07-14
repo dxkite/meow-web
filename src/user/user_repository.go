@@ -1,50 +1,49 @@
-package repository
+package user
 
 import (
 	"context"
 	"errors"
 
 	"dxkite.cn/meownest/pkg/database"
-	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
 
 var ErrUserNotExist = errors.New("user not exist")
 
-type User interface {
-	Create(ctx context.Context, user *entity.User) (*entity.User, error)
-	Get(ctx context.Context, id uint64) (*entity.User, error)
-	Update(ctx context.Context, id uint64, ent *entity.User) error
+type UserRepository interface {
+	Create(ctx context.Context, user *User) (*User, error)
+	Get(ctx context.Context, id uint64) (*User, error)
+	Update(ctx context.Context, id uint64, ent *User) error
 	Delete(ctx context.Context, id uint64) error
 	List(ctx context.Context, param *ListUserParam) (*ListUserResult, error)
-	BatchGet(ctx context.Context, ids []uint64) ([]*entity.User, error)
-	GetBy(ctx context.Context, param GetUserByParam) (*entity.User, error)
+	BatchGet(ctx context.Context, ids []uint64) ([]*User, error)
+	GetBy(ctx context.Context, param GetUserByParam) (*User, error)
 }
 
-func NewUser() User {
-	return new(user)
+func NewUserRepository() UserRepository {
+	return new(userRepository)
 }
 
-type user struct {
+type userRepository struct {
 }
 
-func (r *user) Get(ctx context.Context, id uint64) (*entity.User, error) {
-	var item entity.User
+func (r *userRepository) Get(ctx context.Context, id uint64) (*User, error) {
+	var item User
 	if err := r.dataSource(ctx).Where("id = ?", id).First(&item).Error; err != nil {
 		return nil, r.wrap(err)
 	}
 	return &item, nil
 }
 
-func (r *user) wrap(err error) error {
+func (r *userRepository) wrap(err error) error {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return ErrUserNotExist
 	}
 	return err
 }
 
-func (r *user) BatchGet(ctx context.Context, ids []uint64) ([]*entity.User, error) {
-	var items []*entity.User
+func (r *userRepository) BatchGet(ctx context.Context, ids []uint64) ([]*User, error) {
+	var items []*User
 	if err := r.dataSource(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
 		return nil, err
 	}
@@ -55,8 +54,8 @@ type GetUserByParam struct {
 	Name string
 }
 
-func (r *user) GetBy(ctx context.Context, param GetUserByParam) (*entity.User, error) {
-	var item entity.User
+func (r *userRepository) GetBy(ctx context.Context, param GetUserByParam) (*User, error) {
+	var item User
 	db := r.dataSource(ctx)
 	if param.Name != "" {
 		db = db.Where("name = ?", param.Name)
@@ -77,12 +76,12 @@ type ListUserParam struct {
 }
 
 type ListUserResult struct {
-	Data  []*entity.User
+	Data  []*User
 	Total int64
 }
 
-func (r *user) List(ctx context.Context, param *ListUserParam) (*ListUserResult, error) {
-	var items []*entity.User
+func (r *userRepository) List(ctx context.Context, param *ListUserParam) (*ListUserResult, error) {
+	var items []*User
 	db := r.dataSource(ctx)
 
 	// condition
@@ -107,7 +106,7 @@ func (r *user) List(ctx context.Context, param *ListUserParam) (*ListUserResult,
 	rst.Data = items
 
 	if param.IncludeTotal {
-		if err := db.Model(entity.User{}).Scopes(condition).Count(&rst.Total).Error; err != nil {
+		if err := db.Model(User{}).Scopes(condition).Count(&rst.Total).Error; err != nil {
 			return nil, err
 		}
 	}
@@ -115,27 +114,27 @@ func (r *user) List(ctx context.Context, param *ListUserParam) (*ListUserResult,
 	return rst, nil
 }
 
-func (r *user) Create(ctx context.Context, user *entity.User) (*entity.User, error) {
-	if err := r.dataSource(ctx).Create(&user).Error; err != nil {
+func (r *userRepository) Create(ctx context.Context, userRepository *User) (*User, error) {
+	if err := r.dataSource(ctx).Create(&userRepository).Error; err != nil {
 		return nil, err
 	}
-	return user, nil
+	return userRepository, nil
 }
 
-func (r *user) Update(ctx context.Context, id uint64, ent *entity.User) error {
+func (r *userRepository) Update(ctx context.Context, id uint64, ent *User) error {
 	if err := r.dataSource(ctx).Where("id = ?", id).Updates(&ent).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *user) Delete(ctx context.Context, id uint64) error {
-	if err := r.dataSource(ctx).Where("id = ?", id).Delete(entity.User{}).Error; err != nil {
+func (r *userRepository) Delete(ctx context.Context, id uint64) error {
+	if err := r.dataSource(ctx).Where("id = ?", id).Delete(User{}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *user) dataSource(ctx context.Context) *gorm.DB {
+func (r *userRepository) dataSource(ctx context.Context) *gorm.DB {
 	return database.Get(ctx).Engine().(*gorm.DB)
 }

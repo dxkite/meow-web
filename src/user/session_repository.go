@@ -1,40 +1,39 @@
-package repository
+package user
 
 import (
 	"context"
 
 	"dxkite.cn/meownest/pkg/database"
-	"dxkite.cn/meownest/src/entity"
 	"gorm.io/gorm"
 )
 
-type Session interface {
-	Create(ctx context.Context, session *entity.Session) (*entity.Session, error)
-	Get(ctx context.Context, id uint64) (*entity.Session, error)
-	Update(ctx context.Context, id uint64, ent *entity.Session) error
+type SessionRepository interface {
+	Create(ctx context.Context, session *Session) (*Session, error)
+	Get(ctx context.Context, id uint64) (*Session, error)
+	Update(ctx context.Context, id uint64, ent *Session) error
 	Delete(ctx context.Context, id uint64) error
 	List(ctx context.Context, param *ListSessionParam) (*ListSessionResult, error)
-	BatchGet(ctx context.Context, ids []uint64) ([]*entity.Session, error)
+	BatchGet(ctx context.Context, ids []uint64) ([]*Session, error)
 	SetDeletedByUser(ctx context.Context, userId uint64) error
 }
 
-func NewSession() Session {
-	return new(session)
+func NewSessionRepository() SessionRepository {
+	return new(sessionRepository)
 }
 
-type session struct {
+type sessionRepository struct {
 }
 
-func (r *session) Get(ctx context.Context, id uint64) (*entity.Session, error) {
-	var item entity.Session
+func (r *sessionRepository) Get(ctx context.Context, id uint64) (*Session, error) {
+	var item Session
 	if err := r.dataSource(ctx).Where("id = ? and deleted = 0", id).First(&item).Error; err != nil {
 		return nil, err
 	}
 	return &item, nil
 }
 
-func (r *session) BatchGet(ctx context.Context, ids []uint64) ([]*entity.Session, error) {
-	var items []*entity.Session
+func (r *sessionRepository) BatchGet(ctx context.Context, ids []uint64) ([]*Session, error) {
+	var items []*Session
 	if err := r.dataSource(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
 		return nil, err
 	}
@@ -51,12 +50,12 @@ type ListSessionParam struct {
 }
 
 type ListSessionResult struct {
-	Data  []*entity.Session
+	Data  []*Session
 	Total int64
 }
 
-func (r *session) List(ctx context.Context, param *ListSessionParam) (*ListSessionResult, error) {
-	var items []*entity.Session
+func (r *sessionRepository) List(ctx context.Context, param *ListSessionParam) (*ListSessionResult, error) {
+	var items []*Session
 	db := r.dataSource(ctx)
 
 	// condition
@@ -78,7 +77,7 @@ func (r *session) List(ctx context.Context, param *ListSessionParam) (*ListSessi
 	rst.Data = items
 
 	if param.IncludeTotal {
-		if err := db.Model(entity.Session{}).Scopes(condition).Count(&rst.Total).Error; err != nil {
+		if err := db.Model(Session{}).Scopes(condition).Count(&rst.Total).Error; err != nil {
 			return nil, err
 		}
 	}
@@ -86,34 +85,34 @@ func (r *session) List(ctx context.Context, param *ListSessionParam) (*ListSessi
 	return rst, nil
 }
 
-func (r *session) Create(ctx context.Context, session *entity.Session) (*entity.Session, error) {
+func (r *sessionRepository) Create(ctx context.Context, session *Session) (*Session, error) {
 	if err := r.dataSource(ctx).Create(&session).Error; err != nil {
 		return nil, err
 	}
 	return session, nil
 }
 
-func (r *session) Update(ctx context.Context, id uint64, ent *entity.Session) error {
+func (r *sessionRepository) Update(ctx context.Context, id uint64, ent *Session) error {
 	if err := r.dataSource(ctx).Where("id = ?", id).Updates(&ent).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *session) SetDeletedByUser(ctx context.Context, userId uint64) error {
-	if err := r.dataSource(ctx).Where("user_id = ?", userId).Updates(entity.Session{Deleted: 1}).Error; err != nil {
+func (r *sessionRepository) SetDeletedByUser(ctx context.Context, userId uint64) error {
+	if err := r.dataSource(ctx).Where("user_id = ?", userId).Updates(Session{Deleted: 1}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *session) Delete(ctx context.Context, id uint64) error {
-	if err := r.dataSource(ctx).Where("id = ?", id).Delete(entity.Session{}).Error; err != nil {
+func (r *sessionRepository) Delete(ctx context.Context, id uint64) error {
+	if err := r.dataSource(ctx).Where("id = ?", id).Delete(Session{}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *session) dataSource(ctx context.Context) *gorm.DB {
+func (r *sessionRepository) dataSource(ctx context.Context) *gorm.DB {
 	return database.Get(ctx).Engine().(*gorm.DB)
 }

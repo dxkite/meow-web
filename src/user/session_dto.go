@@ -1,4 +1,4 @@
-package dto
+package user
 
 import (
 	"time"
@@ -8,15 +8,15 @@ import (
 	"dxkite.cn/meownest/src/entity"
 )
 
-// Session
-type Session struct {
-	Id            string       `json:"id"`
-	CreatedAt     time.Time    `json:"created_at"`
-	UpdatedAt     time.Time    `json:"updated_at"`
+// SessionDto
+type SessionDto struct {
+	Id        string    `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewSession(ent *entity.Session) *Session {
-	obj := new(Session)
+func NewSessionDto(ent *entity.Session) *SessionDto {
+	obj := new(SessionDto)
 	obj.Id = identity.Format(constant.SessionPrefix, ent.Id)
 	obj.CreatedAt = ent.CreatedAt
 	obj.UpdatedAt = ent.UpdatedAt

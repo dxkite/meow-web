@@ -18,6 +18,7 @@ import (
 	"dxkite.cn/meownest/src/repository"
 	"dxkite.cn/meownest/src/server"
 	"dxkite.cn/meownest/src/service"
+	"dxkite.cn/meownest/src/user"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -69,10 +70,10 @@ func ExecuteContext(ctx context.Context) {
 
 	SessionIdName := cfg.SessionName
 
-	userRepository := repository.NewUser()
-	sessionRepository := repository.NewSession()
-	userService := service.NewUser(userRepository, sessionRepository, []byte(cfg.SessionCryptoKey))
-	userServer := server.NewUser(userService, SessionIdName)
+	userRepository := user.NewUserRepository()
+	sessionRepository := user.NewSessionRepository()
+	userService := user.NewUserService(userRepository, sessionRepository, []byte(cfg.SessionCryptoKey))
+	userServer := user.NewUserHttpServer(userService, SessionIdName)
 
 	authorizeRepository := repository.NewAuthorize()
 	authorizeService := service.NewAuthorize(authorizeRepository)
