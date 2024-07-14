@@ -243,27 +243,6 @@ definitions:
       updated_at:
         type: string
     type: object
-  dto.User:
-    properties:
-      created_at:
-        type: string
-      id:
-        type: string
-      name:
-        description: 用户名
-        type: string
-      scopes:
-        description: 用户权限
-        items:
-          type: string
-        type: array
-      status:
-        allOf:
-        - $ref: '#/definitions/enum.UserStatus'
-        description: 用户状态
-      updated_at:
-        type: string
-    type: object
   enum.EndpointType:
     enum:
     - static
@@ -286,14 +265,6 @@ definitions:
     x-enum-varnames:
     - RouteStatusActive
     - RouteStatusInactive
-  enum.UserStatus:
-    enum:
-    - active
-    - inactive
-    type: string
-    x-enum-varnames:
-    - UserStatusActive
-    - UserStatusInactive
   httpserver.HttpError:
     properties:
       error:
@@ -322,7 +293,6 @@ definitions:
         type: string
     required:
     - attribute
-    - description
     - name
     - type
     type: object
@@ -428,10 +398,6 @@ definitions:
         allOf:
         - $ref: '#/definitions/enum.RoutePathType'
         description: 匹配路径
-      status:
-        allOf:
-        - $ref: '#/definitions/enum.RouteStatus'
-        description: 路由状态
     required:
     - collection_id
     - match_options
@@ -439,44 +405,6 @@ definitions:
     - name
     - path
     - path_type
-    type: object
-  service.CreateSessionResult:
-    properties:
-      expire_at:
-        type: string
-      name:
-        type: string
-      scopes:
-        items:
-          type: string
-        type: array
-      token:
-        type: string
-      type:
-        type: string
-      user_id:
-        type: string
-    type: object
-  service.CreateUserParam:
-    properties:
-      name:
-        type: string
-      password:
-        type: string
-      scopes:
-        items:
-          type: string
-        type: array
-    type: object
-  service.CreateUserSessionParam:
-    properties:
-      name:
-        type: string
-      password:
-        type: string
-    required:
-    - name
-    - password
     type: object
   service.DynamicStatResult:
     properties:
@@ -534,15 +462,6 @@ definitions:
       total:
         type: integer
     type: object
-  service.ListUserResult:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/dto.User'
-        type: array
-      total:
-        type: integer
-    type: object
   service.UpdateAuthorizeParam:
     properties:
       attribute:
@@ -557,7 +476,6 @@ definitions:
         type: string
     required:
     - attribute
-    - description
     - id
     - name
     - type
@@ -684,7 +602,54 @@ definitions:
     - id
     - match_options
     type: object
-  service.UpdateUserParam:
+  user.CreateSessionResponse:
+    properties:
+      expire_at:
+        type: string
+      name:
+        type: string
+      scopes:
+        items:
+          type: string
+        type: array
+      token:
+        type: string
+      type:
+        type: string
+      user_id:
+        type: string
+    type: object
+  user.CreateUserRequest:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+      scopes:
+        items:
+          type: string
+        type: array
+    type: object
+  user.CreateUserSessionRequest:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - name
+    - password
+    type: object
+  user.ListUserResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/user.UserDto'
+        type: array
+      total:
+        type: integer
+    type: object
+  user.UpdateUserRequest:
     properties:
       id:
         type: string
@@ -699,6 +664,35 @@ definitions:
     required:
     - id
     type: object
+  user.UserDto:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        description: 用户名
+        type: string
+      scopes:
+        description: 用户权限
+        items:
+          type: string
+        type: array
+      status:
+        allOf:
+        - $ref: '#/definitions/user.UserStatus'
+        description: 用户状态
+      updated_at:
+        type: string
+    type: object
+  user.UserStatus:
+    enum:
+    - active
+    - inactive
+    type: string
+    x-enum-varnames:
+    - UserStatusActive
+    - UserStatusInactive
   value.AuthorizeAttribute:
     properties:
       binary:
@@ -1767,7 +1761,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/service.ListUserResult'
+            $ref: '#/definitions/user.ListUserResponse'
         "400":
           description: Bad Request
           schema:
@@ -1789,14 +1783,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/service.CreateUserParam'
+          $ref: '#/definitions/user.CreateUserRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.User'
+            $ref: '#/definitions/user.UserDto'
         "400":
           description: Bad Request
           schema:
@@ -1858,7 +1852,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.User'
+            $ref: '#/definitions/user.UserDto'
         "400":
           description: Bad Request
           schema:
@@ -1885,14 +1879,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/service.UpdateUserParam'
+          $ref: '#/definitions/user.UpdateUserRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.User'
+            $ref: '#/definitions/user.UserDto'
         "400":
           description: Bad Request
           schema:
@@ -1935,14 +1929,14 @@ paths:
         name: body
         required: true
         schema:
-          $ref: '#/definitions/service.CreateUserSessionParam'
+          $ref: '#/definitions/user.CreateUserSessionRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/service.CreateSessionResult'
+            $ref: '#/definitions/user.CreateSessionResponse'
         "400":
           description: Bad Request
           schema:

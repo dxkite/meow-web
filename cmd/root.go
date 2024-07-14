@@ -3,16 +3,16 @@ package cmd
 import (
 	"context"
 
-	"dxkite.cn/meownest/cmd/main"
+	app "dxkite.cn/meownest/src"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "nest-cli",
+	Use:   "meownest",
 	Short: "",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		main.ExecuteContext(cmd.Context())
+		app.ExecuteContext(cmd.Context())
 	},
 }
 

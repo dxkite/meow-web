@@ -1462,7 +1462,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/service.ListUserResult"
+                            "$ref": "#/definitions/user.ListUserResponse"
                         }
                     },
                     "400": {
@@ -1498,7 +1498,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/service.CreateUserParam"
+                            "$ref": "#/definitions/user.CreateUserRequest"
                         }
                     }
                 ],
@@ -1506,7 +1506,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.User"
+                            "$ref": "#/definitions/user.UserDto"
                         }
                     },
                     "400": {
@@ -1544,7 +1544,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/service.CreateUserSessionParam"
+                            "$ref": "#/definitions/user.CreateUserSessionRequest"
                         }
                     }
                 ],
@@ -1552,7 +1552,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/service.CreateSessionResult"
+                            "$ref": "#/definitions/user.CreateSessionResponse"
                         }
                     },
                     "400": {
@@ -1636,7 +1636,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.User"
+                            "$ref": "#/definitions/user.UserDto"
                         }
                     },
                     "400": {
@@ -1679,7 +1679,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/service.UpdateUserParam"
+                            "$ref": "#/definitions/user.UpdateUserRequest"
                         }
                     }
                 ],
@@ -1687,7 +1687,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.User"
+                            "$ref": "#/definitions/user.UserDto"
                         }
                     },
                     "400": {
@@ -2118,39 +2118,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.User": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "description": "用户名",
-                    "type": "string"
-                },
-                "scopes": {
-                    "description": "用户权限",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "status": {
-                    "description": "用户状态",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enum.UserStatus"
-                        }
-                    ]
-                },
-                "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
         "enum.EndpointType": {
             "type": "string",
             "enum": [
@@ -2182,17 +2149,6 @@ const docTemplate = `{
                 "RouteStatusInactive"
             ]
         },
-        "enum.UserStatus": {
-            "type": "string",
-            "enum": [
-                "active",
-                "inactive"
-            ],
-            "x-enum-varnames": [
-                "UserStatusActive",
-                "UserStatusInactive"
-            ]
-        },
         "httpserver.HttpError": {
             "type": "object",
             "properties": {
@@ -2222,7 +2178,6 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "attribute",
-                "description",
                 "name",
                 "type"
             ],
@@ -2400,72 +2355,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/enum.RoutePathType"
                         }
                     ]
-                },
-                "status": {
-                    "description": "路由状态",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/enum.RouteStatus"
-                        }
-                    ]
-                }
-            }
-        },
-        "service.CreateSessionResult": {
-            "type": "object",
-            "properties": {
-                "expire_at": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "scopes": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "token": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "service.CreateUserParam": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "scopes": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "service.CreateUserSessionParam": {
-            "type": "object",
-            "required": [
-                "name",
-                "password"
-            ],
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
                 }
             }
         },
@@ -2556,25 +2445,10 @@ const docTemplate = `{
                 }
             }
         },
-        "service.ListUserResult": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.User"
-                    }
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
         "service.UpdateAuthorizeParam": {
             "type": "object",
             "required": [
                 "attribute",
-                "description",
                 "id",
                 "name",
                 "type"
@@ -2779,7 +2653,79 @@ const docTemplate = `{
                 }
             }
         },
-        "service.UpdateUserParam": {
+        "user.CreateSessionResponse": {
+            "type": "object",
+            "properties": {
+                "expire_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "scopes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "token": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.CreateUserRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "scopes": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "user.CreateUserSessionRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "password"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.ListUserResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/user.UserDto"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "user.UpdateUserRequest": {
             "type": "object",
             "required": [
                 "id"
@@ -2801,6 +2747,50 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "user.UserDto": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "用户名",
+                    "type": "string"
+                },
+                "scopes": {
+                    "description": "用户权限",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "status": {
+                    "description": "用户状态",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/user.UserStatus"
+                        }
+                    ]
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.UserStatus": {
+            "type": "string",
+            "enum": [
+                "active",
+                "inactive"
+            ],
+            "x-enum-varnames": [
+                "UserStatusActive",
+                "UserStatusInactive"
+            ]
         },
         "value.AuthorizeAttribute": {
             "type": "object",

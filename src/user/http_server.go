@@ -24,8 +24,8 @@ type UserHttpServer struct {
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        body body CreateUserParam true "User data"
-// @Success      200  {object} dto.User
+// @Param        body body CreateUserRequest true "User data"
+// @Success      200  {object} UserDto
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /users [post]
@@ -55,7 +55,7 @@ func (s *UserHttpServer) Create(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "User ID"
 // @Param        expand query []string false "expand attribute list"
-// @Success      200  {object} dto.User
+// @Success      200  {object} UserDto
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /users/{id} [get]
@@ -89,7 +89,7 @@ func (s *UserHttpServer) Get(c *gin.Context) {
 // @Param        page query int false "页码"
 // @Param        pre_page query int false "每页数量"
 // @Param        expand query []string false "展开数据"
-// @Success      200  {object} ListUserResult
+// @Success      200  {object} ListUserResponse
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /users [get]
@@ -118,8 +118,8 @@ func (s *UserHttpServer) List(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        id path string true "User ID"
-// @Param        body body UpdateUserParam true "data"
-// @Success      200  {object} dto.User
+// @Param        body body UpdateUserRequest true "data"
+// @Success      200  {object} UserDto
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /users/{id} [post]
@@ -175,8 +175,8 @@ func (s *UserHttpServer) Delete(c *gin.Context) {
 // @Tags         User
 // @Accept       json
 // @Produce      json
-// @Param        body body CreateUserSessionParam true "data"
-// @Success      200  {object} CreateSessionResult
+// @Param        body body CreateUserSessionRequest true "data"
+// @Success      200  {object} CreateSessionResponse
 // @Failure      400  {object} httpserver.HttpError
 // @Failure      500  {object} httpserver.HttpError
 // @Router       /users/session [post]
