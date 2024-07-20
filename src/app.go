@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"net/http"
-	"reflect"
 	"strings"
 	"time"
 
@@ -21,28 +20,11 @@ import (
 	"dxkite.cn/meownest/src/user"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
-	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 )
 
 func init() {
-	initBinding()
 	identity.DefaultMask = 1234627081864056831
-}
-
-func initBinding() {
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterTagNameFunc(func(field reflect.StructField) string {
-			if name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]; name != "" && name != "-" {
-				return name
-			}
-			if name := strings.SplitN(field.Tag.Get("form"), ",", 2)[0]; name != "" && name != "-" {
-				return name
-			}
-			return ""
-		})
-	}
 }
 
 func ExecuteContext(ctx context.Context) {

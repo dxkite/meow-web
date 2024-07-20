@@ -4,11 +4,32 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 )
+
+func init() {
+	initBinding()
+}
+
+func initBinding() {
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		v.RegisterTagNameFunc(func(field reflect.StructField) string {
+			if name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]; name != "" && name != "-" {
+				return name
+			}
+			if name := strings.SplitN(field.Tag.Get("form"), ",", 2)[0]; name != "" && name != "-" {
+				return name
+			}
+			return ""
+		})
+	}
+}
 
 type RouteHandleFunc func(route gin.IRouter)
 
