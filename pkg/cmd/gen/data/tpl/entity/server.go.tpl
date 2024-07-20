@@ -1,19 +1,18 @@
-package server
+package {{ .PrivateName }}
 
 import (
 	"net/http"
 
-	"{{ .Pkg }}/pkg/httpserver"
-	"{{ .Pkg }}/src/service"
+	"{{ .Pkg }}/pkg/httputil"
 	"github.com/gin-gonic/gin"
 )
 
-func New{{ .Name }}(s service.{{ .Name }}) *{{ .Name }} {
-	return &{{ .Name }}{s: s}
+func New{{ .Name }}Server(s {{ .Name }}Service) *{{ .Name }}Server {
+	return &{{ .Name }}Server{s: s}
 }
 
-type {{ .Name }} struct {
-	s service.{{ .Name }}
+type {{ .Name }}Server struct {
+	s {{ .Name }}Service
 }
 
 // Create {{ .Name }}
@@ -23,26 +22,26 @@ type {{ .Name }} struct {
 // @Tags         {{ .Name }}
 // @Accept       json
 // @Produce      json
-// @Param        body body service.Create{{ .Name }}Param true "{{ .Name }} data"
+// @Param        body body Create{{ .Name }}Request true "{{ .Name }} data"
 // @Success      200  {object} dto.{{ .Name }}
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /{{ .URI }} [post]
-func (s *{{ .Name }}) Create(c *gin.Context) {
-	var param service.Create{{ .Name }}Param
+func (s *{{ .Name }}Server) Create(c *gin.Context) {
+	var param Create{{ .Name }}Request
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Create(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusCreated, rst)
+	httputil.Result(c, http.StatusCreated, rst)
 }
 
 // Get {{ .Name }}
@@ -55,25 +54,25 @@ func (s *{{ .Name }}) Create(c *gin.Context) {
 // @Param        id path string true "{{ .Name }} ID"
 // @Param        expand query []string false "expand attribute list"
 // @Success      200  {object} dto.{{ .Name }}
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /{{ .URI }}/{id} [get]
-func (s *{{ .Name }}) Get(c *gin.Context) {
-	var param service.Get{{ .Name }}Param
+func (s *{{ .Name }}Server) Get(c *gin.Context) {
+	var param Get{{ .Name }}Request
 
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Get(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // List {{ .Name }}
@@ -88,25 +87,25 @@ func (s *{{ .Name }}) Get(c *gin.Context) {
 // @Param        page query int false "page"
 // @Param        pre_page query int false "size per page"
 // @Param        expand query []string false "expand attribute list"
-// @Success      200  {object} service.List{{ .Name }}Result
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Success      200  {object} List{{ .Name }}Result
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /{{ .URI }} [get]
-func (s *{{ .Name }}) List(c *gin.Context) {
-	var param service.List{{ .Name }}Param
+func (s *{{ .Name }}Server) List(c *gin.Context) {
+	var param List{{ .Name }}Request
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.List(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // Update {{ .Name }}
@@ -117,26 +116,26 @@ func (s *{{ .Name }}) List(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        id path string true "{{ .Name }} ID"
-// @Param        body body service.Update{{ .Name }}Param true "data"
+// @Param        body body Update{{ .Name }}Request true "data"
 // @Success      200  {object} dto.{{ .Name }}
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /{{ .URI }}/{id} [post]
-func (s *{{ .Name }}) Update(c *gin.Context) {
-	var param service.Update{{ .Name }}Param
+func (s *{{ .Name }}Server) Update(c *gin.Context) {
+	var param Update{{ .Name }}Request
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Update(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // Delete {{ .Name }}
@@ -148,26 +147,26 @@ func (s *{{ .Name }}) Update(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "{{ .Name }}ID"
 // @Success      200
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /{{ .URI }}/{id} [delete]
-func (s *{{ .Name }}) Delete(c *gin.Context) {
-	var param service.Delete{{ .Name }}Param
+func (s *{{ .Name }}Server) Delete(c *gin.Context) {
+	var param Delete{{ .Name }}Request
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 	err := s.s.Delete(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.ResultEmpty(c, http.StatusOK)
+	httputil.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *{{ .Name }}) API() httpserver.RouteHandleFunc {
+func (s *{{ .Name }}Server) API() httputil.RouteHandleFunc {
 	return func(route gin.IRouter) {
 		route.POST("/{{ .URI }}", s.Create)
 		route.GET("/{{ .URI }}", s.List)

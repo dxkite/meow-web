@@ -1,87 +1,83 @@
-package service
+package {{ .PrivateName }}
 
 import (
 	"context"
 
 	"{{ .Pkg }}/pkg/identity"
-	"{{ .Pkg }}/src/constant"
-	"{{ .Pkg }}/src/dto"
-	"{{ .Pkg }}/src/entity"
-	"{{ .Pkg }}/src/repository"
 )
 
-type {{ .Name }} interface {
-	Create(ctx context.Context, param *Create{{ .Name }}Param) (*dto.{{ .Name }}, error)
-	Update(ctx context.Context, param *Update{{ .Name }}Param) (*dto.{{ .Name }}, error)
-	Get(ctx context.Context, param *Get{{ .Name }}Param) (*dto.{{ .Name }}, error)
-	Delete(ctx context.Context, param *Delete{{ .Name }}Param) error
-	List(ctx context.Context, param *List{{ .Name }}Param) (*List{{ .Name }}Result, error)
+type {{ .Name }}Service interface {
+	Create(ctx context.Context, param *Create{{ .Name }}Request) (*{{ .Name }}Dto, error)
+	Update(ctx context.Context, param *Update{{ .Name }}Request) (*{{ .Name }}Dto, error)
+	Get(ctx context.Context, param *Get{{ .Name }}Request) (*{{ .Name }}Dto, error)
+	Delete(ctx context.Context, param *Delete{{ .Name }}Request) error
+	List(ctx context.Context, param *List{{ .Name }}Request) (*List{{ .Name }}Response, error)
 }
 
-func New{{ .Name }}(r repository.{{ .Name }}) {{ .Name }} {
-	return &{{ .PrivateName }}{r: r}
+func New{{ .Name }}Service(r {{ .Name }}Repository) {{ .Name }}Service {
+	return &{{ .PrivateName }}Service{r: r}
 }
 
-type {{ .PrivateName }} struct {
-	r repository.{{ .Name }}
+type {{ .PrivateName }}Service struct {
+	r {{ .Name }}Repository
 }
 
 
-type Create{{ .Name }}Param struct {
+type Create{{ .Name }}Request struct {
 	// TODO
 }
 
-func (s *{{ .PrivateName }}) Create(ctx context.Context, param *Create{{ .Name }}Param) (*dto.{{ .Name }}, error) {
-	ent := entity.New{{ .Name }}()
+func (s *{{ .PrivateName }}Service) Create(ctx context.Context, param *Create{{ .Name }}Request) (*{{ .Name }}Dto, error) {
+	ent := New{{ .Name }}()
 
 	resp, err := s.r.Create(ctx, ent)
 	if err != nil {
 		return nil, err
 	}
 
-	return dto.New{{ .Name }}(resp), nil
+	return New{{ .Name }}Dto(resp), nil
 }
 
-type Get{{ .Name }}Param struct {
+type Get{{ .Name }}Request struct {
 	Id     string   `json:"id" uri:"id" binding:"required"`
 	Expand []string `json:"expand" form:"expand"`
 }
 
-func (s *{{ .PrivateName }}) Get(ctx context.Context, param *Get{{ .Name }}Param) (*dto.{{ .Name }}, error) {
-	ent, err := s.r.Get(ctx, identity.Parse(constant.{{ .Name }}Prefix, param.Id))
+func (s *{{ .PrivateName }}Service) Get(ctx context.Context, param *Get{{ .Name }}Request) (*{{ .Name }}Dto, error) {
+	ent, err := s.r.Get(ctx, identity.Parse({{ .Name }}Prefix, param.Id))
 	if err != nil {
 		return nil, err
 	}
-	obj := dto.New{{ .Name }}(ent)
+	obj := New{{ .Name }}Dto(ent)
 	return obj, nil
 }
 
-type Delete{{ .Name }}Param struct {
+type Delete{{ .Name }}Request struct {
 	Id string `json:"id" uri:"id" binding:"required"`
 }
 
-func (s *{{ .PrivateName }}) Delete(ctx context.Context, param *Delete{{ .Name }}Param) error {
-	err := s.r.Delete(ctx, identity.Parse(constant.{{ .Name }}Prefix, param.Id))
+func (s *{{ .PrivateName }}Service) Delete(ctx context.Context, param *Delete{{ .Name }}Request) error {
+	err := s.r.Delete(ctx, identity.Parse({{ .Name }}Prefix, param.Id))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-type List{{ .Name }}Param struct {
+type List{{ .Name }}Request struct {
 	Page         int  `json:"page" form:"page"`
 	PerPage      int  `json:"per_page" form:"per_page" binding:"max=1000"`
 	IncludeTotal bool `json:"include_total" form:"include_total"`
 	Expand        []string `json:"expand" form:"expand"`
 }
 
-type List{{ .Name }}Result struct {
-	Data    []*dto.{{ .Name }} `json:"data"`
+type List{{ .Name }}Response struct {
+	Data    []*{{ .Name }}Dto `json:"data"`
 	HasMore bool         `json:"has_more"`
 	Total   int64        `json:"total,omitempty"`
 }
 
-func (s *{{ .PrivateName }}) List(ctx context.Context, param *List{{ .Name }}Param) (*List{{ .Name }}Result, error) {
+func (s *{{ .PrivateName }}Service) List(ctx context.Context, param *List{{ .Name }}Request) (*List{{ .Name }}Response, error) {
 	if param.Page == 0 {
 		param.Page = 1
 	}
@@ -90,7 +86,7 @@ func (s *{{ .PrivateName }}) List(ctx context.Context, param *List{{ .Name }}Par
 		param.PerPage = 10
 	}
 
-	listParam := &repository.List{{ .Name }}Param{
+	listParam := &List{{ .Name }}Param{
 		Page:         param.Page,
 		PerPage:      param.PerPage,
 		IncludeTotal: param.IncludeTotal,
@@ -103,32 +99,32 @@ func (s *{{ .PrivateName }}) List(ctx context.Context, param *List{{ .Name }}Par
 
 	n := len(listRst.Data)
 
-	items := make([]*dto.{{ .Name }}, n)
+	items := make([]*{{ .Name }}Dto, n)
 
 	for i, v := range listRst.Data {
-		items[i] = dto.New{{ .Name }}(v)
+		items[i] = New{{ .Name }}Dto(v)
 	}
 
-	rst := &List{{ .Name }}Result{}
+	rst := &List{{ .Name }}Response{}
 	rst.Data = items
 	rst.HasMore = n == param.PerPage
 	rst.Total = listRst.Total
 	return rst, nil
 }
 
-type Update{{ .Name }}Param struct {
+type Update{{ .Name }}Request struct {
 	Id string `json:"id" uri:"id" binding:"required"`
-	Create{{ .Name }}Param
+	Create{{ .Name }}Request
 }
 
-func (s *{{ .PrivateName }}) Update(ctx context.Context, param *Update{{ .Name }}Param) (*dto.{{ .Name }}, error) {
-	id := identity.Parse(constant.{{ .Name }}Prefix, param.Id)
-	ent := entity.New{{ .Name }}()
+func (s *{{ .PrivateName }}Service) Update(ctx context.Context, param *Update{{ .Name }}Request) (*{{ .Name }}Dto, error) {
+	id := identity.Parse({{ .Name }}Prefix, param.Id)
+	ent := New{{ .Name }}()
 
 	err := s.r.Update(ctx, id, ent)
 	if err != nil {
 		return nil, err
 	}
 
-	return s.Get(ctx, &Get{{ .Name }}Param{Id: param.Id})
+	return s.Get(ctx, &Get{{ .Name }}Request{Id: param.Id})
 }

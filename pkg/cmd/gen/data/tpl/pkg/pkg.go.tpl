@@ -2,7 +2,7 @@ package pkg
 
 import "embed"
 
-//go:embed httpserver
+//go:embed httputil
 var HttpServerFs embed.FS
 
 //go:embed database

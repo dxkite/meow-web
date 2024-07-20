@@ -38,6 +38,7 @@ func main() {
 	privateName := flag.String("private-name", "", "private name")
 	uri := flag.String("uri", "", "uri path")
 	output := flag.String("output", ".", "output path")
+	force := flag.Bool("force", false, "force update")
 
 	flag.Parse()
 
@@ -91,11 +92,11 @@ func main() {
 			return err
 		}
 
-		outFile := path.Join(*output, "src", dirname, *filename+".go")
+		outFile := path.Join(*output, "src", *privateName, fmt.Sprintf("%s_%s.go", *filename, dirname))
 
 		fmt.Println("prepare file", p, d.Name(), "-->", outFile)
 
-		if err := renderString(string(tplStr), templateVal, false, outFile); err != nil {
+		if err := renderString(string(tplStr), templateVal, *force, outFile); err != nil {
 			return err
 		}
 		return nil
@@ -136,7 +137,7 @@ func main() {
 		panic(err)
 	}
 
-	pkgFsList := []embed.FS{pkg.HttpServerFs, pkg.IdentityFs, pkg.DatabaseFs, pkg.CmdFs}
+	pkgFsList := []embed.FS{pkg.HttpUtilFs, pkg.IdentityFs, pkg.DatabaseFs, pkg.CmdFs}
 	for _, fs := range pkgFsList {
 		if err := extractFs(fs, ".", path.Join(*output, "pkg")); err != nil {
 			panic(err)

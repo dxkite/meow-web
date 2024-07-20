@@ -1,4 +1,4 @@
-package entity
+package {{ .PrivateName }}
 
 import (
 	"time"

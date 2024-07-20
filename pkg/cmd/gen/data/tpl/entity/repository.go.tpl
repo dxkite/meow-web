@@ -1,39 +1,38 @@
-package repository
+package {{ .PrivateName }}
 
 import (
 	"context"
 
 	"{{ .Pkg }}/pkg/database"
-	"{{ .Pkg }}/src/entity"
 	"gorm.io/gorm"
 )
 
-type {{ .Name }} interface {
-	Create(ctx context.Context, {{ .PrivateName }} *entity.{{ .Name }}) (*entity.{{ .Name }}, error)
-	Get(ctx context.Context, id uint64) (*entity.{{ .Name }}, error)
-	Update(ctx context.Context, id uint64, ent *entity.{{ .Name }}) error
+type {{ .Name }}Repository interface {
+	Create(ctx context.Context, {{ .PrivateName }} *{{ .Name }}) (*{{ .Name }}, error)
+	Get(ctx context.Context, id uint64) (*{{ .Name }}, error)
+	Update(ctx context.Context, id uint64, ent *{{ .Name }}) error
 	Delete(ctx context.Context, id uint64) error
 	List(ctx context.Context, param *List{{ .Name }}Param) (*List{{ .Name }}Result, error)
-	BatchGet(ctx context.Context, ids []uint64) ([]*entity.{{ .Name }}, error)
+	BatchGet(ctx context.Context, ids []uint64) ([]*{{ .Name }}, error)
 }
 
-func New{{ .Name }}() {{ .Name }} {
-	return new({{ .PrivateName }})
+func New{{ .Name }}Repository() {{ .Name }}Repository {
+	return new({{ .PrivateName }}Repository)
 }
 
-type {{ .PrivateName }} struct {
+type {{ .PrivateName }}Repository struct {
 }
 
-func (r *{{ .PrivateName }}) Get(ctx context.Context, id uint64) (*entity.{{ .Name }}, error) {
-	var item entity.{{ .Name }}
+func (r *{{ .PrivateName }}Repository) Get(ctx context.Context, id uint64) (*{{ .Name }}, error) {
+	var item {{ .Name }}
 	if err := r.dataSource(ctx).Where("id = ?", id).First(&item).Error; err != nil {
 		return nil, err
 	}
 	return &item, nil
 }
 
-func (r *{{ .PrivateName }}) BatchGet(ctx context.Context, ids []uint64) ([]*entity.{{ .Name }}, error) {
-	var items []*entity.{{ .Name }}
+func (r *{{ .PrivateName }}Repository) BatchGet(ctx context.Context, ids []uint64) ([]*{{ .Name }}, error) {
+	var items []*{{ .Name }}
 	if err := r.dataSource(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
 		return nil, err
 	}
@@ -50,13 +49,13 @@ type List{{ .Name }}Param struct {
 }
 
 type List{{ .Name }}Result struct {
-	Data  []*entity.{{ .Name }}
+	Data  []*{{ .Name }}
 	Total int64
 }
 
 
-func (r *{{ .PrivateName }}) List(ctx context.Context, param *List{{ .Name }}Param) (*List{{ .Name }}Result, error) {
-	var items []*entity.{{ .Name }}
+func (r *{{ .PrivateName }}Repository) List(ctx context.Context, param *List{{ .Name }}Param) (*List{{ .Name }}Result, error) {
+	var items []*{{ .Name }}
 	db := r.dataSource(ctx)
 
 	// condition
@@ -78,7 +77,7 @@ func (r *{{ .PrivateName }}) List(ctx context.Context, param *List{{ .Name }}Par
 	rst.Data = items
 
 	if param.IncludeTotal {
-		if err := db.Model(entity.{{ .Name }}{}).Scopes(condition).Count(&rst.Total).Error; err != nil {
+		if err := db.Model({{ .Name }}{}).Scopes(condition).Count(&rst.Total).Error; err != nil {
 			return nil, err
 		}
 	}
@@ -86,27 +85,27 @@ func (r *{{ .PrivateName }}) List(ctx context.Context, param *List{{ .Name }}Par
 	return rst, nil
 }
 
-func (r *{{ .PrivateName }}) Create(ctx context.Context, {{ .PrivateName }} *entity.{{ .Name }}) (*entity.{{ .Name }}, error) {
+func (r *{{ .PrivateName }}Repository) Create(ctx context.Context, {{ .PrivateName }} *{{ .Name }}) (*{{ .Name }}, error) {
 	if err := r.dataSource(ctx).Create(&{{ .PrivateName }}).Error; err != nil {
 		return nil, err
 	}
 	return {{ .PrivateName }}, nil
 }
 
-func (r *{{ .PrivateName }}) Update(ctx context.Context, id uint64, ent *entity.{{ .Name }}) error {
+func (r *{{ .PrivateName }}Repository) Update(ctx context.Context, id uint64, ent *{{ .Name }}) error {
 	if err := r.dataSource(ctx).Where("id = ?", id).Updates(&ent).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *{{ .PrivateName }}) Delete(ctx context.Context, id uint64) error {
-	if err := r.dataSource(ctx).Where("id = ?", id).Delete(entity.{{ .Name }}{}).Error; err != nil {
+func (r *{{ .PrivateName }}Repository) Delete(ctx context.Context, id uint64) error {
+	if err := r.dataSource(ctx).Where("id = ?", id).Delete({{ .Name }}{}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *{{ .PrivateName }}) dataSource(ctx context.Context) *gorm.DB {
+func (r *{{ .PrivateName }}Repository) dataSource(ctx context.Context) *gorm.DB {
 	return database.Get(ctx).Engine().(*gorm.DB)
 }
