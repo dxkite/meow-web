@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"dxkite.cn/meownest/pkg/httpserver"
+	"dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-gonic/gin"
@@ -33,17 +33,17 @@ func (s *Certificate) Create(c *gin.Context) {
 	var param service.CreateCertificateParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Create(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusCreated, rst)
+	httputil.Result(c, http.StatusCreated, rst)
 }
 
 // 获取证书
@@ -63,21 +63,21 @@ func (s *Certificate) Get(c *gin.Context) {
 	var param service.GetCertificateParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Get(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // 证书列表
@@ -100,17 +100,17 @@ func (s *Certificate) List(c *gin.Context) {
 	var param service.ListCertificateParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.List(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // 更新证书
@@ -131,16 +131,16 @@ func (s *Certificate) Update(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Update(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // 删除证书
@@ -159,24 +159,24 @@ func (s *Certificate) Delete(c *gin.Context) {
 	var param service.DeleteCertificateParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 	err := s.s.Delete(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.ResultEmpty(c, http.StatusOK)
+	httputil.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *Certificate) API() httpserver.RouteHandleFunc {
+func (s *Certificate) API() httputil.RouteHandleFunc {
 	return func(route gin.IRouter) {
-		route.POST("/certificates", httpserver.ScopeRequired(constant.ScopeCertificateWrite), s.Create)
-		route.GET("/certificates", httpserver.ScopeRequired(constant.ScopeAuthorizeRead), s.List)
-		route.GET("/certificates/:id", httpserver.ScopeRequired(constant.ScopeAuthorizeRead), s.Get)
-		route.POST("/certificates/:id", httpserver.ScopeRequired(constant.ScopeCertificateWrite), s.Update)
-		route.DELETE("/certificates/:id", httpserver.ScopeRequired(constant.ScopeCertificateWrite), s.Delete)
+		route.POST("/certificates", httputil.ScopeRequired(constant.ScopeCertificateWrite), s.Create)
+		route.GET("/certificates", httputil.ScopeRequired(constant.ScopeAuthorizeRead), s.List)
+		route.GET("/certificates/:id", httputil.ScopeRequired(constant.ScopeAuthorizeRead), s.Get)
+		route.POST("/certificates/:id", httputil.ScopeRequired(constant.ScopeCertificateWrite), s.Update)
+		route.DELETE("/certificates/:id", httputil.ScopeRequired(constant.ScopeCertificateWrite), s.Delete)
 	}
 }

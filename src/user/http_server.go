@@ -3,7 +3,7 @@ package user
 import (
 	"net/http"
 
-	"dxkite.cn/meownest/pkg/httpserver"
+	httputils "dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/src/constant"
 	"github.com/gin-gonic/gin"
 )
@@ -33,17 +33,17 @@ func (s *UserHttpServer) Create(c *gin.Context) {
 	var param CreateUserRequest
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputils.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Create(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputils.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusCreated, rst)
+	httputils.Result(c, http.StatusCreated, rst)
 }
 
 // Get User
@@ -65,16 +65,16 @@ func (s *UserHttpServer) Get(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputils.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Get(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputils.ResultError(c, err)
 		return
 	}
-	httpserver.Result(c, http.StatusOK, rst)
+	httputils.Result(c, http.StatusOK, rst)
 }
 
 // List User
@@ -97,17 +97,17 @@ func (s *UserHttpServer) List(c *gin.Context) {
 	var param ListUserRequest
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputils.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.List(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputils.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusOK, rst)
+	httputils.Result(c, http.StatusOK, rst)
 }
 
 // Update User
@@ -128,16 +128,16 @@ func (s *UserHttpServer) Update(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputils.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Update(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputils.ResultError(c, err)
 		return
 	}
-	httpserver.Result(c, http.StatusOK, rst)
+	httputils.Result(c, http.StatusOK, rst)
 }
 
 // Delete User
@@ -156,16 +156,16 @@ func (s *UserHttpServer) Delete(c *gin.Context) {
 	var param DeleteUserRequest
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputils.ResultErrorBind(c, err)
 		return
 	}
 	err := s.s.Delete(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputils.ResultError(c, err)
 		return
 	}
 
-	httpserver.ResultEmpty(c, http.StatusOK)
+	httputils.ResultEmpty(c, http.StatusOK)
 }
 
 // Create User CreateSession
@@ -184,19 +184,19 @@ func (s *UserHttpServer) CreateSession(c *gin.Context) {
 	var param CreateUserSessionRequest
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputils.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.CreateSession(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputils.ResultError(c, err)
 		return
 	}
 
 	c.SetCookie(s.session, rst.Token, 360, "", "", true, true)
 
-	httpserver.Result(c, http.StatusOK, rst)
+	httputils.Result(c, http.StatusOK, rst)
 }
 
 // Delete User Session
@@ -212,26 +212,26 @@ func (s *UserHttpServer) CreateSession(c *gin.Context) {
 // @Router       /users/session [delete]
 func (s *UserHttpServer) DeleteSession(c *gin.Context) {
 
-	userId := httpserver.IdentityFrom(c)
+	userId := httputils.IdentityFrom(c)
 
 	err := s.s.DeleteSession(c, userId)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputils.ResultError(c, err)
 		return
 	}
 
-	httpserver.ResultEmpty(c, http.StatusOK)
+	httputils.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *UserHttpServer) API() httpserver.RouteHandleFunc {
+func (s *UserHttpServer) API() httputils.RouteHandleFunc {
 	return func(route gin.IRouter) {
 		route.POST("/users/session", s.CreateSession)
-		route.DELETE("/users/session", httpserver.IdentityRequired(), s.DeleteSession)
-		route.POST("/users", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Create)
-		route.GET("/users", httpserver.ScopeRequired(constant.ScopeUserRead), s.List)
+		route.DELETE("/users/session", httputils.IdentityRequired(), s.DeleteSession)
+		route.POST("/users", httputils.ScopeRequired(constant.ScopeUserWrite), s.Create)
+		route.GET("/users", httputils.ScopeRequired(constant.ScopeUserRead), s.List)
 
-		route.GET("/users/:id", httpserver.ScopeRequired(constant.ScopeUserRead), s.Get)
-		route.POST("/users/:id", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Update)
-		route.DELETE("/users/:id", httpserver.ScopeRequired(constant.ScopeUserWrite), s.Delete)
+		route.GET("/users/:id", httputils.ScopeRequired(constant.ScopeUserRead), s.Get)
+		route.POST("/users/:id", httputils.ScopeRequired(constant.ScopeUserWrite), s.Update)
+		route.DELETE("/users/:id", httputils.ScopeRequired(constant.ScopeUserWrite), s.Delete)
 	}
 }

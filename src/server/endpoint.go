@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"dxkite.cn/meownest/pkg/httpserver"
+	"dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-gonic/gin"
@@ -33,17 +33,17 @@ func (s *Endpoint) Create(c *gin.Context) {
 	var param service.CreateEndpointParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Create(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusCreated, rst)
+	httputil.Result(c, http.StatusCreated, rst)
 }
 
 // Get Endpoint
@@ -65,16 +65,16 @@ func (s *Endpoint) Get(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Get(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // List Endpoint
@@ -97,17 +97,17 @@ func (s *Endpoint) List(c *gin.Context) {
 	var param service.ListEndpointParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.List(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // Update Endpoint
@@ -128,16 +128,16 @@ func (s *Endpoint) Update(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Update(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // Delete Endpoint
@@ -156,24 +156,24 @@ func (s *Endpoint) Delete(c *gin.Context) {
 	var param service.DeleteEndpointParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 	err := s.s.Delete(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.ResultEmpty(c, http.StatusOK)
+	httputil.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *Endpoint) API() httpserver.RouteHandleFunc {
+func (s *Endpoint) API() httputil.RouteHandleFunc {
 	return func(route gin.IRouter) {
-		route.POST("/endpoints", httpserver.ScopeRequired(constant.ScopeEndpointWrite), s.Create)
-		route.GET("/endpoints", httpserver.ScopeRequired(constant.ScopeEndpointRead), s.List)
-		route.GET("/endpoints/:id", httpserver.ScopeRequired(constant.ScopeEndpointRead), s.Get)
-		route.POST("/endpoints/:id", httpserver.ScopeRequired(constant.ScopeEndpointWrite), s.Update)
-		route.DELETE("/endpoints/:id", httpserver.ScopeRequired(constant.ScopeEndpointWrite), s.Delete)
+		route.POST("/endpoints", httputil.ScopeRequired(constant.ScopeEndpointWrite), s.Create)
+		route.GET("/endpoints", httputil.ScopeRequired(constant.ScopeEndpointRead), s.List)
+		route.GET("/endpoints/:id", httputil.ScopeRequired(constant.ScopeEndpointRead), s.Get)
+		route.POST("/endpoints/:id", httputil.ScopeRequired(constant.ScopeEndpointWrite), s.Update)
+		route.DELETE("/endpoints/:id", httputil.ScopeRequired(constant.ScopeEndpointWrite), s.Delete)
 	}
 }

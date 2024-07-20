@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"dxkite.cn/meownest/pkg/httpserver"
+	"dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-gonic/gin"
@@ -33,17 +33,17 @@ func (s *Collection) Create(c *gin.Context) {
 	var param service.CreateCollectionParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Create(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusCreated, rst)
+	httputil.Result(c, http.StatusCreated, rst)
 }
 
 // Get Collection
@@ -65,16 +65,16 @@ func (s *Collection) Get(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Get(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // Collection列表
@@ -99,17 +99,17 @@ func (s *Collection) List(c *gin.Context) {
 	var param service.ListCollectionParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.List(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // Update Collection
@@ -130,16 +130,16 @@ func (s *Collection) Update(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Update(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // Delete Collection
@@ -158,24 +158,24 @@ func (s *Collection) Delete(c *gin.Context) {
 	var param service.DeleteCollectionParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 	err := s.s.Delete(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.ResultEmpty(c, http.StatusOK)
+	httputil.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *Collection) API() httpserver.RouteHandleFunc {
+func (s *Collection) API() httputil.RouteHandleFunc {
 	return func(route gin.IRouter) {
-		route.POST("/collections", httpserver.ScopeRequired(constant.ScopeCollectionWrite), s.Create)
-		route.GET("/collections", httpserver.ScopeRequired(constant.ScopeCollectionRead), s.List)
-		route.GET("/collections/:id", httpserver.ScopeRequired(constant.ScopeCollectionRead), s.Get)
-		route.POST("/collections/:id", httpserver.ScopeRequired(constant.ScopeCollectionWrite), s.Update)
-		route.DELETE("/collections/:id", httpserver.ScopeRequired(constant.ScopeCollectionWrite), s.Delete)
+		route.POST("/collections", httputil.ScopeRequired(constant.ScopeCollectionWrite), s.Create)
+		route.GET("/collections", httputil.ScopeRequired(constant.ScopeCollectionRead), s.List)
+		route.GET("/collections/:id", httputil.ScopeRequired(constant.ScopeCollectionRead), s.Get)
+		route.POST("/collections/:id", httputil.ScopeRequired(constant.ScopeCollectionWrite), s.Update)
+		route.DELETE("/collections/:id", httputil.ScopeRequired(constant.ScopeCollectionWrite), s.Delete)
 	}
 }

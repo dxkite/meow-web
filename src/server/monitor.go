@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"dxkite.cn/meownest/pkg/httpserver"
+	"dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-gonic/gin"
 )
@@ -33,20 +33,20 @@ func (s *Monitor) ListDynamicStat(c *gin.Context) {
 	var param service.ListDynamicStatParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.ListDynamicStat(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
-func (s *Monitor) API() httpserver.RouteHandleFunc {
+func (s *Monitor) API() httputil.RouteHandleFunc {
 	return func(route gin.IRouter) {
 		route.GET("/monitor/dynamic-stat", s.ListDynamicStat)
 	}

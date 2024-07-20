@@ -11,7 +11,7 @@ import (
 	"dxkite.cn/meownest/pkg/config/env"
 	"dxkite.cn/meownest/pkg/database"
 	"dxkite.cn/meownest/pkg/database/sqlite"
-	"dxkite.cn/meownest/pkg/httpserver"
+	"dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/config"
 	"dxkite.cn/meownest/src/entity"
@@ -116,7 +116,7 @@ func ExecuteContext(ctx context.Context) {
 
 	go monitorService.Collection(database.With(context.Background(), ds))
 
-	httpServer := httpserver.New()
+	httpServer := httputil.New()
 
 	httpServer.Use(cors.New(cors.Config{
 		AllowMethods:     []string{"GET", "POST", "DELETE"},
@@ -133,7 +133,7 @@ func ExecuteContext(ctx context.Context) {
 		ctx.Request = ctx.Request.WithContext(database.With(ctx.Request.Context(), ds))
 	})
 
-	httpServer.Use(httpserver.Identity(httpserver.IdentityConfig{
+	httpServer.Use(httputil.Identity(httputil.IdentityConfig{
 		Ident: func(ctx *gin.Context) (id uint64, scopes []string, err error) {
 			cookie, _ := ctx.Cookie(SessionIdName)
 			if cookie != "" {
@@ -146,7 +146,7 @@ func ExecuteContext(ctx context.Context) {
 			}
 			tks := strings.SplitN(auth, " ", 2)
 			if tks[0] != "Bearer" {
-				httpserver.Error(ctx, http.StatusUnauthorized, "invalid_token", "invalid token type")
+				httputil.Error(ctx, http.StatusUnauthorized, "invalid_token", "invalid token type")
 				ctx.Abort()
 				return
 			}

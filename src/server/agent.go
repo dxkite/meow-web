@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"dxkite.cn/meownest/pkg/httpserver"
+	"dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-gonic/gin"
 )
@@ -32,7 +32,7 @@ func (s *Agent) Reload(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func (s *Agent) API() httpserver.RouteHandleFunc {
+func (s *Agent) API() httputil.RouteHandleFunc {
 	return func(r gin.IRouter) {
 		r.POST("/agent/reload", s.Reload)
 	}

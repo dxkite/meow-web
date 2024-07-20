@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"dxkite.cn/meownest/pkg/httpserver"
+	"dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/src/constant"
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-gonic/gin"
@@ -33,17 +33,17 @@ func (s *Route) Create(c *gin.Context) {
 	var param service.CreateRouteParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Create(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusCreated, rst)
+	httputil.Result(c, http.StatusCreated, rst)
 }
 
 // 获取路由
@@ -63,21 +63,21 @@ func (s *Route) Get(c *gin.Context) {
 	var param service.GetRouteParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Get(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // 路由列表
@@ -101,17 +101,17 @@ func (s *Route) List(c *gin.Context) {
 	var param service.ListRouteParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.List(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // 更新路由
@@ -132,16 +132,16 @@ func (s *Route) Update(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Update(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // 删除路由
@@ -160,24 +160,24 @@ func (s *Route) Delete(c *gin.Context) {
 	var param service.DeleteRouteParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 	err := s.s.Delete(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.ResultEmpty(c, http.StatusOK)
+	httputil.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *Route) API() httpserver.RouteHandleFunc {
+func (s *Route) API() httputil.RouteHandleFunc {
 	return func(route gin.IRouter) {
-		route.GET("/routes", httpserver.ScopeRequired(constant.ScopeRouteRead), s.List)
-		route.POST("/routes", httpserver.ScopeRequired(constant.ScopeRouteWrite), s.Create)
-		route.GET("/routes/:id", httpserver.ScopeRequired(constant.ScopeRouteRead), s.Get)
-		route.DELETE("/routes/:id", httpserver.ScopeRequired(constant.ScopeRouteWrite), s.Delete)
-		route.POST("/routes/:id", httpserver.ScopeRequired(constant.ScopeRouteWrite), s.Update)
+		route.GET("/routes", httputil.ScopeRequired(constant.ScopeRouteRead), s.List)
+		route.POST("/routes", httputil.ScopeRequired(constant.ScopeRouteWrite), s.Create)
+		route.GET("/routes/:id", httputil.ScopeRequired(constant.ScopeRouteRead), s.Get)
+		route.DELETE("/routes/:id", httputil.ScopeRequired(constant.ScopeRouteWrite), s.Delete)
+		route.POST("/routes/:id", httputil.ScopeRequired(constant.ScopeRouteWrite), s.Update)
 	}
 }

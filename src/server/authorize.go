@@ -5,7 +5,7 @@ import (
 
 	"dxkite.cn/meownest/src/constant"
 
-	"dxkite.cn/meownest/pkg/httpserver"
+	"dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/src/service"
 	"github.com/gin-gonic/gin"
 )
@@ -34,17 +34,17 @@ func (s *Authorize) Create(c *gin.Context) {
 	var param service.CreateAuthorizeParam
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Create(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusCreated, rst)
+	httputil.Result(c, http.StatusCreated, rst)
 }
 
 // Get Authorize
@@ -64,21 +64,21 @@ func (s *Authorize) Get(c *gin.Context) {
 	var param service.GetAuthorizeParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Get(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // Authorize列表
@@ -101,17 +101,17 @@ func (s *Authorize) List(c *gin.Context) {
 	var param service.ListAuthorizeParam
 
 	if err := c.ShouldBindQuery(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.List(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // Update Authorize
@@ -132,16 +132,16 @@ func (s *Authorize) Update(c *gin.Context) {
 	param.Id = c.Param("id")
 
 	if err := c.ShouldBind(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 
 	rst, err := s.s.Update(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
-	httpserver.Result(c, http.StatusOK, rst)
+	httputil.Result(c, http.StatusOK, rst)
 }
 
 // Delete Authorize
@@ -160,24 +160,24 @@ func (s *Authorize) Delete(c *gin.Context) {
 	var param service.DeleteAuthorizeParam
 
 	if err := c.ShouldBindUri(&param); err != nil {
-		httpserver.ResultErrorBind(c, err)
+		httputil.ResultErrorBind(c, err)
 		return
 	}
 	err := s.s.Delete(c, &param)
 	if err != nil {
-		httpserver.ResultError(c, err)
+		httputil.ResultError(c, err)
 		return
 	}
 
-	httpserver.ResultEmpty(c, http.StatusOK)
+	httputil.ResultEmpty(c, http.StatusOK)
 }
 
-func (s *Authorize) API() httpserver.RouteHandleFunc {
+func (s *Authorize) API() httputil.RouteHandleFunc {
 	return func(route gin.IRouter) {
-		route.POST("/authorizes", httpserver.ScopeRequired(constant.ScopeAuthorizeWrite), s.Create)
-		route.GET("/authorizes", httpserver.ScopeRequired(constant.ScopeAuthorizeRead), s.List)
-		route.GET("/authorizes/:id", httpserver.ScopeRequired(constant.ScopeAuthorizeRead), s.Get)
-		route.POST("/authorizes/:id", httpserver.ScopeRequired(constant.ScopeAuthorizeWrite), s.Update)
-		route.DELETE("/authorizes/:id", httpserver.ScopeRequired(constant.ScopeAuthorizeWrite), s.Delete)
+		route.POST("/authorizes", httputil.ScopeRequired(constant.ScopeAuthorizeWrite), s.Create)
+		route.GET("/authorizes", httputil.ScopeRequired(constant.ScopeAuthorizeRead), s.List)
+		route.GET("/authorizes/:id", httputil.ScopeRequired(constant.ScopeAuthorizeRead), s.Get)
+		route.POST("/authorizes/:id", httputil.ScopeRequired(constant.ScopeAuthorizeWrite), s.Update)
+		route.DELETE("/authorizes/:id", httputil.ScopeRequired(constant.ScopeAuthorizeWrite), s.Delete)
 	}
 }
