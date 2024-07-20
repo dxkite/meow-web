@@ -26,8 +26,8 @@ type Route struct {
 // @Produce      json
 // @Param        body body service.CreateRouteParam true "请求体"
 // @Success      201  {object} dto.Route
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /routes [post]
 func (s *Route) Create(c *gin.Context) {
 	var param service.CreateRouteParam
@@ -56,8 +56,8 @@ func (s *Route) Create(c *gin.Context) {
 // @Param        id path string true "路由ID"
 // @Param        expand query []string false "展开数据"
 // @Success      200  {object} dto.Route
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /routes/{id} [get]
 func (s *Route) Get(c *gin.Context) {
 	var param service.GetRouteParam
@@ -94,8 +94,8 @@ func (s *Route) Get(c *gin.Context) {
 // @Param        pre_page query int false "每页数量"
 // @Param        expand query []string false "展开数据"
 // @Success      200  {object} service.ListRouteResult
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /routes [get]
 func (s *Route) List(c *gin.Context) {
 	var param service.ListRouteParam
@@ -124,8 +124,8 @@ func (s *Route) List(c *gin.Context) {
 // @Param        id path string true "路由ID"
 // @Param        body body service.UpdateRouteParam true "数据"
 // @Success      200  {object} dto.Route
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /routes/{id} [post]
 func (s *Route) Update(c *gin.Context) {
 	var param service.UpdateRouteParam
@@ -153,8 +153,8 @@ func (s *Route) Update(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "路由ID"
 // @Success      200
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /routes/{id} [delete]
 func (s *Route) Delete(c *gin.Context) {
 	var param service.DeleteRouteParam

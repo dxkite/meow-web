@@ -26,8 +26,8 @@ func NewMonitor(s service.Monitor) *Monitor {
 // @Param        start_time query string false "开始时间。默认-1h"
 // @Param		 end_time query string false "结束时间，默认当前时间"
 // @Success      200  {object} service.DynamicStatResult
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /monitor/dynamic-stat [get]
 func (s *Monitor) ListDynamicStat(c *gin.Context) {
 	var param service.ListDynamicStatParam

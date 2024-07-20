@@ -26,8 +26,8 @@ type Certificate struct {
 // @Produce      json
 // @Param        body body service.CreateCertificateParam true "数据"
 // @Success      200  {object} dto.Certificate
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /certificates [post]
 func (s *Certificate) Create(c *gin.Context) {
 	var param service.CreateCertificateParam
@@ -56,8 +56,8 @@ func (s *Certificate) Create(c *gin.Context) {
 // @Param        id path string true "证书ID"
 // @Param        expand query []string false "展开数据"
 // @Success      200  {object} dto.Certificate
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /certificates/{id} [get]
 func (s *Certificate) Get(c *gin.Context) {
 	var param service.GetCertificateParam
@@ -93,8 +93,8 @@ func (s *Certificate) Get(c *gin.Context) {
 // @Param        pre_page query int false "每页数量"
 // @Param        expand query []string false "展开数据"
 // @Success      200  {object} service.ListCertificateResult
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /certificates [get]
 func (s *Certificate) List(c *gin.Context) {
 	var param service.ListCertificateParam
@@ -123,8 +123,8 @@ func (s *Certificate) List(c *gin.Context) {
 // @Param        id path string true "证书ID"
 // @Param        body body service.UpdateCertificateParam true "数据"
 // @Success      200  {object} dto.Authorize
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /certificates/{id} [post]
 func (s *Certificate) Update(c *gin.Context) {
 	var param service.UpdateCertificateParam
@@ -152,8 +152,8 @@ func (s *Certificate) Update(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "证书ID"
 // @Success      200
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /certificates/{id} [delete]
 func (s *Certificate) Delete(c *gin.Context) {
 	var param service.DeleteCertificateParam

@@ -24,8 +24,8 @@ func NewAgent(s service.Agent) *Agent {
 // @Accept       json
 // @Produce      json
 // @Success      200
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /agent/reload [post]
 func (s *Agent) Reload(c *gin.Context) {
 	s.s.LoadRoute(c)

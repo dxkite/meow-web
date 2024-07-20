@@ -26,8 +26,8 @@ type Collection struct {
 // @Produce      json
 // @Param        body body service.CreateCollectionParam true "Collection data"
 // @Success      200  {object} dto.Collection
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /collections [post]
 func (s *Collection) Create(c *gin.Context) {
 	var param service.CreateCollectionParam
@@ -56,8 +56,8 @@ func (s *Collection) Create(c *gin.Context) {
 // @Param        id path string true "Collection ID"
 // @Param        expand query []string false "expand attribute list"
 // @Success      200  {object} dto.Collection
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /collections/{id} [get]
 func (s *Collection) Get(c *gin.Context) {
 	var param service.GetCollectionParam
@@ -92,8 +92,8 @@ func (s *Collection) Get(c *gin.Context) {
 // @Param        pre_page query int false "每页数量"
 // @Param        expand query []string false "展开数据"
 // @Success      200  {object} service.ListCollectionResult
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /collections [get]
 func (s *Collection) List(c *gin.Context) {
 	var param service.ListCollectionParam
@@ -122,8 +122,8 @@ func (s *Collection) List(c *gin.Context) {
 // @Param        id path string true "Collection ID"
 // @Param        body body service.UpdateCollectionParam true "data"
 // @Success      200  {object} dto.Collection
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /collections/{id} [post]
 func (s *Collection) Update(c *gin.Context) {
 	var param service.UpdateCollectionParam
@@ -151,8 +151,8 @@ func (s *Collection) Update(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "CollectionID"
 // @Success      200
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /collections/{id} [delete]
 func (s *Collection) Delete(c *gin.Context) {
 	var param service.DeleteCollectionParam

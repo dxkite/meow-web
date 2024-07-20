@@ -265,12 +265,12 @@ definitions:
     x-enum-varnames:
     - RouteStatusActive
     - RouteStatusInactive
-  httpserver.HttpError:
+  httputil.HttpError:
     properties:
       error:
-        $ref: '#/definitions/httpserver.HttpErrorDetail'
+        $ref: '#/definitions/httputil.HttpErrorDetail'
     type: object
-  httpserver.HttpErrorDetail:
+  httputil.HttpErrorDetail:
     properties:
       code:
         type: string
@@ -814,11 +814,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: 重载代理服务路由
       tags:
       - Agent
@@ -861,11 +861,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Authorize列表
       tags:
       - Authorize
@@ -890,11 +890,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Create Authorize
       tags:
       - Authorize
@@ -917,11 +917,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Delete Authorize
       tags:
       - Authorize
@@ -952,11 +952,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Get Authorize
       tags:
       - Authorize
@@ -986,11 +986,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Update Authorize
       tags:
       - Authorize
@@ -1033,11 +1033,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: 证书列表
       tags:
       - 证书
@@ -1062,11 +1062,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: 创建证书
       tags:
       - 证书
@@ -1089,11 +1089,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: 删除证书
       tags:
       - 证书
@@ -1124,11 +1124,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: 获取证书
       tags:
       - 证书
@@ -1158,11 +1158,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: 更新证书
       tags:
       - 证书
@@ -1213,11 +1213,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Collection列表
       tags:
       - Collection
@@ -1242,11 +1242,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Create Collection
       tags:
       - Collection
@@ -1269,11 +1269,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Delete Collection
       tags:
       - Collection
@@ -1304,11 +1304,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Get Collection
       tags:
       - Collection
@@ -1338,11 +1338,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Update Collection
       tags:
       - Collection
@@ -1385,11 +1385,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Endpoint list
       tags:
       - Endpoint
@@ -1414,11 +1414,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Create Endpoint
       tags:
       - Endpoint
@@ -1441,11 +1441,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Delete Endpoint
       tags:
       - Endpoint
@@ -1476,11 +1476,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Get Endpoint
       tags:
       - Endpoint
@@ -1510,11 +1510,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Update Endpoint
       tags:
       - Endpoint
@@ -1542,11 +1542,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: List Dynamic Stat
       tags:
       - Monitor
@@ -1593,11 +1593,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: 路由列表
       tags:
       - 路由
@@ -1622,11 +1622,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: 创建路由
       tags:
       - 路由
@@ -1649,11 +1649,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: 删除路由
       tags:
       - 路由
@@ -1684,11 +1684,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: 获取路由
       tags:
       - 路由
@@ -1718,11 +1718,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: 更新路由
       tags:
       - 路由
@@ -1765,11 +1765,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: User list
       tags:
       - User
@@ -1794,11 +1794,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Create User
       tags:
       - User
@@ -1821,11 +1821,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Delete User
       tags:
       - User
@@ -1856,11 +1856,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Get User
       tags:
       - User
@@ -1890,11 +1890,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Update User
       tags:
       - User
@@ -1911,11 +1911,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Delete User Session
       tags:
       - User
@@ -1940,11 +1940,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/httpserver.HttpError'
+            $ref: '#/definitions/httputil.HttpError'
       summary: Create User CreateSession
       tags:
       - User

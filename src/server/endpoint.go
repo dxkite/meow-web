@@ -26,8 +26,8 @@ type Endpoint struct {
 // @Produce      json
 // @Param        body body service.CreateEndpointParam true "Endpoint data"
 // @Success      200  {object} dto.Endpoint
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /endpoints [post]
 func (s *Endpoint) Create(c *gin.Context) {
 	var param service.CreateEndpointParam
@@ -56,8 +56,8 @@ func (s *Endpoint) Create(c *gin.Context) {
 // @Param        id path string true "Endpoint ID"
 // @Param        expand query []string false "expand attribute list"
 // @Success      200  {object} dto.Endpoint
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /endpoints/{id} [get]
 func (s *Endpoint) Get(c *gin.Context) {
 	var param service.GetEndpointParam
@@ -90,8 +90,8 @@ func (s *Endpoint) Get(c *gin.Context) {
 // @Param        pre_page query int false "每页数量"
 // @Param        expand query []string false "展开数据"
 // @Success      200  {object} service.ListEndpointResult
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /endpoints [get]
 func (s *Endpoint) List(c *gin.Context) {
 	var param service.ListEndpointParam
@@ -120,8 +120,8 @@ func (s *Endpoint) List(c *gin.Context) {
 // @Param        id path string true "Endpoint ID"
 // @Param        body body service.UpdateEndpointParam true "data"
 // @Success      200  {object} dto.Endpoint
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /endpoints/{id} [post]
 func (s *Endpoint) Update(c *gin.Context) {
 	var param service.UpdateEndpointParam
@@ -149,8 +149,8 @@ func (s *Endpoint) Update(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "EndpointID"
 // @Success      200
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /endpoints/{id} [delete]
 func (s *Endpoint) Delete(c *gin.Context) {
 	var param service.DeleteEndpointParam

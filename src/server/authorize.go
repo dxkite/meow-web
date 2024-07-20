@@ -27,8 +27,8 @@ type Authorize struct {
 // @Produce      json
 // @Param        body body service.CreateAuthorizeParam true "数据"
 // @Success      200  {object} dto.Authorize
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /authorizes [post]
 func (s *Authorize) Create(c *gin.Context) {
 	var param service.CreateAuthorizeParam
@@ -57,8 +57,8 @@ func (s *Authorize) Create(c *gin.Context) {
 // @Param        id path string true "Authorize ID"
 // @Param        expand query []string false "expand attribute list"
 // @Success      200  {object} dto.Authorize
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /authorizes/{id} [get]
 func (s *Authorize) Get(c *gin.Context) {
 	var param service.GetAuthorizeParam
@@ -94,8 +94,8 @@ func (s *Authorize) Get(c *gin.Context) {
 // @Param        pre_page query int false "每页数量"
 // @Param        expand query []string false "展开数据"
 // @Success      200  {object} service.ListAuthorizeResult
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /authorizes [get]
 func (s *Authorize) List(c *gin.Context) {
 	var param service.ListAuthorizeParam
@@ -124,8 +124,8 @@ func (s *Authorize) List(c *gin.Context) {
 // @Param        id path string true "Authorize ID"
 // @Param        body body service.UpdateAuthorizeParam true "data"
 // @Success      200  {object} dto.Authorize
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /authorizes/{id} [post]
 func (s *Authorize) Update(c *gin.Context) {
 	var param service.UpdateAuthorizeParam
@@ -153,8 +153,8 @@ func (s *Authorize) Update(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "AuthorizeID"
 // @Success      200
-// @Failure      400  {object} httpserver.HttpError
-// @Failure      500  {object} httpserver.HttpError
+// @Failure      400  {object} httputil.HttpError
+// @Failure      500  {object} httputil.HttpError
 // @Router       /authorizes/{id} [delete]
 func (s *Authorize) Delete(c *gin.Context) {
 	var param service.DeleteAuthorizeParam
