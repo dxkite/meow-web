@@ -1,4 +1,4 @@
-package {{ .PrivateName }}
+package {{ .ModuleName }}
 
 import (
 	"context"

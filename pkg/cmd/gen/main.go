@@ -28,6 +28,7 @@ type TemplateValue struct {
 	Pkg         string
 	Name        string
 	PrivateName string
+	ModuleName  string
 	URI         string
 }
 
@@ -36,6 +37,7 @@ func main() {
 	name := flag.String("name", "", "package name")
 	filename := flag.String("filename", "", "filename")
 	privateName := flag.String("private-name", "", "private name")
+	moduleName := flag.String("module", "", "module name")
 	uri := flag.String("uri", "", "uri path")
 	output := flag.String("output", ".", "output path")
 	force := flag.Bool("force", false, "force update")
@@ -54,6 +56,10 @@ func main() {
 		*uri = strings.ToLower(*name) + "s"
 	}
 
+	if *moduleName == "" {
+		*moduleName = strings.ToLower(*name)
+	}
+
 	fmt.Println("create entity", *pkgName, *name, *privateName, *uri)
 
 	templateVal := &TemplateValue{
@@ -61,6 +67,7 @@ func main() {
 		Name:        *name,
 		PrivateName: *privateName,
 		URI:         *uri,
+		ModuleName:  *moduleName,
 	}
 
 	if err := renderString(goModStr, templateVal, false, path.Join(*output, "go.mod")); err != nil {
@@ -92,7 +99,7 @@ func main() {
 			return err
 		}
 
-		outFile := path.Join(*output, "src", *privateName, fmt.Sprintf("%s_%s.go", *filename, dirname))
+		outFile := path.Join(*output, "src", *moduleName, fmt.Sprintf("%s_%s.go", *filename, dirname))
 
 		fmt.Println("prepare file", p, d.Name(), "-->", outFile)
 
