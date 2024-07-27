@@ -10,7 +10,7 @@ import (
 	"dxkite.cn/meownest/pkg/stat"
 )
 
-type Monitor interface {
+type MonitorService interface {
 	Collection(ctx context.Context) error
 	ListDynamicStat(ctx context.Context, param *ListDynamicStatRequest) (*DynamicStatResult, error)
 }
@@ -24,7 +24,7 @@ type MonitorConfig struct {
 	RollInterval int
 }
 
-type monitor struct {
+type monitorService struct {
 	interval        int
 	maxInterval     int
 	rollInterval    int
@@ -37,8 +37,8 @@ type monitor struct {
 	mtx             *sync.Mutex
 }
 
-func NewMonitor(cfg *MonitorConfig, r DynamicStatRepository) Monitor {
-	m := &monitor{r: r}
+func NewMonitorService(cfg *MonitorConfig, r DynamicStatRepository) MonitorService {
+	m := &monitorService{r: r}
 	m.interval = cfg.Interval
 	m.maxInterval = cfg.MaxInterval
 	m.rollInterval = cfg.RollInterval
@@ -58,7 +58,7 @@ type ListDynamicStatRequest struct {
 	EndTime   string `json:"end_time" form:"end_time"`
 }
 
-func (m monitor) ListDynamicStat(ctx context.Context, param *ListDynamicStatRequest) (*DynamicStatResult, error) {
+func (m monitorService) ListDynamicStat(ctx context.Context, param *ListDynamicStatRequest) (*DynamicStatResult, error) {
 	var startTime, endTime uint64
 
 	if param.StartTime != "" {
@@ -120,7 +120,7 @@ func (m monitor) ListDynamicStat(ctx context.Context, param *ListDynamicStatRequ
 	return resp, nil
 }
 
-func (s *monitor) Collection(ctx context.Context) error {
+func (s *monitorService) Collection(ctx context.Context) error {
 	for {
 
 		v := &DynamicStat{}
@@ -151,7 +151,7 @@ func (s *monitor) Collection(ctx context.Context) error {
 	}
 }
 
-func (s *monitor) collect(ctx context.Context, ent *DynamicStat) {
+func (s *monitorService) collect(ctx context.Context, ent *DynamicStat) {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
@@ -168,7 +168,7 @@ func (s *monitor) collect(ctx context.Context, ent *DynamicStat) {
 	}
 }
 
-func (s *monitor) rollCollect(ctx context.Context, entities []*DynamicStat) error {
+func (s *monitorService) rollCollect(ctx context.Context, entities []*DynamicStat) error {
 	avg := &DynamicStat{}
 	n := len(entities)
 	end := entities[n-1]

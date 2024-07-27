@@ -4,8 +4,6 @@ import (
 	"time"
 
 	"dxkite.cn/meownest/pkg/identity"
-	"dxkite.cn/meownest/src/constant"
-	"dxkite.cn/meownest/src/entity"
 )
 
 // SessionDto
@@ -15,9 +13,9 @@ type SessionDto struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewSessionDto(ent *entity.Session) *SessionDto {
+func NewSessionDto(ent *Session) *SessionDto {
 	obj := new(SessionDto)
-	obj.Id = identity.Format(constant.SessionPrefix, ent.Id)
+	obj.Id = identity.Format(SessionPrefix, ent.Id)
 	obj.CreatedAt = ent.CreatedAt
 	obj.UpdatedAt = ent.UpdatedAt
 	return obj

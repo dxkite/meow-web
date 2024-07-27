@@ -1,11 +1,11 @@
 package user
 
 import (
+	"context"
 	"net/http"
 
 	"dxkite.cn/meownest/pkg/httputil"
-	"dxkite.cn/meownest/src/constant"
-	"github.com/gin-gonic/gin"
+	"dxkite.cn/meownest/pkg/httputil/router"
 )
 
 func NewUserHttpServer(s UserService, session string) *UserHttpServer {
@@ -29,21 +29,26 @@ type UserHttpServer struct {
 // @Failure      400  {object} httputil.HttpError
 // @Failure      500  {object} httputil.HttpError
 // @Router       /users [post]
-func (s *UserHttpServer) Create(c *gin.Context) {
+func (s *UserHttpServer) Create(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
 	var param CreateUserRequest
 
-	if err := c.ShouldBind(&param); err != nil {
-		httputil.ResultErrorBind(c, err)
+	if err := httputil.ReadJSON(ctx, req, &param); err != nil {
+		httputil.ResultError(ctx, w, err)
 		return
 	}
 
-	rst, err := s.s.Create(c, &param)
+	if err := httputil.Validate(ctx, &param); err != nil {
+		httputil.ResultError(ctx, w, err)
+		return
+	}
+
+	rst, err := s.s.Create(ctx, &param)
 	if err != nil {
-		httputil.ResultError(c, err)
+		httputil.ResultError(ctx, w, err)
 		return
 	}
 
-	httputil.Result(c, http.StatusCreated, rst)
+	httputil.Result(ctx, w, http.StatusCreated, rst)
 }
 
 // Get User
@@ -59,22 +64,27 @@ func (s *UserHttpServer) Create(c *gin.Context) {
 // @Failure      400  {object} httputil.HttpError
 // @Failure      500  {object} httputil.HttpError
 // @Router       /users/{id} [get]
-func (s *UserHttpServer) Get(c *gin.Context) {
+func (s *UserHttpServer) Get(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
 	var param GetUserRequest
+	param.Id = vars["id"]
 
-	param.Id = c.Param("id")
-
-	if err := c.ShouldBindQuery(&param); err != nil {
-		httputil.ResultErrorBind(c, err)
+	if err := httputil.ReadQuery(ctx, req, &param); err != nil {
+		httputil.ResultError(ctx, w, err)
 		return
 	}
 
-	rst, err := s.s.Get(c, &param)
+	if err := httputil.Validate(ctx, &param); err != nil {
+		httputil.ResultError(ctx, w, err)
+		return
+	}
+
+	rst, err := s.s.Get(ctx, &param)
 	if err != nil {
-		httputil.ResultError(c, err)
+		httputil.ResultError(ctx, w, err)
 		return
 	}
-	httputil.Result(c, http.StatusOK, rst)
+
+	httputil.Result(ctx, w, http.StatusOK, rst)
 }
 
 // List User
@@ -93,21 +103,26 @@ func (s *UserHttpServer) Get(c *gin.Context) {
 // @Failure      400  {object} httputil.HttpError
 // @Failure      500  {object} httputil.HttpError
 // @Router       /users [get]
-func (s *UserHttpServer) List(c *gin.Context) {
+func (s *UserHttpServer) List(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
 	var param ListUserRequest
 
-	if err := c.ShouldBindQuery(&param); err != nil {
-		httputil.ResultErrorBind(c, err)
+	if err := httputil.ReadQuery(ctx, req, &param); err != nil {
+		httputil.ResultError(ctx, w, err)
 		return
 	}
 
-	rst, err := s.s.List(c, &param)
+	if err := httputil.Validate(ctx, &param); err != nil {
+		httputil.ResultError(ctx, w, err)
+		return
+	}
+
+	rst, err := s.s.List(ctx, &param)
 	if err != nil {
-		httputil.ResultError(c, err)
+		httputil.ResultError(ctx, w, err)
 		return
 	}
 
-	httputil.Result(c, http.StatusOK, rst)
+	httputil.Result(ctx, w, http.StatusOK, rst)
 }
 
 // Update User
@@ -123,21 +138,27 @@ func (s *UserHttpServer) List(c *gin.Context) {
 // @Failure      400  {object} httputil.HttpError
 // @Failure      500  {object} httputil.HttpError
 // @Router       /users/{id} [post]
-func (s *UserHttpServer) Update(c *gin.Context) {
+func (s *UserHttpServer) Update(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
 	var param UpdateUserRequest
-	param.Id = c.Param("id")
+	param.Id = vars["id"]
 
-	if err := c.ShouldBind(&param); err != nil {
-		httputil.ResultErrorBind(c, err)
+	if err := httputil.ReadJSON(ctx, req, &param); err != nil {
+		httputil.ResultError(ctx, w, err)
 		return
 	}
 
-	rst, err := s.s.Update(c, &param)
+	if err := httputil.Validate(ctx, &param); err != nil {
+		httputil.ResultError(ctx, w, err)
+		return
+	}
+
+	rst, err := s.s.Update(ctx, &param)
 	if err != nil {
-		httputil.ResultError(c, err)
+		httputil.ResultError(ctx, w, err)
 		return
 	}
-	httputil.Result(c, http.StatusOK, rst)
+
+	httputil.Result(ctx, w, http.StatusOK, rst)
 }
 
 // Delete User
@@ -152,20 +173,18 @@ func (s *UserHttpServer) Update(c *gin.Context) {
 // @Failure      400  {object} httputil.HttpError
 // @Failure      500  {object} httputil.HttpError
 // @Router       /users/{id} [delete]
-func (s *UserHttpServer) Delete(c *gin.Context) {
+func (s *UserHttpServer) Delete(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
 	var param DeleteUserRequest
 
-	if err := c.ShouldBindUri(&param); err != nil {
-		httputil.ResultErrorBind(c, err)
-		return
-	}
-	err := s.s.Delete(c, &param)
+	param.Id = vars["id"]
+
+	err := s.s.Delete(ctx, &param)
 	if err != nil {
-		httputil.ResultError(c, err)
+		httputil.ResultError(ctx, w, err)
 		return
 	}
 
-	httputil.ResultEmpty(c, http.StatusOK)
+	httputil.Result(ctx, w, http.StatusOK, nil)
 }
 
 // Create User CreateSession
@@ -180,23 +199,32 @@ func (s *UserHttpServer) Delete(c *gin.Context) {
 // @Failure      400  {object} httputil.HttpError
 // @Failure      500  {object} httputil.HttpError
 // @Router       /users/session [post]
-func (s *UserHttpServer) CreateSession(c *gin.Context) {
+func (s *UserHttpServer) CreateSession(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
 	var param CreateUserSessionRequest
 
-	if err := c.ShouldBind(&param); err != nil {
-		httputil.ResultErrorBind(c, err)
+	if err := httputil.ReadJSON(ctx, req, &param); err != nil {
+		httputil.ResultError(ctx, w, err)
 		return
 	}
 
-	rst, err := s.s.CreateSession(c, &param)
+	if err := httputil.Validate(ctx, &param); err != nil {
+		httputil.ResultError(ctx, w, err)
+		return
+	}
+
+	rst, err := s.s.CreateSession(ctx, &param)
 	if err != nil {
-		httputil.ResultError(c, err)
+		httputil.ResultError(ctx, w, err)
 		return
 	}
 
-	c.SetCookie(s.session, rst.Token, 360, "", "", true, true)
-
-	httputil.Result(c, http.StatusOK, rst)
+	http.SetCookie(w, &http.Cookie{
+		Name: s.session, Value: rst.Token,
+		MaxAge:   360,
+		Secure:   true,
+		HttpOnly: true,
+	})
+	httputil.Result(ctx, w, http.StatusOK, rst)
 }
 
 // Delete User Session
@@ -210,28 +238,25 @@ func (s *UserHttpServer) CreateSession(c *gin.Context) {
 // @Failure      400  {object} httputil.HttpError
 // @Failure      500  {object} httputil.HttpError
 // @Router       /users/session [delete]
-func (s *UserHttpServer) DeleteSession(c *gin.Context) {
+func (s *UserHttpServer) DeleteSession(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
+	err := s.s.DeleteSession(ctx, 0)
 
-	userId := httputil.IdentityFrom(c)
-
-	err := s.s.DeleteSession(c, userId)
 	if err != nil {
-		httputil.ResultError(c, err)
+		httputil.ResultError(ctx, w, err)
 		return
 	}
 
-	httputil.ResultEmpty(c, http.StatusOK)
+	httputil.Result(ctx, w, http.StatusOK, nil)
 }
 
-func (s *UserHttpServer) API() httputil.RouteHandleFunc {
-	return func(route gin.IRouter) {
-		route.POST("/users/session", s.CreateSession)
-		route.DELETE("/users/session", httputil.IdentityRequired(), s.DeleteSession)
-		route.POST("/users", httputil.ScopeRequired(constant.ScopeUserWrite), s.Create)
-		route.GET("/users", httputil.ScopeRequired(constant.ScopeUserRead), s.List)
-
-		route.GET("/users/:id", httputil.ScopeRequired(constant.ScopeUserRead), s.Get)
-		route.POST("/users/:id", httputil.ScopeRequired(constant.ScopeUserWrite), s.Update)
-		route.DELETE("/users/:id", httputil.ScopeRequired(constant.ScopeUserWrite), s.Delete)
+func (s *UserHttpServer) Routes() []router.Route {
+	return []router.Route{
+		router.POST("/users/session", s.CreateSession),
+		router.DELETE("/users/session", s.DeleteSession),
+		router.POST("/users", s.Create),
+		router.GET("/users", s.List),
+		router.GET("/users/:id", s.Get),
+		router.POST("/users/:id", s.Update),
+		router.DELETE("/users/:id", s.Delete),
 	}
 }

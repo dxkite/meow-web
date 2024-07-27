@@ -2,21 +2,15 @@ package httpserver
 
 import (
 	"context"
-	"net/http"
-	"strings"
 	"time"
 
-	"dxkite.cn/meownest/pkg/agent"
 	"dxkite.cn/meownest/pkg/config/env"
 	"dxkite.cn/meownest/pkg/database"
 	"dxkite.cn/meownest/pkg/database/sqlite"
-	"dxkite.cn/meownest/pkg/httputil"
+	"dxkite.cn/meownest/pkg/httputil/router"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/config"
-	"dxkite.cn/meownest/src/entity"
-	"dxkite.cn/meownest/src/repository"
-	"dxkite.cn/meownest/src/server"
-	"dxkite.cn/meownest/src/service"
+	"dxkite.cn/meownest/src/monitor"
 	"dxkite.cn/meownest/src/user"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -42,13 +36,7 @@ func ExecuteContext(ctx context.Context) {
 	}
 
 	db := ds.Engine().(*gorm.DB)
-	db.AutoMigrate(entity.Certificate{}, entity.User{}, entity.Session{},
-		entity.DynamicStat{},
-		entity.Collection{}, entity.Route{}, entity.Endpoint{}, entity.Authorize{})
-
-	certificateRepository := repository.NewCertificate()
-	certificateService := service.NewCertificate(certificateRepository)
-	certificateServer := server.NewCertificate(certificateService)
+	db.AutoMigrate(user.User{}, monitor.DynamicStat{})
 
 	SessionIdName := cfg.SessionName
 
@@ -57,50 +45,20 @@ func ExecuteContext(ctx context.Context) {
 	userService := user.NewUserService(userRepository, sessionRepository, []byte(cfg.SessionCryptoKey))
 	userServer := user.NewUserHttpServer(userService, SessionIdName)
 
-	authorizeRepository := repository.NewAuthorize()
-	authorizeService := service.NewAuthorize(authorizeRepository)
-	authorizeServer := server.NewAuthorize(authorizeService)
-
-	endpointRepository := repository.NewEndpoint()
-	endpointService := service.NewEndpoint(endpointRepository)
-	endpointServer := server.NewEndpoint(endpointService)
-
-	routeRepository := repository.NewRoute()
-	collectionRepository := repository.NewCollection()
-	collectionService := service.NewCollection(
-		collectionRepository, routeRepository,
-		endpointRepository, authorizeRepository,
-	)
-
-	routeService := service.NewRoute(
-		routeRepository, endpointRepository,
-		collectionRepository, authorizeRepository,
-	)
-	routeServer := server.NewRoute(routeService)
-
-	collectionServer := server.NewCollection(collectionService)
-
-	ag := agent.New()
-	agentService := service.NewAgent(ag,
-		routeRepository, collectionRepository,
-		endpointRepository, authorizeRepository,
-	)
-	agentServer := server.NewAgent(agentService)
-
-	monitorRepository := repository.NewMonitor()
+	monitorRepository := monitor.NewDynamicStatRepository()
 	// 5秒 统计一次，记录最新1小时数据，5分钟聚合一次
-	monitorService := service.NewMonitor(&service.MonitorConfig{
+	monitorService := monitor.NewMonitorService(&monitor.MonitorConfig{
 		Interval:     cfg.MonitorInterval,
 		RollInterval: cfg.MonitorRollInterval,
 		MaxInterval:  cfg.MonitorRealtimeInterval,
 	}, monitorRepository)
-	monitorServer := server.NewMonitor(monitorService)
+	monitorServer := monitor.NewMonitorServer(monitorService)
 
 	go monitorService.Collection(database.With(context.Background(), ds))
 
-	httpServer := httputil.New()
-
-	httpServer.Use(cors.New(cors.Config{
+	engine := gin.Default()
+	engine.ContextWithFallback = true
+	engine.Use(cors.New(cors.Config{
 		AllowMethods:     []string{"GET", "POST", "DELETE"},
 		AllowHeaders:     []string{"Origin"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -111,44 +69,25 @@ func ExecuteContext(ctx context.Context) {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	httpServer.Use(func(ctx *gin.Context) {
+	engine.Use(func(ctx *gin.Context) {
 		ctx.Request = ctx.Request.WithContext(database.With(ctx.Request.Context(), ds))
 	})
 
-	httpServer.Use(httputil.Identity(httputil.IdentityConfig{
-		Ident: func(ctx *gin.Context) (id uint64, scopes []string, err error) {
-			cookie, _ := ctx.Cookie(SessionIdName)
-			if cookie != "" {
-				return userService.GetSession(ctx, cookie)
-			}
-
-			auth := ctx.Request.Header.Get("Authorization")
-			if auth == "" {
-				return
-			}
-			tks := strings.SplitN(auth, " ", 2)
-			if tks[0] != "Bearer" {
-				httputil.Error(ctx, http.StatusUnauthorized, "invalid_token", "invalid token type")
-				ctx.Abort()
-				return
-			}
-			return userService.GetSession(ctx, tks[1])
-		},
-	}))
-
 	const APIBase = "/api/v1"
-	httpServer.HandlePrefix(APIBase, certificateServer.API())
-	httpServer.HandlePrefix(APIBase, userServer.API())
-	httpServer.HandlePrefix(APIBase, routeServer.API())
-	httpServer.HandlePrefix(APIBase, endpointServer.API())
-	httpServer.HandlePrefix(APIBase, authorizeServer.API())
-	httpServer.HandlePrefix(APIBase, collectionServer.API())
-	httpServer.HandlePrefix(APIBase, agentServer.API())
-	httpServer.HandlePrefix(APIBase, monitorServer.API())
-	httpServer.Handle(server.NewSwagger().API())
+	applyRoute(engine.Group(APIBase), userServer.Routes())
+	applyRoute(engine.Group(APIBase), monitorServer.Routes())
+	engine.Run(cfg.Listen)
+}
 
-	go httpServer.Run(cfg.Listen)
-
-	agentService.LoadRoute(database.With(context.Background(), ds))
-	agentService.Run(":80")
+func applyRoute(engine *gin.RouterGroup, routes []router.Route) {
+	for _, r := range routes {
+		handler := r.Handler()
+		engine.Handle(r.Method(), r.Path(), func(ctx *gin.Context) {
+			vars := map[string]string{}
+			for _, v := range ctx.Params {
+				vars[v.Key] = v.Value
+			}
+			handler(ctx, ctx.Request, ctx.Writer, vars)
+		})
+	}
 }
