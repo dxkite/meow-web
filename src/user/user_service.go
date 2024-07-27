@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
+	"dxkite.cn/meownest/pkg/crypto/identity"
+	"dxkite.cn/meownest/pkg/crypto/passwd"
+	"dxkite.cn/meownest/pkg/crypto/token"
 	"dxkite.cn/meownest/pkg/errors"
 	"dxkite.cn/meownest/pkg/httputil"
-	"dxkite.cn/meownest/pkg/identity"
-	"dxkite.cn/meownest/pkg/passwd"
-	"dxkite.cn/meownest/pkg/token"
 )
 
 var ErrNamePasswordError = errors.UnprocessableEntity(errors.New("name or password error"))
@@ -221,7 +221,7 @@ func (s *user) GetSession(ctx context.Context, tokStr string) (httputil.ScopeCon
 	tok := &token.BinaryToken{}
 	err := tok.Decrypt(tokStr, token.NewAesCrypto(s.aseKey))
 	if err != nil {
-		return nil, err
+		return nil, errors.InvalidParameter(errors.Wrap(err, "invalid token"))
 	}
 
 	if uint64(time.Now().Unix()) > tok.ExpireAt {

@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"dxkite.cn/meownest/pkg/config/env"
+	"dxkite.cn/meownest/pkg/crypto/identity"
 	"dxkite.cn/meownest/pkg/database"
 	"dxkite.cn/meownest/pkg/database/sqlite"
 	"dxkite.cn/meownest/pkg/errors"
 	"dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/pkg/httputil/router"
-	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/config"
 	"dxkite.cn/meownest/src/monitor"
 	"dxkite.cn/meownest/src/user"

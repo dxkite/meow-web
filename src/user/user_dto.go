@@ -3,8 +3,8 @@ package user
 import (
 	"time"
 
+	"dxkite.cn/meownest/pkg/crypto/identity"
 	"dxkite.cn/meownest/pkg/httputil"
-	"dxkite.cn/meownest/pkg/identity"
 )
 
 // UserDto

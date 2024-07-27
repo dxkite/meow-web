@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"dxkite.cn/meownest/pkg/token"
+	"dxkite.cn/meownest/pkg/crypto/token"
 )
 
 func NewBinaryAuth(key, header string, source []*AuthorizeSource) AuthorizeHandler {

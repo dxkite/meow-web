@@ -3,7 +3,7 @@ package user
 import (
 	"time"
 
-	"dxkite.cn/meownest/pkg/identity"
+	"dxkite.cn/meownest/pkg/crypto/identity"
 )
 
 // SessionDto
