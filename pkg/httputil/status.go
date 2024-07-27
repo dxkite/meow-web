@@ -47,6 +47,8 @@ func nameFromError(err error) string {
 		return "Unavailable"
 	case errors.IsForbidden(err):
 		return "Forbidden"
+	case errors.IsUnprocessableEntity(err):
+		return "UnprocessableEntity"
 	case errors.IsSystem(err):
 		return "SystemError"
 	case errors.IsUnknown(err):

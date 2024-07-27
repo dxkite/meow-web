@@ -2,16 +2,16 @@ package user
 
 import (
 	"context"
-	"errors"
 	"time"
 
+	"dxkite.cn/meownest/pkg/errors"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/pkg/passwd"
 	"dxkite.cn/meownest/pkg/token"
 )
 
-var ErrNamePasswordError = errors.New("name or password error")
-var ErrUserExist = errors.New("user exist")
+var ErrNamePasswordError = errors.UnprocessableEntity(errors.New("name or password error"))
+var ErrUserExist = errors.UnprocessableEntity(errors.New("user exist"))
 
 type UserService interface {
 	Create(ctx context.Context, param *CreateUserRequest) (*UserDto, error)
