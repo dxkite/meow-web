@@ -22,6 +22,8 @@ func statusFromError(err error) int {
 		return http.StatusServiceUnavailable
 	case errors.IsForbidden(err):
 		return http.StatusForbidden
+	case errors.IsUnprocessableEntity(err):
+		return http.StatusUnprocessableEntity
 	case errors.IsSystem(err) || errors.IsUnknown(err):
 		return http.StatusInternalServerError
 	default:

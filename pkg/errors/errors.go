@@ -8,6 +8,10 @@ type ErrInvalidParameter interface {
 	InvalidParameter()
 }
 
+type ErrUnprocessableEntity interface {
+	UnprocessableEntity()
+}
+
 type ErrUnauthorized interface {
 	Unauthorized()
 }

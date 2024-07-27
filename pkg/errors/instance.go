@@ -80,6 +80,21 @@ func Forbidden(err error) error {
 	return errForbidden{err}
 }
 
+type errUnprocessableEntity struct{ error }
+
+func (errUnprocessableEntity) UnprocessableEntity() {}
+func (errUnprocessableEntity) customError()         {}
+func (e errUnprocessableEntity) Unwrap() error {
+	return e.error
+}
+
+func UnprocessableEntity(err error) error {
+	if err == nil || IsUnprocessableEntity(err) {
+		return err
+	}
+	return errUnprocessableEntity{err}
+}
+
 type errSystem struct{ error }
 
 func (errSystem) System()      {}

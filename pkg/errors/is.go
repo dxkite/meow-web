@@ -25,6 +25,11 @@ func IsForbidden(err error) bool {
 	return As(err, &target)
 }
 
+func IsUnprocessableEntity(err error) bool {
+	var target ErrUnprocessableEntity
+	return As(err, &target)
+}
+
 func IsSystem(err error) bool {
 	var target ErrSystem
 	return As(err, &target)
