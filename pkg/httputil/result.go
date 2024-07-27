@@ -26,7 +26,7 @@ type HttpError struct {
 	ErrorDetails []string `json:"error_details"`
 }
 
-func ResultError(ctx context.Context, w http.ResponseWriter, err error) {
+func Error(ctx context.Context, w http.ResponseWriter, err error) {
 	statusCode := statusFromError(err)
 	name := nameFromError(err)
 	details := []string{}

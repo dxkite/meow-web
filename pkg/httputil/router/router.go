@@ -13,7 +13,7 @@ type Route interface {
 	Handler() Handler
 }
 
-type RouteWrapper func(r Route) Route
+type Wrapper func(r Route) Route
 
 type route struct {
 	path    string
@@ -33,7 +33,7 @@ func (r *route) Handler() Handler {
 	return r.handler
 }
 
-func New(method, path string, handler Handler, wrappers ...RouteWrapper) Route {
+func New(method, path string, handler Handler, wrappers ...Wrapper) Route {
 	var r Route = &route{method: method, path: path, handler: handler}
 	for _, w := range wrappers {
 		r = w(r)
@@ -41,26 +41,26 @@ func New(method, path string, handler Handler, wrappers ...RouteWrapper) Route {
 	return r
 }
 
-func GET(path string, handler Handler, wrappers ...RouteWrapper) Route {
+func GET(path string, handler Handler, wrappers ...Wrapper) Route {
 	return New(http.MethodGet, path, handler, wrappers...)
 }
 
-func POST(path string, handler Handler, wrappers ...RouteWrapper) Route {
+func POST(path string, handler Handler, wrappers ...Wrapper) Route {
 	return New(http.MethodPost, path, handler, wrappers...)
 }
 
-func DELETE(path string, handler Handler, wrappers ...RouteWrapper) Route {
+func DELETE(path string, handler Handler, wrappers ...Wrapper) Route {
 	return New(http.MethodDelete, path, handler, wrappers...)
 }
 
-func PUT(path string, handler Handler, wrappers ...RouteWrapper) Route {
+func PUT(path string, handler Handler, wrappers ...Wrapper) Route {
 	return New(http.MethodPut, path, handler, wrappers...)
 }
 
-func OPTIONS(path string, handler Handler, wrappers ...RouteWrapper) Route {
+func OPTIONS(path string, handler Handler, wrappers ...Wrapper) Route {
 	return New(http.MethodOptions, path, handler, wrappers...)
 }
 
-func HEAD(path string, handler Handler, wrappers ...RouteWrapper) Route {
+func HEAD(path string, handler Handler, wrappers ...Wrapper) Route {
 	return New(http.MethodHead, path, handler, wrappers...)
 }

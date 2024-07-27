@@ -33,18 +33,18 @@ func (s *MonitorServer) ListDynamicStat(ctx context.Context, req *http.Request, 
 	var param ListDynamicStatRequest
 
 	if err := httputil.ReadQuery(ctx, req, &param); err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
 	if err := httputil.Validate(ctx, &param); err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
 	rst, err := s.s.ListDynamicStat(ctx, &param)
 	if err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 

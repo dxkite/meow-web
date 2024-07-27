@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"dxkite.cn/meownest/pkg/errors"
+	"dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/pkg/passwd"
 	"dxkite.cn/meownest/pkg/token"
@@ -21,7 +22,7 @@ type UserService interface {
 	List(ctx context.Context, param *ListUserRequest) (*ListUserResponse, error)
 	CreateSession(ctx context.Context, param *CreateUserSessionRequest) (*CreateSessionResponse, error)
 	DeleteSession(ctx context.Context, userId uint64) error
-	GetSession(ctx context.Context, tokStr string) (uint64, []string, error)
+	GetSession(ctx context.Context, tokStr string) (httputil.ScopeContext, error)
 }
 
 func NewUserService(r UserRepository, rs SessionRepository, aseKey []byte) UserService {
@@ -35,9 +36,9 @@ type user struct {
 }
 
 type CreateUserRequest struct {
-	Name     string   `json:"name"`
-	Scopes   []string `json:"scopes"`
-	Password string   `json:"password"`
+	Name     string               `json:"name"`
+	Scopes   []httputil.ScopeName `json:"scopes"`
+	Password string               `json:"password"`
 }
 
 func (s *user) Create(ctx context.Context, param *CreateUserRequest) (*UserDto, error) {
@@ -168,12 +169,12 @@ type CreateUserSessionRequest struct {
 }
 
 type CreateSessionResponse struct {
-	Type     string    `json:"type"`
-	UserId   string    `json:"user_id"`
-	Name     string    `json:"name"`
-	Token    string    `json:"token"`
-	Scopes   []string  `json:"scopes"`
-	ExpireAt time.Time `json:"expire_at"`
+	Type     string               `json:"type"`
+	UserId   string               `json:"user_id"`
+	Name     string               `json:"name"`
+	Token    string               `json:"token"`
+	Scopes   []httputil.ScopeName `json:"scopes"`
+	ExpireAt time.Time            `json:"expire_at"`
 }
 
 func (s *user) CreateSession(ctx context.Context, param *CreateUserSessionRequest) (*CreateSessionResponse, error) {
@@ -216,28 +217,28 @@ func (s *user) CreateSession(ctx context.Context, param *CreateUserSessionReques
 	return rst, nil
 }
 
-func (s *user) GetSession(ctx context.Context, tokStr string) (uint64, []string, error) {
+func (s *user) GetSession(ctx context.Context, tokStr string) (httputil.ScopeContext, error) {
 	tok := &token.BinaryToken{}
 	err := tok.Decrypt(tokStr, token.NewAesCrypto(s.aseKey))
 	if err != nil {
-		return 0, nil, err
+		return nil, err
 	}
 
 	if uint64(time.Now().Unix()) > tok.ExpireAt {
-		return 0, nil, nil
+		return httputil.NewScope(0), nil
 	}
 
 	session, err := s.rs.Get(ctx, tok.Id)
 	if err != nil {
-		return 0, nil, nil
+		return httputil.NewScope(0), nil
 	}
 
 	user, err := s.r.Get(ctx, session.UserId)
 	if err != nil {
-		return 0, nil, nil
+		return httputil.NewScope(0), nil
 	}
 
-	return user.Id, user.Scopes, nil
+	return httputil.NewScope(user.Id, user.Scopes...), nil
 }
 
 func (s *user) DeleteSession(ctx context.Context, userId uint64) error {

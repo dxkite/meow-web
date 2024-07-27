@@ -2,11 +2,14 @@ package httpserver
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"dxkite.cn/meownest/pkg/config/env"
 	"dxkite.cn/meownest/pkg/database"
 	"dxkite.cn/meownest/pkg/database/sqlite"
+	"dxkite.cn/meownest/pkg/errors"
+	"dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/pkg/httputil/router"
 	"dxkite.cn/meownest/pkg/identity"
 	"dxkite.cn/meownest/src/config"
@@ -71,6 +74,35 @@ func ExecuteContext(ctx context.Context) {
 
 	engine.Use(func(ctx *gin.Context) {
 		ctx.Request = ctx.Request.WithContext(database.With(ctx.Request.Context(), ds))
+	})
+
+	engine.Use(func(ctx *gin.Context) {
+		cookie, _ := ctx.Cookie(SessionIdName)
+		if cookie == "" {
+			ctx.Next()
+			return
+		}
+
+		auth := ctx.Request.Header.Get("Authorization")
+		if auth == "" {
+			ctx.Next()
+			return
+		}
+
+		tks := strings.SplitN(auth, " ", 2)
+		if tks[0] != "Bearer" {
+			httputil.Error(ctx, ctx.Writer, errors.Unauthorized(errors.Errorf("invalid token type %s", tks[0])))
+			ctx.Abort()
+			return
+		}
+		scope, err := userService.GetSession(ctx, tks[1])
+		if err != nil {
+			httputil.Error(ctx, ctx.Writer, errors.System(err))
+			ctx.Abort()
+			return
+		}
+
+		ctx.Request = ctx.Request.WithContext(httputil.WithScope(ctx.Request.Context(), scope))
 	})
 
 	const APIBase = "/api/v1"

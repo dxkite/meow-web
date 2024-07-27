@@ -33,18 +33,18 @@ func (s *UserHttpServer) Create(ctx context.Context, req *http.Request, w http.R
 	var param CreateUserRequest
 
 	if err := httputil.ReadJSON(ctx, req, &param); err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
 	if err := httputil.Validate(ctx, &param); err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
 	rst, err := s.s.Create(ctx, &param)
 	if err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
@@ -69,18 +69,18 @@ func (s *UserHttpServer) Get(ctx context.Context, req *http.Request, w http.Resp
 	param.Id = vars["id"]
 
 	if err := httputil.ReadQuery(ctx, req, &param); err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
 	if err := httputil.Validate(ctx, &param); err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
 	rst, err := s.s.Get(ctx, &param)
 	if err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
@@ -107,18 +107,18 @@ func (s *UserHttpServer) List(ctx context.Context, req *http.Request, w http.Res
 	var param ListUserRequest
 
 	if err := httputil.ReadQuery(ctx, req, &param); err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
 	if err := httputil.Validate(ctx, &param); err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
 	rst, err := s.s.List(ctx, &param)
 	if err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
@@ -143,18 +143,18 @@ func (s *UserHttpServer) Update(ctx context.Context, req *http.Request, w http.R
 	param.Id = vars["id"]
 
 	if err := httputil.ReadJSON(ctx, req, &param); err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
 	if err := httputil.Validate(ctx, &param); err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
 	rst, err := s.s.Update(ctx, &param)
 	if err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
@@ -180,7 +180,7 @@ func (s *UserHttpServer) Delete(ctx context.Context, req *http.Request, w http.R
 
 	err := s.s.Delete(ctx, &param)
 	if err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
@@ -203,18 +203,18 @@ func (s *UserHttpServer) CreateSession(ctx context.Context, req *http.Request, w
 	var param CreateUserSessionRequest
 
 	if err := httputil.ReadJSON(ctx, req, &param); err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
 	if err := httputil.Validate(ctx, &param); err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
 	rst, err := s.s.CreateSession(ctx, &param)
 	if err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
@@ -242,7 +242,7 @@ func (s *UserHttpServer) DeleteSession(ctx context.Context, req *http.Request, w
 	err := s.s.DeleteSession(ctx, 0)
 
 	if err != nil {
-		httputil.ResultError(ctx, w, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
@@ -252,11 +252,12 @@ func (s *UserHttpServer) DeleteSession(ctx context.Context, req *http.Request, w
 func (s *UserHttpServer) Routes() []router.Route {
 	return []router.Route{
 		router.POST("/users/session", s.CreateSession),
-		router.DELETE("/users/session", s.DeleteSession),
-		router.POST("/users", s.Create),
-		router.GET("/users", s.List),
-		router.GET("/users/:id", s.Get),
-		router.POST("/users/:id", s.Update),
-		router.DELETE("/users/:id", s.Delete),
+		router.DELETE("/users/session", s.DeleteSession, httputil.ScopeRequired()),
+
+		router.POST("/users", s.Create, httputil.ScopeRequired(ScopeUserWrite)),
+		router.GET("/users", s.List, httputil.ScopeRequired(ScopeUserRead)),
+		router.GET("/users/:id", s.Get, httputil.ScopeRequired(ScopeUserRead)),
+		router.POST("/users/:id", s.Update, httputil.ScopeRequired(ScopeUserWrite)),
+		router.DELETE("/users/:id", s.Delete, httputil.ScopeRequired(ScopeUserWrite)),
 	}
 }

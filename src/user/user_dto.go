@@ -3,6 +3,7 @@ package user
 import (
 	"time"
 
+	"dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/pkg/identity"
 )
 
@@ -14,7 +15,7 @@ type UserDto struct {
 	// 用户名
 	Name string `json:"name"`
 	// 用户权限
-	Scopes []string `json:"scopes"`
+	Scopes []httputil.ScopeName `json:"scopes"`
 	// 用户状态
 	Status UserStatus `json:"status"`
 }

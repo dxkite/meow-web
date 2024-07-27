@@ -2,6 +2,8 @@ package user
 
 import (
 	"time"
+
+	"dxkite.cn/meownest/pkg/httputil"
 )
 
 type User struct {
@@ -11,7 +13,7 @@ type User struct {
 	// 密码
 	Password string
 	// 权限
-	Scopes []string `gorm:"serializer:json"`
+	Scopes []httputil.ScopeName `gorm:"serializer:json"`
 	// 用户状态
 	Status UserStatus
 
