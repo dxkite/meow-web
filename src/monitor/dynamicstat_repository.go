@@ -8,7 +8,7 @@ import (
 )
 
 type DynamicStatRepository interface {
-	Create(ctx context.Context, dynamicstat *DynamicStat) (*DynamicStat, error)
+	Create(ctx context.Context, dynamicStat *DynamicStat) (*DynamicStat, error)
 	List(ctx context.Context, param *ListDynamicStatParam) ([]*DynamicStat, error)
 	DeleteBefore(ctx context.Context, timeBefore uint64) error
 }
@@ -53,11 +53,11 @@ func (r *dynamicStatRepository) List(ctx context.Context, param *ListDynamicStat
 	return items, nil
 }
 
-func (r *dynamicStatRepository) Create(ctx context.Context, dynamicstat *DynamicStat) (*DynamicStat, error) {
-	if err := r.dataSource(ctx).Create(&dynamicstat).Error; err != nil {
+func (r *dynamicStatRepository) Create(ctx context.Context, dynamicStat *DynamicStat) (*DynamicStat, error) {
+	if err := r.dataSource(ctx).Create(&dynamicStat).Error; err != nil {
 		return nil, err
 	}
-	return dynamicstat, nil
+	return dynamicStat, nil
 }
 
 func (r *dynamicStatRepository) DeleteBefore(ctx context.Context, timeBefore uint64) error {

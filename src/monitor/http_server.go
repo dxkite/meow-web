@@ -25,7 +25,7 @@ func NewMonitorServer(s MonitorService) *MonitorServer {
 // @Produce      json
 // @Param        start_time query string false "开始时间。默认-1h"
 // @Param		 end_time query string false "结束时间，默认当前时间"
-// @Success      200  {object} service.DynamicStatResult
+// @Success      200  {object} DynamicStatResult
 // @Failure      400  {object} httputil.HttpError
 // @Failure      500  {object} httputil.HttpError
 // @Router       /monitor/dynamic-stat [get]
