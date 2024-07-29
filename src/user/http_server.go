@@ -32,7 +32,7 @@ type UserHttpServer struct {
 func (s *UserHttpServer) Create(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
 	var param CreateUserRequest
 
-	if err := httputil.ReadJSON(ctx, req, &param); err != nil {
+	if err := httputil.ReadRequest(ctx, req, &param); err != nil {
 		httputil.Error(ctx, w, err)
 		return
 	}
@@ -142,7 +142,7 @@ func (s *UserHttpServer) Update(ctx context.Context, req *http.Request, w http.R
 	var param UpdateUserRequest
 	param.Id = vars["id"]
 
-	if err := httputil.ReadJSON(ctx, req, &param); err != nil {
+	if err := httputil.ReadRequest(ctx, req, &param); err != nil {
 		httputil.Error(ctx, w, err)
 		return
 	}
@@ -202,7 +202,7 @@ func (s *UserHttpServer) Delete(ctx context.Context, req *http.Request, w http.R
 func (s *UserHttpServer) CreateSession(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
 	var param CreateUserSessionRequest
 
-	if err := httputil.ReadJSON(ctx, req, &param); err != nil {
+	if err := httputil.ReadRequest(ctx, req, &param); err != nil {
 		httputil.Error(ctx, w, err)
 		return
 	}
