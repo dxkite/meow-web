@@ -54,29 +54,21 @@ type DynamicStatResult struct {
 }
 
 type ListDynamicStatRequest struct {
-	StartTime string `json:"start_time" form:"start_time"`
-	EndTime   string `json:"end_time" form:"end_time"`
+	StartTime time.Time `json:"start_time" form:"start_time"`
+	EndTime   time.Time `json:"end_time" form:"end_time"`
 }
 
 func (m monitorService) ListDynamicStat(ctx context.Context, param *ListDynamicStatRequest) (*DynamicStatResult, error) {
 	var startTime, endTime uint64
 
-	if param.StartTime != "" {
-		v, err := time.Parse(time.RFC3339, param.StartTime)
-		if err != nil {
-			return nil, err
-		}
-		startTime = uint64(v.Unix())
+	if !param.StartTime.IsZero() {
+		startTime = uint64(param.StartTime.Unix())
 	} else {
 		startTime = uint64(time.Now().Add(time.Duration(-m.maxInterval) * time.Second).Unix())
 	}
 
-	if param.EndTime != "" {
-		v, err := time.Parse(time.RFC3339, param.EndTime)
-		if err != nil {
-			return nil, err
-		}
-		endTime = uint64(v.Unix())
+	if !param.EndTime.IsZero() {
+		endTime = uint64(param.EndTime.Unix())
 	} else {
 		endTime = uint64(time.Now().Unix())
 	}
