@@ -1,7 +1,7 @@
 package sqlite
 
 import (
-	"{{ .Pkg }}/pkg/database"
+	"{{ .PackageName }}/pkg/database"
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )

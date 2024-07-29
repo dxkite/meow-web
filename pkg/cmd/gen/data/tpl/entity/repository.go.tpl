@@ -3,12 +3,12 @@ package {{ .ModuleName }}
 import (
 	"context"
 
-	"{{ .Pkg }}/pkg/database"
+	"{{ .PackageName }}/pkg/database"
 	"gorm.io/gorm"
 )
 
 type {{ .Name }}Repository interface {
-	Create(ctx context.Context, {{ .PrivateName }} *{{ .Name }}) (*{{ .Name }}, error)
+	Create(ctx context.Context, {{ .LowerCamelName }} *{{ .Name }}) (*{{ .Name }}, error)
 	Get(ctx context.Context, id uint64) (*{{ .Name }}, error)
 	Update(ctx context.Context, id uint64, ent *{{ .Name }}) error
 	Delete(ctx context.Context, id uint64) error
@@ -17,13 +17,13 @@ type {{ .Name }}Repository interface {
 }
 
 func New{{ .Name }}Repository() {{ .Name }}Repository {
-	return new({{ .PrivateName }}Repository)
+	return new({{ .LowerCamelName }}Repository)
 }
 
-type {{ .PrivateName }}Repository struct {
+type {{ .LowerCamelName }}Repository struct {
 }
 
-func (r *{{ .PrivateName }}Repository) Get(ctx context.Context, id uint64) (*{{ .Name }}, error) {
+func (r *{{ .LowerCamelName }}Repository) Get(ctx context.Context, id uint64) (*{{ .Name }}, error) {
 	var item {{ .Name }}
 	if err := r.dataSource(ctx).Where("id = ?", id).First(&item).Error; err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func (r *{{ .PrivateName }}Repository) Get(ctx context.Context, id uint64) (*{{ 
 	return &item, nil
 }
 
-func (r *{{ .PrivateName }}Repository) BatchGet(ctx context.Context, ids []uint64) ([]*{{ .Name }}, error) {
+func (r *{{ .LowerCamelName }}Repository) BatchGet(ctx context.Context, ids []uint64) ([]*{{ .Name }}, error) {
 	var items []*{{ .Name }}
 	if err := r.dataSource(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ type List{{ .Name }}Result struct {
 }
 
 
-func (r *{{ .PrivateName }}Repository) List(ctx context.Context, param *List{{ .Name }}Param) (*List{{ .Name }}Result, error) {
+func (r *{{ .LowerCamelName }}Repository) List(ctx context.Context, param *List{{ .Name }}Param) (*List{{ .Name }}Result, error) {
 	var items []*{{ .Name }}
 	db := r.dataSource(ctx)
 
@@ -85,27 +85,27 @@ func (r *{{ .PrivateName }}Repository) List(ctx context.Context, param *List{{ .
 	return rst, nil
 }
 
-func (r *{{ .PrivateName }}Repository) Create(ctx context.Context, {{ .PrivateName }} *{{ .Name }}) (*{{ .Name }}, error) {
-	if err := r.dataSource(ctx).Create(&{{ .PrivateName }}).Error; err != nil {
+func (r *{{ .LowerCamelName }}Repository) Create(ctx context.Context, {{ .LowerCamelName }} *{{ .Name }}) (*{{ .Name }}, error) {
+	if err := r.dataSource(ctx).Create(&{{ .LowerCamelName }}).Error; err != nil {
 		return nil, err
 	}
-	return {{ .PrivateName }}, nil
+	return {{ .LowerCamelName }}, nil
 }
 
-func (r *{{ .PrivateName }}Repository) Update(ctx context.Context, id uint64, ent *{{ .Name }}) error {
+func (r *{{ .LowerCamelName }}Repository) Update(ctx context.Context, id uint64, ent *{{ .Name }}) error {
 	if err := r.dataSource(ctx).Where("id = ?", id).Updates(&ent).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *{{ .PrivateName }}Repository) Delete(ctx context.Context, id uint64) error {
+func (r *{{ .LowerCamelName }}Repository) Delete(ctx context.Context, id uint64) error {
 	if err := r.dataSource(ctx).Where("id = ?", id).Delete({{ .Name }}{}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *{{ .PrivateName }}Repository) dataSource(ctx context.Context) *gorm.DB {
+func (r *{{ .LowerCamelName }}Repository) dataSource(ctx context.Context) *gorm.DB {
 	return database.Get(ctx).Engine().(*gorm.DB)
 }

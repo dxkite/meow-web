@@ -3,7 +3,7 @@ package {{ .ModuleName }}
 import (
 	"time"
 
-	"{{ .Pkg }}/pkg/identity"
+	"{{ .PackageName }}/pkg/crypto/identity"
 )
 
 // {{ .Name }}

@@ -3,7 +3,7 @@ package {{ .ModuleName }}
 import (
 	"context"
 
-	"{{ .Pkg }}/pkg/identity"
+	"{{ .PackageName }}/pkg/crypto/identity"
 )
 
 type {{ .Name }}Service interface {
@@ -15,10 +15,10 @@ type {{ .Name }}Service interface {
 }
 
 func New{{ .Name }}Service(r {{ .Name }}Repository) {{ .Name }}Service {
-	return &{{ .PrivateName }}Service{r: r}
+	return &{{ .LowerCamelName }}Service{r: r}
 }
 
-type {{ .PrivateName }}Service struct {
+type {{ .LowerCamelName }}Service struct {
 	r {{ .Name }}Repository
 }
 
@@ -27,7 +27,7 @@ type Create{{ .Name }}Request struct {
 	// TODO
 }
 
-func (s *{{ .PrivateName }}Service) Create(ctx context.Context, param *Create{{ .Name }}Request) (*{{ .Name }}Dto, error) {
+func (s *{{ .LowerCamelName }}Service) Create(ctx context.Context, param *Create{{ .Name }}Request) (*{{ .Name }}Dto, error) {
 	ent := New{{ .Name }}()
 
 	resp, err := s.r.Create(ctx, ent)
@@ -43,7 +43,7 @@ type Get{{ .Name }}Request struct {
 	Expand []string `json:"expand" form:"expand"`
 }
 
-func (s *{{ .PrivateName }}Service) Get(ctx context.Context, param *Get{{ .Name }}Request) (*{{ .Name }}Dto, error) {
+func (s *{{ .LowerCamelName }}Service) Get(ctx context.Context, param *Get{{ .Name }}Request) (*{{ .Name }}Dto, error) {
 	ent, err := s.r.Get(ctx, identity.Parse({{ .Name }}Prefix, param.Id))
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ type Delete{{ .Name }}Request struct {
 	Id string `json:"id" uri:"id" binding:"required"`
 }
 
-func (s *{{ .PrivateName }}Service) Delete(ctx context.Context, param *Delete{{ .Name }}Request) error {
+func (s *{{ .LowerCamelName }}Service) Delete(ctx context.Context, param *Delete{{ .Name }}Request) error {
 	err := s.r.Delete(ctx, identity.Parse({{ .Name }}Prefix, param.Id))
 	if err != nil {
 		return err
@@ -77,7 +77,7 @@ type List{{ .Name }}Response struct {
 	Total   int64        `json:"total,omitempty"`
 }
 
-func (s *{{ .PrivateName }}Service) List(ctx context.Context, param *List{{ .Name }}Request) (*List{{ .Name }}Response, error) {
+func (s *{{ .LowerCamelName }}Service) List(ctx context.Context, param *List{{ .Name }}Request) (*List{{ .Name }}Response, error) {
 	if param.Page == 0 {
 		param.Page = 1
 	}
@@ -117,7 +117,7 @@ type Update{{ .Name }}Request struct {
 	Create{{ .Name }}Request
 }
 
-func (s *{{ .PrivateName }}Service) Update(ctx context.Context, param *Update{{ .Name }}Request) (*{{ .Name }}Dto, error) {
+func (s *{{ .LowerCamelName }}Service) Update(ctx context.Context, param *Update{{ .Name }}Request) (*{{ .Name }}Dto, error) {
 	id := identity.Parse({{ .Name }}Prefix, param.Id)
 	ent := New{{ .Name }}()
 

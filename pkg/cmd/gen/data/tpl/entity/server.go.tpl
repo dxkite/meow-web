@@ -1,10 +1,11 @@
 package {{ .ModuleName }}
 
 import (
+	"context"
 	"net/http"
 
-	"{{ .Pkg }}/pkg/httputil"
-	"github.com/gin-gonic/gin"
+	"{{ .PackageName }}/pkg/httputil"
+	"{{ .PackageName }}/pkg/httputil/router"
 )
 
 func New{{ .Name }}Server(s {{ .Name }}Service) *{{ .Name }}Server {
@@ -23,25 +24,30 @@ type {{ .Name }}Server struct {
 // @Accept       json
 // @Produce      json
 // @Param        body body Create{{ .Name }}Request true "{{ .Name }} data"
-// @Success      200  {object} dto.{{ .Name }}
+// @Success      200  {object} {{ .Name }}Dto
 // @Failure      400  {object} httputil.HttpError
 // @Failure      500  {object} httputil.HttpError
-// @Router       /{{ .URI }} [post]
-func (s *{{ .Name }}Server) Create(c *gin.Context) {
+// @Router       /{{ .BaseURL }} [post]
+func (s *{{ .Name }}Server) Create(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
 	var param Create{{ .Name }}Request
 
-	if err := c.ShouldBind(&param); err != nil {
-		httputil.ResultErrorBind(c, err)
+	if err := httputil.ReadRequest(ctx, req, &param); err != nil {
+		httputil.Error(ctx, w, err)
 		return
 	}
 
-	rst, err := s.s.Create(c, &param)
+	if err := httputil.Validate(ctx, &param); err != nil {
+		httputil.Error(ctx, w, err)
+		return
+	}
+
+	rst, err := s.s.Create(ctx, &param)
 	if err != nil {
-		httputil.ResultError(c, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
-	httputil.Result(c, http.StatusCreated, rst)
+	httputil.Result(ctx, w, http.StatusCreated, rst)
 }
 
 // Get {{ .Name }}
@@ -53,26 +59,32 @@ func (s *{{ .Name }}Server) Create(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "{{ .Name }} ID"
 // @Param        expand query []string false "expand attribute list"
-// @Success      200  {object} dto.{{ .Name }}
+// @Success      200  {object} {{ .Name }}Dto
 // @Failure      400  {object} httputil.HttpError
 // @Failure      500  {object} httputil.HttpError
-// @Router       /{{ .URI }}/{id} [get]
-func (s *{{ .Name }}Server) Get(c *gin.Context) {
+// @Router       /{{ .BaseURL }}/{id} [get]
+func (s *{{ .Name }}Server) Get(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
 	var param Get{{ .Name }}Request
 
-	param.Id = c.Param("id")
+	param.Id = vars["id"]
 
-	if err := c.ShouldBindQuery(&param); err != nil {
-		httputil.ResultErrorBind(c, err)
+	if err := httputil.ReadQuery(ctx, req, &param); err != nil {
+		httputil.Error(ctx, w, err)
 		return
 	}
 
-	rst, err := s.s.Get(c, &param)
+	if err := httputil.Validate(ctx, &param); err != nil {
+		httputil.Error(ctx, w, err)
+		return
+	}
+
+	rst, err := s.s.Get(ctx, &param)
 	if err != nil {
-		httputil.ResultError(c, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
-	httputil.Result(c, http.StatusOK, rst)
+
+	httputil.Result(ctx, w, http.StatusOK, rst)
 }
 
 // List {{ .Name }}
@@ -90,22 +102,27 @@ func (s *{{ .Name }}Server) Get(c *gin.Context) {
 // @Success      200  {object} List{{ .Name }}Result
 // @Failure      400  {object} httputil.HttpError
 // @Failure      500  {object} httputil.HttpError
-// @Router       /{{ .URI }} [get]
-func (s *{{ .Name }}Server) List(c *gin.Context) {
+// @Router       /{{ .BaseURL }} [get]
+func (s *{{ .Name }}Server) List(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
 	var param List{{ .Name }}Request
 
-	if err := c.ShouldBindQuery(&param); err != nil {
-		httputil.ResultErrorBind(c, err)
+	if err := httputil.ReadQuery(ctx, req, &param); err != nil {
+		httputil.Error(ctx, w, err)
 		return
 	}
 
-	rst, err := s.s.List(c, &param)
+	if err := httputil.Validate(ctx, &param); err != nil {
+		httputil.Error(ctx, w, err)
+		return
+	}
+
+	rst, err := s.s.List(ctx, &param)
 	if err != nil {
-		httputil.ResultError(c, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
-	httputil.Result(c, http.StatusOK, rst)
+	httputil.Result(ctx, w, http.StatusOK, rst)
 }
 
 // Update {{ .Name }}
@@ -117,25 +134,31 @@ func (s *{{ .Name }}Server) List(c *gin.Context) {
 // @Produce      json
 // @Param        id path string true "{{ .Name }} ID"
 // @Param        body body Update{{ .Name }}Request true "data"
-// @Success      200  {object} dto.{{ .Name }}
+// @Success      200  {object} {{ .Name }}Dto
 // @Failure      400  {object} httputil.HttpError
 // @Failure      500  {object} httputil.HttpError
-// @Router       /{{ .URI }}/{id} [post]
-func (s *{{ .Name }}Server) Update(c *gin.Context) {
+// @Router       /{{ .BaseURL }}/{id} [post]
+func (s *{{ .Name }}Server) Update(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
 	var param Update{{ .Name }}Request
-	param.Id = c.Param("id")
+	param.Id = vars["id"]
 
-	if err := c.ShouldBind(&param); err != nil {
-		httputil.ResultErrorBind(c, err)
+	if err := httputil.ReadRequest(ctx, req, &param); err != nil {
+		httputil.Error(ctx, w, err)
 		return
 	}
 
-	rst, err := s.s.Update(c, &param)
+	if err := httputil.Validate(ctx, &param); err != nil {
+		httputil.Error(ctx, w, err)
+		return
+	}
+
+	rst, err := s.s.Update(ctx, &param)
 	if err != nil {
-		httputil.ResultError(c, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
-	httputil.Result(c, http.StatusOK, rst)
+
+	httputil.Result(ctx, w, http.StatusOK, rst)
 }
 
 // Delete {{ .Name }}
@@ -149,29 +172,28 @@ func (s *{{ .Name }}Server) Update(c *gin.Context) {
 // @Success      200
 // @Failure      400  {object} httputil.HttpError
 // @Failure      500  {object} httputil.HttpError
-// @Router       /{{ .URI }}/{id} [delete]
-func (s *{{ .Name }}Server) Delete(c *gin.Context) {
+// @Router       /{{ .BaseURL }}/{id} [delete]
+func (s *{{ .Name }}Server) Delete(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
 	var param Delete{{ .Name }}Request
 
-	if err := c.ShouldBindUri(&param); err != nil {
-		httputil.ResultErrorBind(c, err)
-		return
-	}
-	err := s.s.Delete(c, &param)
+	param.Id = vars["id"]
+
+	err := s.s.Delete(ctx, &param)
 	if err != nil {
-		httputil.ResultError(c, err)
+		httputil.Error(ctx, w, err)
 		return
 	}
 
-	httputil.ResultEmpty(c, http.StatusOK)
+	httputil.Result(ctx, w, http.StatusOK, nil)
 }
 
-func (s *{{ .Name }}Server) API() httputil.RouteHandleFunc {
-	return func(route gin.IRouter) {
-		route.POST("/{{ .URI }}", s.Create)
-		route.GET("/{{ .URI }}", s.List)
-		route.GET("/{{ .URI }}/:id", s.Get)
-		route.POST("/{{ .URI }}/:id", s.Update)
-		route.DELETE("/{{ .URI }}/:id", s.Delete)
+
+func (s *{{ .Name }}Server) Routes() []router.Route {
+	return []router.Route{
+		router.POST("/{{ .BaseURL }}", s.Create),
+		router.GET("/{{ .BaseURL }}", s.List),
+		router.GET("/{{ .BaseURL }}/:id", s.Get),
+		router.POST("/{{ .BaseURL }}/:id", s.Update),
+		router.DELETE("/{{ .BaseURL }}/:id", s.Delete),
 	}
 }

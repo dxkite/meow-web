@@ -12,7 +12,8 @@ import (
 	"strings"
 	"text/template"
 
-	"{{ .Pkg }}/pkg"
+	"{{ .PackageName }}/pkg"
+	"github.com/iancoleman/strcase"
 )
 
 //go:embed data/tpl
@@ -25,41 +26,39 @@ var goModStr string
 var goSumStr string
 
 type TemplateValue struct {
-	Pkg         string
-	Name        string
-	PrivateName string
-	URI         string
+	PackageName    string
+	Name           string
+	LowerCamelName string
+	ModuleName     string
+	LowerName      string
+	BaseURL        string
 }
 
 func main() {
 	pkgName := flag.String("pkg", "", "package name")
-	name := flag.String("name", "", "package name")
-	filename := flag.String("filename", "", "filename")
-	privateName := flag.String("private-name", "", "private name")
-	uri := flag.String("uri", "", "uri path")
+	name := flag.String("name", "", "entity name")
+	moduleName := flag.String("module", "", "module name")
+	baseURL := flag.String("baseURL", "", "uri path")
 	output := flag.String("output", ".", "output path")
+	force := flag.Bool("force", false, "force update")
 
 	flag.Parse()
 
-	if *filename == "" {
-		*filename = strings.ToLower(*name)
+	if *baseURL == "" {
+		*baseURL = strings.ToLower(*name) + "s"
 	}
 
-	if *privateName == "" {
-		*privateName = strings.ToLower(*name)
+	if *moduleName == "" {
+		*moduleName = strings.ToLower(*name)
 	}
-
-	if *uri == "" {
-		*uri = strings.ToLower(*name) + "s"
-	}
-
-	fmt.Println("create entity", *pkgName, *name, *privateName, *uri)
 
 	templateVal := &TemplateValue{
-		Pkg:         *pkgName,
-		Name:        *name,
-		PrivateName: *privateName,
-		URI:         *uri,
+		PackageName:    *pkgName,
+		Name:           *name,
+		LowerCamelName: strcase.ToLowerCamel(*name),
+		LowerName:      strings.ToLower(*name),
+		ModuleName:     *moduleName,
+		BaseURL:        *baseURL,
 	}
 
 	if err := renderString(goModStr, templateVal, false, path.Join(*output, "go.mod")); err != nil {
@@ -84,18 +83,18 @@ func main() {
 			return nil
 		}
 
-		dirname := strings.TrimSuffix(d.Name(), ".go.tpl")
+		typ := strings.TrimSuffix(d.Name(), ".go.tpl")
 
 		tplStr, err := srcFiles.ReadFile(p)
 		if err != nil {
 			return err
 		}
 
-		outFile := path.Join(*output, "src", dirname, *filename+".go")
+		outFile := path.Join(*output, "src", *moduleName, fmt.Sprintf("%s_%s.go", templateVal.LowerName, typ))
 
 		fmt.Println("prepare file", p, d.Name(), "-->", outFile)
 
-		if err := renderString(string(tplStr), templateVal, false, outFile); err != nil {
+		if err := renderString(string(tplStr), templateVal, *force, outFile); err != nil {
 			return err
 		}
 		return nil
@@ -136,7 +135,7 @@ func main() {
 		panic(err)
 	}
 
-	pkgFsList := []embed.FS{pkg.HttpServerFs, pkg.IdentityFs, pkg.DatabaseFs, pkg.CmdFs}
+	pkgFsList := []embed.FS{pkg.HttpUtilFs, pkg.CryptoFs, pkg.DatabaseFs, pkg.CmdFs, pkg.LogFs, pkg.ErrorsFs}
 	for _, fs := range pkgFsList {
 		if err := extractFs(fs, ".", path.Join(*output, "pkg")); err != nil {
 			panic(err)

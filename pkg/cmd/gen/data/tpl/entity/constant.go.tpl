@@ -1,3 +1,3 @@
 package {{ .ModuleName }}
 
-const {{ .Name }}Prefix = "{{ .PrivateName }}_"
+const {{ .Name }}Prefix = "{{ .LowerCamelName }}_"
