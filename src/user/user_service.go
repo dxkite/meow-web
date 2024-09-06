@@ -9,6 +9,7 @@ import (
 	"dxkite.cn/meownest/pkg/crypto/token"
 	"dxkite.cn/meownest/pkg/errors"
 	"dxkite.cn/meownest/pkg/httputil"
+	"dxkite.cn/meownest/src/config"
 )
 
 var ErrNamePasswordError = errors.UnprocessableEntity(errors.New("name or password error"))
@@ -25,8 +26,8 @@ type UserService interface {
 	GetSession(ctx context.Context, tokStr string) (httputil.ScopeContext, error)
 }
 
-func NewUserService(r UserRepository, rs SessionRepository, aseKey []byte) UserService {
-	return &user{r: r, rs: rs, aseKey: aseKey}
+func NewUserService(r UserRepository, rs SessionRepository, cfg *config.Config) UserService {
+	return &user{r: r, rs: rs, aseKey: []byte(cfg.SessionCryptoKey)}
 }
 
 type user struct {

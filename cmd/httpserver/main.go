@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"dxkite.cn/meownest/pkg/config/env"
+	"dxkite.cn/meownest/pkg/container"
 	"dxkite.cn/meownest/pkg/crypto/identity"
 	"dxkite.cn/meownest/pkg/database"
 	"dxkite.cn/meownest/pkg/database/sqlite"
@@ -24,11 +25,15 @@ func init() {
 	identity.DefaultMask = 1234627081864056831
 }
 
+var routeCollection = router.NewCollectionBag()
+
 func ExecuteContext(ctx context.Context) {
 	configProvider, err := env.NewDotEnvConfig()
 	if err != nil {
 		panic(err)
 	}
+
+	instanceCtx := container.NewScopedContext(ctx)
 
 	cfg := config.Config{}
 	configProvider.Bind(&cfg)
@@ -41,23 +46,8 @@ func ExecuteContext(ctx context.Context) {
 	db := ds.Engine().(*gorm.DB)
 	db.AutoMigrate(user.User{}, monitor.DynamicStat{})
 
-	SessionIdName := cfg.SessionName
-
-	userRepository := user.NewUserRepository()
-	sessionRepository := user.NewSessionRepository()
-	userService := user.NewUserService(userRepository, sessionRepository, []byte(cfg.SessionCryptoKey))
-	userServer := user.NewUserHttpServer(userService, SessionIdName)
-
-	monitorRepository := monitor.NewDynamicStatRepository()
-	// 5秒 统计一次，记录最新1小时数据，5分钟聚合一次
-	monitorService := monitor.NewMonitorService(&monitor.MonitorConfig{
-		Interval:     cfg.MonitorInterval,
-		RollInterval: cfg.MonitorRollInterval,
-		MaxInterval:  cfg.MonitorRealtimeInterval,
-	}, monitorRepository)
-	monitorServer := monitor.NewMonitorServer(monitorService)
-
-	go monitorService.Collection(database.With(context.Background(), ds))
+	container.Register(func() database.DataSource { return ds })
+	container.Register(func() *config.Config { return &cfg })
 
 	engine := gin.Default()
 	engine.ContextWithFallback = true
@@ -77,7 +67,7 @@ func ExecuteContext(ctx context.Context) {
 	})
 
 	engine.Use(func(ctx *gin.Context) {
-		cookie, _ := ctx.Cookie(SessionIdName)
+		cookie, _ := ctx.Cookie(cfg.SessionName)
 		if cookie == "" {
 			ctx.Next()
 			return
@@ -95,6 +85,7 @@ func ExecuteContext(ctx context.Context) {
 			ctx.Abort()
 			return
 		}
+		userService, _ := container.Get[user.UserService](instanceCtx)
 		scope, err := userService.GetSession(ctx, tks[1])
 		if err != nil {
 			httputil.Error(ctx, ctx.Writer, errors.System(err))
@@ -106,8 +97,12 @@ func ExecuteContext(ctx context.Context) {
 	})
 
 	const APIBase = "/api/v1"
-	applyRoute(engine.Group(APIBase), userServer.Routes())
-	applyRoute(engine.Group(APIBase), monitorServer.Routes())
+
+	routes, err := routeCollection.Build(instanceCtx)
+	if err != nil {
+		return
+	}
+	applyRoute(engine.Group(APIBase), routes)
 	engine.Run(cfg.Listen)
 }
 

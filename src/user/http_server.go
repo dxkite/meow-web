@@ -6,10 +6,11 @@ import (
 
 	"dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/pkg/httputil/router"
+	"dxkite.cn/meownest/src/config"
 )
 
-func NewUserHttpServer(s UserService, session string) *UserHttpServer {
-	return &UserHttpServer{s: s, session: session}
+func NewUserHttpServer(s UserService, cfg *config.Config) *UserHttpServer {
+	return &UserHttpServer{s: s, session: cfg.SessionName}
 }
 
 type UserHttpServer struct {
