@@ -28,7 +28,9 @@ func New() Container {
 }
 
 func (c *container) Register(instance Instance) error {
-	c.instances[instance.Id()] = instance
+	id := instance.Id()
+	fmt.Println("register", id, instance)
+	c.instances[id] = instance
 	return nil
 }
 
@@ -76,4 +78,15 @@ func CreateInstanceId(val reflect.Type) InstanceId {
 		return "*" + CreateInstanceId(val.Elem())
 	}
 	return InstanceId(fmt.Sprintf("%s.%s", val.PkgPath(), val.Name()))
+}
+
+func NewInstance[T any](val T) Instance {
+	if reflect.TypeOf(val).Kind() == reflect.Func {
+		return NewFuncInstance(val)
+	}
+	return NewValueInstance(val)
+}
+
+func makeInstanceId[T any](_ T) InstanceId {
+	return CreateInstanceId(reflect.TypeOf((*T)(nil)).Elem())
 }

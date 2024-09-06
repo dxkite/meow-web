@@ -15,6 +15,6 @@ func ContainerGet[T any](ctx context.Context, container Container) (T, error) {
 	return obj.(T), nil
 }
 
-func ContainerRegister(container Container, obj any) error {
-	return container.Register(NewFuncInstance(obj))
+func ContainerRegister[T any](container Container, obj T) error {
+	return container.Register(NewInstance[T](obj))
 }

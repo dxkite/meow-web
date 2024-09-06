@@ -35,8 +35,8 @@ func ExecuteContext(ctx context.Context) {
 
 	instanceCtx := container.NewScopedContext(ctx)
 
-	cfg := config.Config{}
-	configProvider.Bind(&cfg)
+	cfg := &config.Config{}
+	configProvider.Bind(cfg)
 
 	ds, err := sqlite.Open(cfg.DataPath)
 	if err != nil {
@@ -46,8 +46,8 @@ func ExecuteContext(ctx context.Context) {
 	db := ds.Engine().(*gorm.DB)
 	db.AutoMigrate(user.User{}, monitor.DynamicStat{})
 
-	container.Register(func() database.DataSource { return ds })
-	container.Register(func() *config.Config { return &cfg })
+	container.Register[database.DataSource](ds)
+	container.Register(cfg)
 
 	engine := gin.Default()
 	engine.ContextWithFallback = true
