@@ -1,4 +1,4 @@
-package httpserver
+package app
 
 import (
 	"context"
@@ -9,7 +9,6 @@ import (
 )
 
 func init() {
-
 	depends.Register(user.NewUserRepository)
 	depends.Register(user.NewSessionRepository)
 	depends.Register(user.NewUserService)

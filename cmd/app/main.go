@@ -1,4 +1,4 @@
-package httpserver
+package app
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	provider "dxkite.cn/meownest/pkg/config"
 	"dxkite.cn/meownest/pkg/config/env"
 
 	"dxkite.cn/meownest/pkg/crypto/identity"
@@ -28,15 +29,12 @@ func init() {
 var routeCollection = router.NewCollectionBag()
 
 func ExecuteContext(ctx context.Context) {
-	configProvider, err := env.NewDotEnvConfig()
-	if err != nil {
+	cfg := &config.Config{}
+	if err := provider.Bind(env.Name, cfg); err != nil {
 		panic(err)
 	}
 
 	instanceCtx := depends.NewScopedContext(ctx)
-
-	cfg := &config.Config{}
-	configProvider.Bind(cfg)
 
 	ds, err := sqlite.Open(cfg.DataPath)
 	if err != nil {

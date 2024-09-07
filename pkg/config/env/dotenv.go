@@ -3,6 +3,7 @@ package env
 import (
 	"os"
 
+	"dxkite.cn/meownest/pkg/config"
 	"github.com/caarlos0/env/v11"
 	"github.com/joho/godotenv"
 )
@@ -33,4 +34,12 @@ func NewDotEnvConfig() (*EnvConfigProvider, error) {
 		return nil, err
 	}
 	return cfg, nil
+}
+
+const Name = "env"
+
+func init() {
+	config.Register(Name, func(opts ...config.ConfigOption) (config.ConfigProvider, error) {
+		return NewDotEnvConfig()
+	})
 }

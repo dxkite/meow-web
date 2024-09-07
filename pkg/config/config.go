@@ -1,9 +1,7 @@
 package config
 
 import (
-	"context"
 	"errors"
-	"strconv"
 )
 
 type configProviderKey string
@@ -18,45 +16,11 @@ type ConfigProvider interface {
 	Engine() interface{}
 }
 
-// 从上下文中获取配置
-func Get(ctx context.Context) ConfigProvider {
-	d := GetDefault(ctx, nil)
-	if d == nil {
-		panic(ErrMissProvider)
-	}
-	return d
-}
-
-// 从上下文中获取配置，允许设置默认
-func GetDefault(ctx context.Context, defaultSource ConfigProvider) ConfigProvider {
-	if v, ok := ctx.Value(ConfigProviderKey).(ConfigProvider); ok {
-		return v
-	}
-	return defaultSource
-}
-
-// 注入配置到 context
-func With(ctx context.Context, ds ConfigProvider) context.Context {
-	return context.WithValue(ctx, ConfigProviderKey, ds)
-}
-
-func String(ctx context.Context, name string) (string, error) {
-	return Get(ctx).Get(name)
-}
-
-func Int64(ctx context.Context, name string) (int64, error) {
-	v, err := Get(ctx).Get(name)
-	if err != nil {
-		return 0, err
-	}
-	return strconv.ParseInt(v, 10, 64)
-}
-
 // 绑定到结构
-func Bind(ctx context.Context, val interface{}) error {
-	err := Get(ctx).Bind(val)
+func Bind(name string, target any, opts ...ConfigOption) error {
+	provider, err := NewProvider(name)
 	if err != nil {
 		return err
 	}
-	return nil
+	return provider.Bind(target)
 }

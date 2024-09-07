@@ -3,6 +3,7 @@ package cmd
 import (
 	"os/user"
 
+	provider "dxkite.cn/meownest/pkg/config"
 	"dxkite.cn/meownest/pkg/config/env"
 	"dxkite.cn/meownest/pkg/database/sqlite"
 	"dxkite.cn/meownest/src/config"
@@ -16,12 +17,10 @@ var initCmd = &cobra.Command{
 	Short: "init",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		configProvider, err := env.NewDotEnvConfig()
-		if err != nil {
+		cfg := &config.Config{}
+		if err := provider.Bind(env.Name, cfg); err != nil {
 			panic(err)
 		}
-		cfg := &config.Config{}
-		configProvider.Bind(cfg)
 
 		ds, err := sqlite.Open(cfg.DataPath)
 		if err != nil {

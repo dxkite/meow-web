@@ -3,7 +3,7 @@ package cmd
 import (
 	"context"
 
-	"dxkite.cn/meownest/cmd/httpserver"
+	"dxkite.cn/meownest/cmd/app"
 	"github.com/spf13/cobra"
 )
 
@@ -12,7 +12,7 @@ var rootCmd = &cobra.Command{
 	Short: "",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		httpserver.ExecuteContext(cmd.Context())
+		app.ExecuteContext(cmd.Context())
 	},
 }
 
