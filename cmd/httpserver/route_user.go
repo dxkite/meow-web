@@ -3,19 +3,19 @@ package httpserver
 import (
 	"context"
 
-	"dxkite.cn/meownest/pkg/container"
+	"dxkite.cn/meownest/pkg/depends"
 	"dxkite.cn/meownest/pkg/httputil/router"
 	"dxkite.cn/meownest/src/user"
 )
 
 func init() {
 
-	container.Register(user.NewUserRepository)
-	container.Register(user.NewSessionRepository)
-	container.Register(user.NewUserService)
-	container.Register(user.NewUserHttpServer)
+	depends.Register(user.NewUserRepository)
+	depends.Register(user.NewSessionRepository)
+	depends.Register(user.NewUserService)
+	depends.Register(user.NewUserHttpServer)
 
 	routeCollection.Add(func(ctx context.Context) (router.Collection, error) {
-		return container.Get[*user.UserHttpServer](ctx)
+		return depends.Resolve[*user.UserHttpServer](ctx)
 	})
 }

@@ -1,4 +1,4 @@
-package container
+package depends
 
 import (
 	"fmt"
@@ -33,21 +33,14 @@ func (i *funcInstance) New(args ...any) (any, error) {
 func (i *funcInstance) Requires() []InstanceId {
 	required := make([]InstanceId, i.typ.NumIn())
 	for j := 0; j < i.typ.NumIn(); j++ {
-		required[j] = CreateInstanceId(i.typ.In(j))
+		required[j] = makeInstanceId(i.typ.In(j))
 	}
 	return required
 }
 
-func NewFuncInstance(f any) Instance {
+func makeFunInstance(f any) Instance {
 	return &funcInstance{
 		val: reflect.ValueOf(f),
 		typ: reflect.TypeOf(f),
 	}
-}
-
-func (i *funcInstance) Id() InstanceId {
-	if i.typ.NumOut() == 0 {
-		return ""
-	}
-	return CreateInstanceId(i.typ.Out(0))
 }

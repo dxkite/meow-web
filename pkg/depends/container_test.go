@@ -1,7 +1,8 @@
-package container
+package depends
 
 import (
 	"context"
+	"fmt"
 	"testing"
 )
 
@@ -26,25 +27,28 @@ func TestNewFuncInstance(t *testing.T) {
 
 	invokeCount := map[string]int{}
 
-	ContainerRegister(container, func() ServiceA {
+	RegisterService(container, func() ServiceA {
 		invokeCount["ServiceA"]++
 		return test{"ServiceA"}
 	})
-	ContainerRegister(container, func() ServiceB {
+	RegisterService(container, func() ServiceB {
 		invokeCount["ServiceB"]++
 		return test{"ServiceB"}
 	})
-	ContainerRegister(container, func(a ServiceB) ServiceC {
+	RegisterService(container, func(a ServiceB) ServiceC {
 		invokeCount["ServiceC"]++
 		return test{"ServiceC"}
 	})
-	ContainerRegister(container, func(a ServiceA, b ServiceB, c ServiceC) ServiceD {
+	RegisterService(container, func(a ServiceA, b ServiceB, c ServiceC) ServiceD {
 		invokeCount["ServiceD"]++
 		return test{"ServiceD"}
 	})
 
 	ctx := NewScopedContext(context.TODO())
-	_, err := ContainerGet[ServiceD](ctx, container)
+
+	fmt.Println(container)
+
+	_, err := ResolveService[ServiceD](ctx, container)
 
 	if err != nil {
 		t.Error(err)

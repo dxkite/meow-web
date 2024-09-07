@@ -2,23 +2,23 @@ package httpserver
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
 	"dxkite.cn/meownest/pkg/config/env"
-	"dxkite.cn/meownest/pkg/container"
+
 	"dxkite.cn/meownest/pkg/crypto/identity"
 	"dxkite.cn/meownest/pkg/database"
 	"dxkite.cn/meownest/pkg/database/sqlite"
+	"dxkite.cn/meownest/pkg/depends"
 	"dxkite.cn/meownest/pkg/errors"
 	"dxkite.cn/meownest/pkg/httputil"
 	"dxkite.cn/meownest/pkg/httputil/router"
 	"dxkite.cn/meownest/src/config"
-	"dxkite.cn/meownest/src/monitor"
 	"dxkite.cn/meownest/src/user"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 func init() {
@@ -33,7 +33,7 @@ func ExecuteContext(ctx context.Context) {
 		panic(err)
 	}
 
-	instanceCtx := container.NewScopedContext(ctx)
+	instanceCtx := depends.NewScopedContext(ctx)
 
 	cfg := &config.Config{}
 	configProvider.Bind(cfg)
@@ -43,11 +43,8 @@ func ExecuteContext(ctx context.Context) {
 		panic(err)
 	}
 
-	db := ds.Engine().(*gorm.DB)
-	db.AutoMigrate(user.User{}, monitor.DynamicStat{})
-
-	container.Register[database.DataSource](ds)
-	container.Register(cfg)
+	depends.Register[database.DataSource](ds)
+	depends.Register(cfg)
 
 	engine := gin.Default()
 	engine.ContextWithFallback = true
@@ -85,7 +82,7 @@ func ExecuteContext(ctx context.Context) {
 			ctx.Abort()
 			return
 		}
-		userService, _ := container.Get[user.UserService](instanceCtx)
+		userService, _ := depends.Resolve[user.UserService](instanceCtx)
 		scope, err := userService.GetSession(ctx, tks[1])
 		if err != nil {
 			httputil.Error(ctx, ctx.Writer, errors.System(err))
@@ -100,8 +97,10 @@ func ExecuteContext(ctx context.Context) {
 
 	routes, err := routeCollection.Build(instanceCtx)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
+
 	applyRoute(engine.Group(APIBase), routes)
 	engine.Run(cfg.Listen)
 }
