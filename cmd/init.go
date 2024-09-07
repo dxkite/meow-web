@@ -3,11 +3,11 @@ package cmd
 import (
 	"os/user"
 
-	provider "dxkite.cn/meownest/pkg/config"
-	"dxkite.cn/meownest/pkg/config/env"
-	"dxkite.cn/meownest/pkg/database/sqlite"
-	"dxkite.cn/meownest/src/config"
+	"dxkite.cn/meownest/pkg/config"
 	"dxkite.cn/meownest/src/monitor"
+	provider "dxkite.cn/nebula/pkg/config"
+	"dxkite.cn/nebula/pkg/config/env"
+	"dxkite.cn/nebula/pkg/database/sqlite"
 	"github.com/spf13/cobra"
 	"gorm.io/gorm"
 )
@@ -18,11 +18,11 @@ var initCmd = &cobra.Command{
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := &config.Config{}
-		if err := provider.Bind(env.Name, cfg); err != nil {
+		if err := provider.Bind(env.NewProvider(), cfg); err != nil {
 			panic(err)
 		}
 
-		ds, err := sqlite.Open(cfg.DataPath)
+		ds, err := sqlite.NewSource(cfg.DataPath)
 		if err != nil {
 			panic(err)
 		}

@@ -3,21 +3,17 @@ package app
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
-	provider "dxkite.cn/meownest/pkg/config"
-	"dxkite.cn/meownest/pkg/config/env"
+	provider "dxkite.cn/nebula/pkg/config"
+	"dxkite.cn/nebula/pkg/config/env"
 
-	"dxkite.cn/meownest/pkg/crypto/identity"
-	"dxkite.cn/meownest/pkg/database"
-	"dxkite.cn/meownest/pkg/database/sqlite"
-	"dxkite.cn/meownest/pkg/depends"
-	"dxkite.cn/meownest/pkg/errors"
-	"dxkite.cn/meownest/pkg/httputil"
-	"dxkite.cn/meownest/pkg/httputil/router"
-	"dxkite.cn/meownest/src/config"
-	"dxkite.cn/meownest/src/user"
+	"dxkite.cn/meownest/pkg/config"
+	"dxkite.cn/meownest/pkg/middleware"
+	"dxkite.cn/nebula/pkg/crypto/identity"
+	"dxkite.cn/nebula/pkg/database/sqlite"
+	"dxkite.cn/nebula/pkg/depends"
+	"dxkite.cn/nebula/pkg/httputil/router"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -30,18 +26,18 @@ var routeCollection = router.NewCollectionBag()
 
 func ExecuteContext(ctx context.Context) {
 	cfg := &config.Config{}
-	if err := provider.Bind(env.Name, cfg); err != nil {
+	if err := provider.Bind(env.NewProvider(), cfg); err != nil {
 		panic(err)
 	}
 
-	instanceCtx := depends.NewScopedContext(ctx)
+	scopeCtx := depends.NewScopedContext(ctx)
 
-	ds, err := sqlite.Open(cfg.DataPath)
+	ds, err := sqlite.NewSource(cfg.DataPath)
 	if err != nil {
 		panic(err)
 	}
 
-	depends.Register[database.DataSource](ds)
+	depends.Register(ds)
 	depends.Register(cfg)
 
 	engine := gin.Default()
@@ -57,43 +53,12 @@ func ExecuteContext(ctx context.Context) {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	engine.Use(func(ctx *gin.Context) {
-		ctx.Request = ctx.Request.WithContext(database.With(ctx.Request.Context(), ds))
-	})
-
-	engine.Use(func(ctx *gin.Context) {
-		cookie, _ := ctx.Cookie(cfg.SessionName)
-		if cookie == "" {
-			ctx.Next()
-			return
-		}
-
-		auth := ctx.Request.Header.Get("Authorization")
-		if auth == "" {
-			ctx.Next()
-			return
-		}
-
-		tks := strings.SplitN(auth, " ", 2)
-		if tks[0] != "Bearer" {
-			httputil.Error(ctx, ctx.Writer, errors.Unauthorized(errors.Errorf("invalid token type %s", tks[0])))
-			ctx.Abort()
-			return
-		}
-		userService, _ := depends.Resolve[user.UserService](instanceCtx)
-		scope, err := userService.GetSession(ctx, tks[1])
-		if err != nil {
-			httputil.Error(ctx, ctx.Writer, errors.System(err))
-			ctx.Abort()
-			return
-		}
-
-		ctx.Request = ctx.Request.WithContext(httputil.WithScope(ctx.Request.Context(), scope))
-	})
+	engine.Use(middleware.DataSource(ds))
+	engine.Use(middleware.Auth(scopeCtx, cfg))
 
 	const APIBase = "/api/v1"
 
-	routes, err := routeCollection.Build(instanceCtx)
+	routes, err := routeCollection.Build(scopeCtx)
 	if err != nil {
 		fmt.Println(err)
 		return

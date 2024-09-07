@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"dxkite.cn/meownest/pkg/binary"
+	"dxkite.cn/nebula/pkg/binary"
 )
 
 func TestDynamic(t *testing.T) {

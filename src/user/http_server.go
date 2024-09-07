@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"dxkite.cn/meownest/pkg/httputil"
-	"dxkite.cn/meownest/pkg/httputil/router"
-	"dxkite.cn/meownest/src/config"
+	"dxkite.cn/meownest/pkg/config"
+	"dxkite.cn/nebula/pkg/httputil"
+	"dxkite.cn/nebula/pkg/httputil/router"
 )
 
 func NewUserHttpServer(s UserService, cfg *config.Config) *UserHttpServer {

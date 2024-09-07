@@ -3,7 +3,7 @@ package user
 import (
 	"time"
 
-	"dxkite.cn/meownest/pkg/httputil"
+	"dxkite.cn/nebula/pkg/httputil"
 )
 
 type User struct {

@@ -1,6 +1,6 @@
 package user
 
-import "dxkite.cn/meownest/pkg/httputil"
+import "dxkite.cn/nebula/pkg/httputil"
 
 const UserPrefix = "user_"
 const SessionPrefix = "session_"
