@@ -3,8 +3,8 @@ package cmd
 import (
 	"os/user"
 
-	"dxkite.cn/meownest/pkg/config"
-	"dxkite.cn/meownest/src/monitor"
+	"dxkite.cn/meow-web/pkg/config"
+	"dxkite.cn/meow-web/src/monitor"
 	provider "dxkite.cn/nebula/pkg/config"
 	"dxkite.cn/nebula/pkg/config/env"
 	"dxkite.cn/nebula/pkg/database/sqlite"

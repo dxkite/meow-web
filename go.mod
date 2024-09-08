@@ -1,4 +1,4 @@
-module dxkite.cn/meownest
+module dxkite.cn/meow-web
 
 go 1.20
 

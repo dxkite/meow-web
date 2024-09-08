@@ -1,4 +1,4 @@
-# MeowNest (喵窝)
+# meow-web
 
 ## 功能
 
@@ -6,6 +6,3 @@
 - [x] 组件守护进程
 - [ ] TCP 代理
 
-## 架构模型参考
-
-![](./images/meownest.drawio.png)

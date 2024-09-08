@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"dxkite.cn/meownest/cmd"
+	"dxkite.cn/meow-web/cmd"
 )
 
 //go:generate swag init -o ./docs -g main.go

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"dxkite.cn/meownest/pkg/stat"
+	"dxkite.cn/meow-web/pkg/stat"
 )
 
 type MonitorService interface {

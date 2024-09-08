@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"dxkite.cn/meownest/pkg/config"
+	"dxkite.cn/meow-web/pkg/config"
 	"dxkite.cn/nebula/pkg/httputil"
 	"dxkite.cn/nebula/pkg/httputil/router"
 )

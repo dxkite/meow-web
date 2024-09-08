@@ -3,8 +3,8 @@ package app
 import (
 	"context"
 
-	"dxkite.cn/meownest/pkg/config"
-	"dxkite.cn/meownest/src/monitor"
+	"dxkite.cn/meow-web/pkg/config"
+	"dxkite.cn/meow-web/src/monitor"
 	"dxkite.cn/nebula/pkg/database"
 	"dxkite.cn/nebula/pkg/depends"
 	"dxkite.cn/nebula/pkg/httputil/router"

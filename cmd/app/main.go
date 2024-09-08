@@ -8,8 +8,8 @@ import (
 	provider "dxkite.cn/nebula/pkg/config"
 	"dxkite.cn/nebula/pkg/config/env"
 
-	"dxkite.cn/meownest/pkg/config"
-	"dxkite.cn/meownest/pkg/middleware"
+	"dxkite.cn/meow-web/pkg/config"
+	"dxkite.cn/meow-web/pkg/middleware"
 	"dxkite.cn/nebula/pkg/crypto/identity"
 	"dxkite.cn/nebula/pkg/database/sqlite"
 	"dxkite.cn/nebula/pkg/depends"

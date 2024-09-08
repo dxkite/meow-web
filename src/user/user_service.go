@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"dxkite.cn/meownest/pkg/config"
+	"dxkite.cn/meow-web/pkg/config"
 	"dxkite.cn/nebula/pkg/crypto/identity"
 	"dxkite.cn/nebula/pkg/crypto/passwd"
 	"dxkite.cn/nebula/pkg/crypto/token"

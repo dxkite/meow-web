@@ -3,12 +3,12 @@ package cmd
 import (
 	"context"
 
-	"dxkite.cn/meownest/cmd/app"
+	"dxkite.cn/meow-web/cmd/app"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "meownest",
+	Use:   "meow-cli",
 	Short: "",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {

@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 
-	"dxkite.cn/meownest/src/user"
+	"dxkite.cn/meow-web/src/user"
 	"dxkite.cn/nebula/pkg/depends"
 	"dxkite.cn/nebula/pkg/httputil/router"
 )

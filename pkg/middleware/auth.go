@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"dxkite.cn/meownest/pkg/config"
-	"dxkite.cn/meownest/src/user"
+	"dxkite.cn/meow-web/pkg/config"
+	"dxkite.cn/meow-web/src/user"
 	"dxkite.cn/nebula/pkg/depends"
 	"dxkite.cn/nebula/pkg/errors"
 	"dxkite.cn/nebula/pkg/httputil"
