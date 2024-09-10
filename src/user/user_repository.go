@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"dxkite.cn/nebula/pkg/database"
+	"dxkite.cn/meow-web/pkg/utils"
 	"gorm.io/gorm"
 )
 
@@ -29,7 +29,7 @@ type userRepository struct {
 
 func (r *userRepository) Get(ctx context.Context, id uint64) (*User, error) {
 	var item User
-	if err := r.dataSource(ctx).Where("id = ?", id).First(&item).Error; err != nil {
+	if err := utils.DB(ctx).Where("id = ?", id).First(&item).Error; err != nil {
 		return nil, r.wrap(err)
 	}
 	return &item, nil
@@ -44,7 +44,7 @@ func (r *userRepository) wrap(err error) error {
 
 func (r *userRepository) BatchGet(ctx context.Context, ids []uint64) ([]*User, error) {
 	var items []*User
-	if err := r.dataSource(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
+	if err := utils.DB(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
 		return nil, err
 	}
 	return items, nil
@@ -56,7 +56,7 @@ type GetUserByParam struct {
 
 func (r *userRepository) GetBy(ctx context.Context, param GetUserByParam) (*User, error) {
 	var item User
-	db := r.dataSource(ctx)
+	db := utils.DB(ctx)
 	if param.Name != "" {
 		db = db.Where("name = ?", param.Name)
 	}
@@ -82,7 +82,7 @@ type ListUserResult struct {
 
 func (r *userRepository) List(ctx context.Context, param *ListUserParam) (*ListUserResult, error) {
 	var items []*User
-	db := r.dataSource(ctx)
+	db := utils.DB(ctx)
 
 	// condition
 	condition := func(db *gorm.DB) *gorm.DB {
@@ -115,26 +115,22 @@ func (r *userRepository) List(ctx context.Context, param *ListUserParam) (*ListU
 }
 
 func (r *userRepository) Create(ctx context.Context, userRepository *User) (*User, error) {
-	if err := r.dataSource(ctx).Create(&userRepository).Error; err != nil {
+	if err := utils.DB(ctx).Create(&userRepository).Error; err != nil {
 		return nil, err
 	}
 	return userRepository, nil
 }
 
 func (r *userRepository) Update(ctx context.Context, id uint64, ent *User) error {
-	if err := r.dataSource(ctx).Where("id = ?", id).Updates(&ent).Error; err != nil {
+	if err := utils.DB(ctx).Where("id = ?", id).Updates(&ent).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (r *userRepository) Delete(ctx context.Context, id uint64) error {
-	if err := r.dataSource(ctx).Where("id = ?", id).Delete(User{}).Error; err != nil {
+	if err := utils.DB(ctx).Where("id = ?", id).Delete(User{}).Error; err != nil {
 		return err
 	}
 	return nil
-}
-
-func (r *userRepository) dataSource(ctx context.Context) *gorm.DB {
-	return database.Get(ctx).Engine().(*gorm.DB)
 }

@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 
-	"dxkite.cn/nebula/pkg/database"
+	"dxkite.cn/meow-web/pkg/utils"
 	"gorm.io/gorm"
 )
 
@@ -26,7 +26,7 @@ type sessionRepository struct {
 
 func (r *sessionRepository) Get(ctx context.Context, id uint64) (*Session, error) {
 	var item Session
-	if err := r.dataSource(ctx).Where("id = ? and deleted = 0", id).First(&item).Error; err != nil {
+	if err := utils.DB(ctx).Where("id = ? and deleted = 0", id).First(&item).Error; err != nil {
 		return nil, err
 	}
 	return &item, nil
@@ -34,7 +34,7 @@ func (r *sessionRepository) Get(ctx context.Context, id uint64) (*Session, error
 
 func (r *sessionRepository) BatchGet(ctx context.Context, ids []uint64) ([]*Session, error) {
 	var items []*Session
-	if err := r.dataSource(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
+	if err := utils.DB(ctx).Where("id in ?", ids).Find(&items).Error; err != nil {
 		return nil, err
 	}
 	return items, nil
@@ -56,7 +56,7 @@ type ListSessionResult struct {
 
 func (r *sessionRepository) List(ctx context.Context, param *ListSessionParam) (*ListSessionResult, error) {
 	var items []*Session
-	db := r.dataSource(ctx)
+	db := utils.DB(ctx)
 
 	// condition
 	condition := func(db *gorm.DB) *gorm.DB {
@@ -86,33 +86,29 @@ func (r *sessionRepository) List(ctx context.Context, param *ListSessionParam) (
 }
 
 func (r *sessionRepository) Create(ctx context.Context, session *Session) (*Session, error) {
-	if err := r.dataSource(ctx).Create(&session).Error; err != nil {
+	if err := utils.DB(ctx).Create(&session).Error; err != nil {
 		return nil, err
 	}
 	return session, nil
 }
 
 func (r *sessionRepository) Update(ctx context.Context, id uint64, ent *Session) error {
-	if err := r.dataSource(ctx).Where("id = ?", id).Updates(&ent).Error; err != nil {
+	if err := utils.DB(ctx).Where("id = ?", id).Updates(&ent).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (r *sessionRepository) SetDeletedByUser(ctx context.Context, userId uint64) error {
-	if err := r.dataSource(ctx).Where("user_id = ?", userId).Updates(Session{Deleted: 1}).Error; err != nil {
+	if err := utils.DB(ctx).Where("user_id = ?", userId).Updates(Session{Deleted: 1}).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (r *sessionRepository) Delete(ctx context.Context, id uint64) error {
-	if err := r.dataSource(ctx).Where("id = ?", id).Delete(Session{}).Error; err != nil {
+	if err := utils.DB(ctx).Where("id = ?", id).Delete(Session{}).Error; err != nil {
 		return err
 	}
 	return nil
-}
-
-func (r *sessionRepository) dataSource(ctx context.Context) *gorm.DB {
-	return database.Get(ctx).Engine().(*gorm.DB)
 }

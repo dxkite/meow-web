@@ -3,7 +3,7 @@ package monitor
 import (
 	"context"
 
-	"dxkite.cn/nebula/pkg/database"
+	"dxkite.cn/meow-web/pkg/utils"
 	"gorm.io/gorm"
 )
 
@@ -28,7 +28,7 @@ type ListDynamicStatParam struct {
 
 func (r *dynamicStatRepository) List(ctx context.Context, param *ListDynamicStatParam) ([]*DynamicStat, error) {
 	var items []*DynamicStat
-	db := r.dataSource(ctx)
+	db := utils.DB(ctx)
 
 	// condition
 	condition := func(db *gorm.DB) *gorm.DB {
@@ -54,19 +54,15 @@ func (r *dynamicStatRepository) List(ctx context.Context, param *ListDynamicStat
 }
 
 func (r *dynamicStatRepository) Create(ctx context.Context, dynamicStat *DynamicStat) (*DynamicStat, error) {
-	if err := r.dataSource(ctx).Create(&dynamicStat).Error; err != nil {
+	if err := utils.DB(ctx).Create(&dynamicStat).Error; err != nil {
 		return nil, err
 	}
 	return dynamicStat, nil
 }
 
 func (r *dynamicStatRepository) DeleteBefore(ctx context.Context, timeBefore uint64) error {
-	if err := r.dataSource(ctx).Where("time < ?", timeBefore).Delete(DynamicStat{}).Error; err != nil {
+	if err := utils.DB(ctx).Where("time < ?", timeBefore).Delete(DynamicStat{}).Error; err != nil {
 		return err
 	}
 	return nil
-}
-
-func (r *dynamicStatRepository) dataSource(ctx context.Context) *gorm.DB {
-	return database.Get(ctx).Engine().(*gorm.DB)
 }
