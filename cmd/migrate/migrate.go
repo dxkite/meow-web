@@ -1,10 +1,7 @@
-package cmd
+package migrate
 
 import (
-	"os/user"
-
 	"dxkite.cn/meow-web/pkg/config"
-	"dxkite.cn/meow-web/src/monitor"
 	provider "dxkite.cn/nebula/pkg/config"
 	"dxkite.cn/nebula/pkg/config/env"
 	"dxkite.cn/nebula/pkg/database/sqlite"
@@ -12,9 +9,11 @@ import (
 	"gorm.io/gorm"
 )
 
-var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "init",
+var dst []interface{}
+
+var MigrateCmd = &cobra.Command{
+	Use:   "migrate",
+	Short: "migrate",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := &config.Config{}
@@ -28,10 +27,7 @@ var initCmd = &cobra.Command{
 		}
 
 		db := ds.Engine().(*gorm.DB)
-		db.AutoMigrate(user.User{}, monitor.DynamicStat{})
+		db = db.Debug()
+		db.AutoMigrate(dst...)
 	},
-}
-
-func init() {
-	rootCmd.AddCommand(initCmd)
 }
