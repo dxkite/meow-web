@@ -27,10 +27,10 @@ type UserService interface {
 }
 
 func NewUserService(r UserRepository, rs SessionRepository, cfg *config.Config) UserService {
-	return &user{r: r, rs: rs, aseKey: []byte(cfg.SessionCryptoKey)}
+	return &userService{r: r, rs: rs, aseKey: []byte(cfg.SessionCryptoKey)}
 }
 
-type user struct {
+type userService struct {
 	r      UserRepository
 	rs     SessionRepository
 	aseKey []byte
@@ -42,7 +42,7 @@ type CreateUserRequest struct {
 	Password string               `json:"password"`
 }
 
-func (s *user) Create(ctx context.Context, param *CreateUserRequest) (*UserDto, error) {
+func (s *userService) Create(ctx context.Context, param *CreateUserRequest) (*UserDto, error) {
 	user, err := s.r.GetBy(ctx, GetUserByParam{Name: param.Name})
 	if err != nil && !errors.Is(err, ErrUserNotExist) {
 		return nil, err
@@ -76,7 +76,7 @@ type GetUserRequest struct {
 	Expand []string `json:"expand" form:"expand"`
 }
 
-func (s *user) Get(ctx context.Context, param *GetUserRequest) (*UserDto, error) {
+func (s *userService) Get(ctx context.Context, param *GetUserRequest) (*UserDto, error) {
 	ent, err := s.r.Get(ctx, identity.Parse(UserPrefix, param.Id))
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ type DeleteUserRequest struct {
 	Id string `json:"id" uri:"id" binding:"required"`
 }
 
-func (s *user) Delete(ctx context.Context, param *DeleteUserRequest) error {
+func (s *userService) Delete(ctx context.Context, param *DeleteUserRequest) error {
 	err := s.r.Delete(ctx, identity.Parse(UserPrefix, param.Id))
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ type ListUserResponse struct {
 	Total int64      `json:"total,omitempty"`
 }
 
-func (s *user) List(ctx context.Context, param *ListUserRequest) (*ListUserResponse, error) {
+func (s *userService) List(ctx context.Context, param *ListUserRequest) (*ListUserResponse, error) {
 	if param.Page == 0 {
 		param.Page = 1
 	}
@@ -149,7 +149,7 @@ type UpdateUserRequest struct {
 	CreateUserRequest
 }
 
-func (s *user) Update(ctx context.Context, param *UpdateUserRequest) (*UserDto, error) {
+func (s *userService) Update(ctx context.Context, param *UpdateUserRequest) (*UserDto, error) {
 	id := identity.Parse(UserPrefix, param.Id)
 	ent := NewUser()
 	ent.Scopes = param.Scopes
@@ -178,7 +178,7 @@ type CreateSessionResponse struct {
 	ExpireAt time.Time            `json:"expire_at"`
 }
 
-func (s *user) CreateSession(ctx context.Context, param *CreateUserSessionRequest) (*CreateSessionResponse, error) {
+func (s *userService) CreateSession(ctx context.Context, param *CreateUserSessionRequest) (*CreateSessionResponse, error) {
 	user, err := s.r.GetBy(ctx, GetUserByParam{Name: param.Name})
 	if err != nil {
 		return nil, ErrNamePasswordError
@@ -218,7 +218,7 @@ func (s *user) CreateSession(ctx context.Context, param *CreateUserSessionReques
 	return rst, nil
 }
 
-func (s *user) GetSession(ctx context.Context, tokStr string) (httputil.ScopeContext, error) {
+func (s *userService) GetSession(ctx context.Context, tokStr string) (httputil.ScopeContext, error) {
 	tok := &token.BinaryToken{}
 	err := tok.Decrypt(tokStr, token.NewAesCrypto(s.aseKey))
 	if err != nil {
@@ -242,7 +242,7 @@ func (s *user) GetSession(ctx context.Context, tokStr string) (httputil.ScopeCon
 	return httputil.NewScope(user.Id, user.Scopes...), nil
 }
 
-func (s *user) DeleteSession(ctx context.Context, userId uint64) error {
+func (s *userService) DeleteSession(ctx context.Context, userId uint64) error {
 	err := s.rs.SetDeletedByUser(ctx, userId)
 	if err != nil {
 		return err
