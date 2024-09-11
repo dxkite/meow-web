@@ -21,13 +21,12 @@ var MigrateCmd = &cobra.Command{
 			panic(err)
 		}
 
-		ds, err := sqlite.NewSource(cfg.DataPath)
+		ds, err := sqlite.NewSource(cfg.DataPath, sqlite.WithDebug(cfg.Env == config.EnvDevelopment))
 		if err != nil {
 			panic(err)
 		}
 
 		db := ds.Engine().(*gorm.DB)
-		db = db.Debug()
 		db.AutoMigrate(dst...)
 	},
 }

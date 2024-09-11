@@ -32,7 +32,7 @@ func ExecuteContext(ctx context.Context) {
 
 	scopeCtx := depends.NewScopedContext(ctx)
 
-	ds, err := sqlite.NewSource(cfg.DataPath)
+	ds, err := sqlite.NewSource(cfg.DataPath, sqlite.WithDebug(cfg.Env == config.EnvDevelopment))
 	if err != nil {
 		panic(err)
 	}

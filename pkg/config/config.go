@@ -1,6 +1,9 @@
 package config
 
+const EnvDevelopment = "development"
+
 type Config struct {
+	Env                     string `env:"ENV" envDefault:"development"`
 	Listen                  string `env:"LISTEN" envDefault:"127.0.0.1:2333"`
 	DataPath                string `env:"DATA_PATH" envDefault:"data.db"`
 	SessionName             string `env:"SESSION_NAME" envDefault:"session_id"`
