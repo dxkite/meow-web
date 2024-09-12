@@ -56,19 +56,17 @@ func ExecuteContext(ctx context.Context) {
 	engine.Use(middleware.DataSource(ds))
 	engine.Use(middleware.Auth(scopeCtx, cfg))
 
-	const APIBase = "/api/v1"
-
 	routes, err := routeCollection.Build(scopeCtx)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	applyRoute(engine.Group(APIBase), routes)
+	applyRoute(engine, routes)
 	engine.Run(cfg.Listen)
 }
 
-func applyRoute(engine *gin.RouterGroup, routes []router.Route) {
+func applyRoute(engine *gin.Engine, routes []router.Route) {
 	for _, r := range routes {
 		handler := r.Handler()
 		engine.Handle(r.Method(), r.Path(), func(ctx *gin.Context) {

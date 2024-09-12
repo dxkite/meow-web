@@ -252,13 +252,13 @@ func (s *UserHttpServer) DeleteSession(ctx context.Context, req *http.Request, w
 
 func (s *UserHttpServer) Routes() []router.Route {
 	return []router.Route{
-		router.POST("/users/session", s.CreateSession),
-		router.DELETE("/users/session", s.DeleteSession, httputil.ScopeRequired()),
+		router.POST("/api/v1/users/session", s.CreateSession),
+		router.DELETE("/api/v1/users/session", s.DeleteSession, httputil.ScopeRequired()),
 
-		router.POST("/users", s.Create, httputil.ScopeRequired(ScopeUserWrite)),
-		router.GET("/users", s.List, httputil.ScopeRequired(ScopeUserRead)),
-		router.GET("/users/:id", s.Get, httputil.ScopeRequired(ScopeUserRead)),
-		router.POST("/users/:id", s.Update, httputil.ScopeRequired(ScopeUserWrite)),
-		router.DELETE("/users/:id", s.Delete, httputil.ScopeRequired(ScopeUserWrite)),
+		router.POST("/api/v1/users", s.Create, httputil.ScopeRequired(ScopeUserWrite)),
+		router.GET("/api/v1/users", s.List, httputil.ScopeRequired(ScopeUserRead)),
+		router.GET("/api/v1/users/:id", s.Get, httputil.ScopeRequired(ScopeUserRead)),
+		router.POST("/api/v1/users/:id", s.Update, httputil.ScopeRequired(ScopeUserWrite)),
+		router.DELETE("/api/v1/users/:id", s.Delete, httputil.ScopeRequired(ScopeUserWrite)),
 	}
 }

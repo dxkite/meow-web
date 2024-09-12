@@ -53,6 +53,6 @@ func (s *MonitorServer) ListDynamicStat(ctx context.Context, req *http.Request, 
 
 func (s *MonitorServer) Routes() []router.Route {
 	return []router.Route{
-		router.GET("/monitor/dynamic-stat", s.ListDynamicStat),
+		router.GET("/api/v1/monitor/dynamic-stat", s.ListDynamicStat),
 	}
 }
