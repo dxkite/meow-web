@@ -7,8 +7,8 @@ import (
 	"dxkite.cn/meow-web/pkg/config"
 	"dxkite.cn/meow-web/src/user"
 	"dxkite.cn/nebula/pkg/depends"
-	"dxkite.cn/nebula/pkg/errors"
-	"dxkite.cn/nebula/pkg/httputil"
+	"dxkite.cn/nebula/pkg/errorx"
+	"dxkite.cn/nebula/pkg/httpx"
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,18 +30,18 @@ func Auth(scopeCtx context.Context, cfg *config.Config) gin.HandlerFunc {
 
 		tks := strings.SplitN(auth, " ", 2)
 		if tks[0] != "Bearer" {
-			httputil.Error(ctx, ctx.Writer, errors.Unauthorized(errors.Errorf("invalid token type %s", tks[0])))
+			httpx.Error(ctx.Writer, errorx.Unauthorized(errorx.Errorf("invalid token type %s", tks[0])))
 			ctx.Abort()
 			return
 		}
 
 		scope, err := userService.GetSession(ctx, tks[1])
 		if err != nil {
-			httputil.Error(ctx, ctx.Writer, errors.System(err))
+			httpx.Error(ctx.Writer, errorx.System(err))
 			ctx.Abort()
 			return
 		}
 
-		ctx.Request = ctx.Request.WithContext(httputil.WithScope(ctx.Request.Context(), scope))
+		ctx.Request = ctx.Request.WithContext(httpx.WithScope(ctx.Request.Context(), scope))
 	}
 }

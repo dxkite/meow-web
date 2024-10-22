@@ -1,12 +1,11 @@
 package user
 
 import (
-	"context"
 	"net/http"
 
 	"dxkite.cn/meow-web/pkg/config"
-	"dxkite.cn/nebula/pkg/httputil"
-	"dxkite.cn/nebula/pkg/httputil/router"
+	"dxkite.cn/nebula/pkg/httpx"
+	"dxkite.cn/nebula/pkg/httpx/router"
 )
 
 func NewUserHttpServer(s UserService, cfg *config.Config) *UserHttpServer {
@@ -27,29 +26,31 @@ type UserHttpServer struct {
 // @Produce      json
 // @Param        body body CreateUserRequest true "User data"
 // @Success      200  {object} UserDto
-// @Failure      400  {object} httputil.HttpError
-// @Failure      500  {object} httputil.HttpError
+// @Failure      400  {object} httpx.HttpError
+// @Failure      500  {object} httpx.HttpError
 // @Router       /users [post]
-func (s *UserHttpServer) Create(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
+func (s *UserHttpServer) Create(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+
 	var param CreateUserRequest
 
-	if err := httputil.ReadRequest(ctx, req, &param); err != nil {
-		httputil.Error(ctx, w, err)
+	if err := httpx.ReadRequest(req, &param); err != nil {
+		httpx.Error(w, err)
 		return
 	}
 
-	if err := httputil.Validate(ctx, &param); err != nil {
-		httputil.Error(ctx, w, err)
+	if err := httpx.Validate(&param); err != nil {
+		httpx.Error(w, err)
 		return
 	}
 
 	rst, err := s.s.Create(ctx, &param)
 	if err != nil {
-		httputil.Error(ctx, w, err)
+		httpx.Error(w, err)
 		return
 	}
 
-	httputil.Result(ctx, w, http.StatusCreated, rst)
+	httpx.Result(w, http.StatusCreated, rst)
 }
 
 // Get User
@@ -62,30 +63,33 @@ func (s *UserHttpServer) Create(ctx context.Context, req *http.Request, w http.R
 // @Param        id path string true "User ID"
 // @Param        expand query []string false "expand attribute list"
 // @Success      200  {object} UserDto
-// @Failure      400  {object} httputil.HttpError
-// @Failure      500  {object} httputil.HttpError
+// @Failure      400  {object} httpx.HttpError
+// @Failure      500  {object} httpx.HttpError
 // @Router       /users/{id} [get]
-func (s *UserHttpServer) Get(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
+func (s *UserHttpServer) Get(w http.ResponseWriter, req *http.Request) {
 	var param GetUserRequest
+	ctx := req.Context()
+	vars := httpx.Vars(req)
+
 	param.Id = vars["id"]
 
-	if err := httputil.ReadQuery(ctx, req, &param); err != nil {
-		httputil.Error(ctx, w, err)
+	if err := httpx.ReadQuery(req, &param); err != nil {
+		httpx.Error(w, err)
 		return
 	}
 
-	if err := httputil.Validate(ctx, &param); err != nil {
-		httputil.Error(ctx, w, err)
+	if err := httpx.Validate(&param); err != nil {
+		httpx.Error(w, err)
 		return
 	}
 
 	rst, err := s.s.Get(ctx, &param)
 	if err != nil {
-		httputil.Error(ctx, w, err)
+		httpx.Error(w, err)
 		return
 	}
 
-	httputil.Result(ctx, w, http.StatusOK, rst)
+	httpx.Result(w, http.StatusOK, rst)
 }
 
 // List User
@@ -101,29 +105,29 @@ func (s *UserHttpServer) Get(ctx context.Context, req *http.Request, w http.Resp
 // @Param        pre_page query int false "每页数量"
 // @Param        expand query []string false "展开数据"
 // @Success      200  {object} ListUserResponse
-// @Failure      400  {object} httputil.HttpError
-// @Failure      500  {object} httputil.HttpError
+// @Failure      400  {object} httpx.HttpError
+// @Failure      500  {object} httpx.HttpError
 // @Router       /users [get]
-func (s *UserHttpServer) List(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
+func (s *UserHttpServer) List(w http.ResponseWriter, req *http.Request) {
 	var param ListUserRequest
-
-	if err := httputil.ReadQuery(ctx, req, &param); err != nil {
-		httputil.Error(ctx, w, err)
+	ctx := req.Context()
+	if err := httpx.ReadQuery(req, &param); err != nil {
+		httpx.Error(w, err)
 		return
 	}
 
-	if err := httputil.Validate(ctx, &param); err != nil {
-		httputil.Error(ctx, w, err)
+	if err := httpx.Validate(&param); err != nil {
+		httpx.Error(w, err)
 		return
 	}
 
 	rst, err := s.s.List(ctx, &param)
 	if err != nil {
-		httputil.Error(ctx, w, err)
+		httpx.Error(w, err)
 		return
 	}
 
-	httputil.Result(ctx, w, http.StatusOK, rst)
+	httpx.Result(w, http.StatusOK, rst)
 }
 
 // Update User
@@ -136,30 +140,33 @@ func (s *UserHttpServer) List(ctx context.Context, req *http.Request, w http.Res
 // @Param        id path string true "User ID"
 // @Param        body body UpdateUserRequest true "data"
 // @Success      200  {object} UserDto
-// @Failure      400  {object} httputil.HttpError
-// @Failure      500  {object} httputil.HttpError
+// @Failure      400  {object} httpx.HttpError
+// @Failure      500  {object} httpx.HttpError
 // @Router       /users/{id} [post]
-func (s *UserHttpServer) Update(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
+func (s *UserHttpServer) Update(w http.ResponseWriter, req *http.Request) {
 	var param UpdateUserRequest
+	ctx := req.Context()
+	vars := httpx.Vars(req)
+
 	param.Id = vars["id"]
 
-	if err := httputil.ReadRequest(ctx, req, &param); err != nil {
-		httputil.Error(ctx, w, err)
+	if err := httpx.ReadRequest(req, &param); err != nil {
+		httpx.Error(w, err)
 		return
 	}
 
-	if err := httputil.Validate(ctx, &param); err != nil {
-		httputil.Error(ctx, w, err)
+	if err := httpx.Validate(&param); err != nil {
+		httpx.Error(w, err)
 		return
 	}
 
 	rst, err := s.s.Update(ctx, &param)
 	if err != nil {
-		httputil.Error(ctx, w, err)
+		httpx.Error(w, err)
 		return
 	}
 
-	httputil.Result(ctx, w, http.StatusOK, rst)
+	httpx.Result(w, http.StatusOK, rst)
 }
 
 // Delete User
@@ -171,21 +178,23 @@ func (s *UserHttpServer) Update(ctx context.Context, req *http.Request, w http.R
 // @Produce      json
 // @Param        id path string true "UserID"
 // @Success      200
-// @Failure      400  {object} httputil.HttpError
-// @Failure      500  {object} httputil.HttpError
+// @Failure      400  {object} httpx.HttpError
+// @Failure      500  {object} httpx.HttpError
 // @Router       /users/{id} [delete]
-func (s *UserHttpServer) Delete(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
+func (s *UserHttpServer) Delete(w http.ResponseWriter, req *http.Request) {
 	var param DeleteUserRequest
+	ctx := req.Context()
+	vars := httpx.Vars(req)
 
 	param.Id = vars["id"]
 
 	err := s.s.Delete(ctx, &param)
 	if err != nil {
-		httputil.Error(ctx, w, err)
+		httpx.Error(w, err)
 		return
 	}
 
-	httputil.Result(ctx, w, http.StatusOK, nil)
+	httpx.Result(w, http.StatusOK, nil)
 }
 
 // Create User CreateSession
@@ -197,25 +206,27 @@ func (s *UserHttpServer) Delete(ctx context.Context, req *http.Request, w http.R
 // @Produce      json
 // @Param        body body CreateUserSessionRequest true "data"
 // @Success      200  {object} CreateSessionResponse
-// @Failure      400  {object} httputil.HttpError
-// @Failure      500  {object} httputil.HttpError
+// @Failure      400  {object} httpx.HttpError
+// @Failure      500  {object} httpx.HttpError
 // @Router       /users/session [post]
-func (s *UserHttpServer) CreateSession(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
+func (s *UserHttpServer) CreateSession(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+
 	var param CreateUserSessionRequest
 
-	if err := httputil.ReadRequest(ctx, req, &param); err != nil {
-		httputil.Error(ctx, w, err)
+	if err := httpx.ReadRequest(req, &param); err != nil {
+		httpx.Error(w, err)
 		return
 	}
 
-	if err := httputil.Validate(ctx, &param); err != nil {
-		httputil.Error(ctx, w, err)
+	if err := httpx.Validate(&param); err != nil {
+		httpx.Error(w, err)
 		return
 	}
 
 	rst, err := s.s.CreateSession(ctx, &param)
 	if err != nil {
-		httputil.Error(ctx, w, err)
+		httpx.Error(w, err)
 		return
 	}
 
@@ -225,7 +236,7 @@ func (s *UserHttpServer) CreateSession(ctx context.Context, req *http.Request, w
 		Secure:   true,
 		HttpOnly: true,
 	})
-	httputil.Result(ctx, w, http.StatusOK, rst)
+	httpx.Result(w, http.StatusOK, rst)
 }
 
 // Delete User Session
@@ -236,29 +247,31 @@ func (s *UserHttpServer) CreateSession(ctx context.Context, req *http.Request, w
 // @Accept       json
 // @Produce      json
 // @Success      200
-// @Failure      400  {object} httputil.HttpError
-// @Failure      500  {object} httputil.HttpError
+// @Failure      400  {object} httpx.HttpError
+// @Failure      500  {object} httpx.HttpError
 // @Router       /users/session [delete]
-func (s *UserHttpServer) DeleteSession(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
+func (s *UserHttpServer) DeleteSession(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+
 	err := s.s.DeleteSession(ctx, 0)
 
 	if err != nil {
-		httputil.Error(ctx, w, err)
+		httpx.Error(w, err)
 		return
 	}
 
-	httputil.Result(ctx, w, http.StatusOK, nil)
+	httpx.Result(w, http.StatusOK, nil)
 }
 
 func (s *UserHttpServer) Routes() []router.Route {
 	return []router.Route{
 		router.POST("/api/v1/users/session", s.CreateSession),
-		router.DELETE("/api/v1/users/session", s.DeleteSession, httputil.ScopeRequired()),
+		router.DELETE("/api/v1/users/session", s.DeleteSession, httpx.ScopeRequired()),
 
-		router.POST("/api/v1/users", s.Create, httputil.ScopeRequired(ScopeUserWrite)),
-		router.GET("/api/v1/users", s.List, httputil.ScopeRequired(ScopeUserRead)),
-		router.GET("/api/v1/users/:id", s.Get, httputil.ScopeRequired(ScopeUserRead)),
-		router.POST("/api/v1/users/:id", s.Update, httputil.ScopeRequired(ScopeUserWrite)),
-		router.DELETE("/api/v1/users/:id", s.Delete, httputil.ScopeRequired(ScopeUserWrite)),
+		router.POST("/api/v1/users", s.Create, httpx.ScopeRequired(ScopeUserWrite)),
+		router.GET("/api/v1/users", s.List, httpx.ScopeRequired(ScopeUserRead)),
+		router.GET("/api/v1/users/:id", s.Get, httpx.ScopeRequired(ScopeUserRead)),
+		router.POST("/api/v1/users/:id", s.Update, httpx.ScopeRequired(ScopeUserWrite)),
+		router.DELETE("/api/v1/users/:id", s.Delete, httpx.ScopeRequired(ScopeUserWrite)),
 	}
 }

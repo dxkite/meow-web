@@ -8,12 +8,12 @@ import (
 	"dxkite.cn/nebula/pkg/crypto/identity"
 	"dxkite.cn/nebula/pkg/crypto/passwd"
 	"dxkite.cn/nebula/pkg/crypto/token"
-	"dxkite.cn/nebula/pkg/errors"
-	"dxkite.cn/nebula/pkg/httputil"
+	"dxkite.cn/nebula/pkg/errorx"
+	"dxkite.cn/nebula/pkg/httpx"
 )
 
-var ErrNamePasswordError = errors.UnprocessableEntity(errors.New("name or password error"))
-var ErrUserExist = errors.UnprocessableEntity(errors.New("user exist"))
+var ErrNamePasswordError = errorx.UnprocessableEntity(errorx.New("name or password error"))
+var ErrUserExist = errorx.UnprocessableEntity(errorx.New("user exist"))
 
 type UserService interface {
 	Create(ctx context.Context, param *CreateUserRequest) (*UserDto, error)
@@ -23,7 +23,7 @@ type UserService interface {
 	List(ctx context.Context, param *ListUserRequest) (*ListUserResponse, error)
 	CreateSession(ctx context.Context, param *CreateUserSessionRequest) (*CreateSessionResponse, error)
 	DeleteSession(ctx context.Context, userId uint64) error
-	GetSession(ctx context.Context, tokStr string) (httputil.ScopeContext, error)
+	GetSession(ctx context.Context, tokStr string) (httpx.ScopeContext, error)
 }
 
 func NewUserService(r UserRepository, rs SessionRepository, cfg *config.Config) UserService {
@@ -37,14 +37,14 @@ type userService struct {
 }
 
 type CreateUserRequest struct {
-	Name     string               `json:"name"`
-	Scopes   []httputil.ScopeName `json:"scopes"`
-	Password string               `json:"password"`
+	Name     string            `json:"name"`
+	Scopes   []httpx.ScopeName `json:"scopes"`
+	Password string            `json:"password"`
 }
 
 func (s *userService) Create(ctx context.Context, param *CreateUserRequest) (*UserDto, error) {
 	user, err := s.r.GetBy(ctx, GetUserByParam{Name: param.Name})
-	if err != nil && !errors.Is(err, ErrUserNotExist) {
+	if err != nil && !errorx.Is(err, ErrUserNotExist) {
 		return nil, err
 	}
 
@@ -170,12 +170,12 @@ type CreateUserSessionRequest struct {
 }
 
 type CreateSessionResponse struct {
-	Type     string               `json:"type"`
-	UserId   string               `json:"user_id"`
-	Name     string               `json:"name"`
-	Token    string               `json:"token"`
-	Scopes   []httputil.ScopeName `json:"scopes"`
-	ExpireAt time.Time            `json:"expire_at"`
+	Type     string            `json:"type"`
+	UserId   string            `json:"user_id"`
+	Name     string            `json:"name"`
+	Token    string            `json:"token"`
+	Scopes   []httpx.ScopeName `json:"scopes"`
+	ExpireAt time.Time         `json:"expire_at"`
 }
 
 func (s *userService) CreateSession(ctx context.Context, param *CreateUserSessionRequest) (*CreateSessionResponse, error) {
@@ -218,28 +218,28 @@ func (s *userService) CreateSession(ctx context.Context, param *CreateUserSessio
 	return rst, nil
 }
 
-func (s *userService) GetSession(ctx context.Context, tokStr string) (httputil.ScopeContext, error) {
+func (s *userService) GetSession(ctx context.Context, tokStr string) (httpx.ScopeContext, error) {
 	tok := &token.BinaryToken{}
 	err := tok.Decrypt(tokStr, token.NewAesCrypto(s.aseKey))
 	if err != nil {
-		return nil, errors.InvalidParameter(errors.Wrap(err, "invalid token"))
+		return nil, errorx.InvalidParameter(errorx.Wrap(err, "invalid token"))
 	}
 
 	if uint64(time.Now().Unix()) > tok.ExpireAt {
-		return httputil.NewScope(0), nil
+		return httpx.NewScope(0), nil
 	}
 
 	session, err := s.rs.Get(ctx, tok.Id)
 	if err != nil {
-		return httputil.NewScope(0), nil
+		return httpx.NewScope(0), nil
 	}
 
 	user, err := s.r.Get(ctx, session.UserId)
 	if err != nil {
-		return httputil.NewScope(0), nil
+		return httpx.NewScope(0), nil
 	}
 
-	return httputil.NewScope(user.Id, user.Scopes...), nil
+	return httpx.NewScope(user.Id, user.Scopes...), nil
 }
 
 func (s *userService) DeleteSession(ctx context.Context, userId uint64) error {

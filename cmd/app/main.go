@@ -7,13 +7,14 @@ import (
 
 	provider "dxkite.cn/nebula/pkg/config"
 	"dxkite.cn/nebula/pkg/config/env"
+	"dxkite.cn/nebula/pkg/httpx"
 
 	"dxkite.cn/meow-web/pkg/config"
 	"dxkite.cn/meow-web/pkg/middleware"
 	"dxkite.cn/nebula/pkg/crypto/identity"
 	"dxkite.cn/nebula/pkg/database/sqlite"
 	"dxkite.cn/nebula/pkg/depends"
-	"dxkite.cn/nebula/pkg/httputil/router"
+	"dxkite.cn/nebula/pkg/httpx/router"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -68,13 +69,14 @@ func ExecuteContext(ctx context.Context) {
 
 func applyRoute(engine *gin.Engine, routes []router.Route) {
 	for _, r := range routes {
-		handler := r.Handler()
-		engine.Handle(r.Method(), r.Path(), func(ctx *gin.Context) {
+		handle := r.Handle()
+		engine.Handle(r.Method(), r.Path(), func(c *gin.Context) {
 			vars := map[string]string{}
-			for _, v := range ctx.Params {
+			for _, v := range c.Params {
 				vars[v.Key] = v.Value
 			}
-			handler(ctx, ctx.Request, ctx.Writer, vars)
+			httpx.SetVars(c.Request, vars)
+			handle(c.Writer, c.Request)
 		})
 	}
 }

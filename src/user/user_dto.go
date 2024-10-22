@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"dxkite.cn/nebula/pkg/crypto/identity"
-	"dxkite.cn/nebula/pkg/httputil"
+	"dxkite.cn/nebula/pkg/httpx"
 )
 
 // UserDto
@@ -15,7 +15,7 @@ type UserDto struct {
 	// 用户名
 	Name string `json:"name"`
 	// 用户权限
-	Scopes []httputil.ScopeName `json:"scopes"`
+	Scopes []httpx.ScopeName `json:"scopes"`
 	// 用户状态
 	Status UserStatus `json:"status"`
 }

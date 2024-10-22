@@ -5,7 +5,7 @@ import (
 
 	"dxkite.cn/meow-web/src/user"
 	"dxkite.cn/nebula/pkg/depends"
-	"dxkite.cn/nebula/pkg/httputil/router"
+	"dxkite.cn/nebula/pkg/httpx/router"
 )
 
 func init() {

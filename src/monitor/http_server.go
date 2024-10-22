@@ -1,11 +1,10 @@
 package monitor
 
 import (
-	"context"
 	"net/http"
 
-	"dxkite.cn/nebula/pkg/httputil"
-	"dxkite.cn/nebula/pkg/httputil/router"
+	"dxkite.cn/nebula/pkg/httpx"
+	"dxkite.cn/nebula/pkg/httpx/router"
 )
 
 type MonitorServer struct {
@@ -26,29 +25,30 @@ func NewMonitorServer(s MonitorService) *MonitorServer {
 // @Param        start_time query string false "开始时间。默认-1h"
 // @Param		 end_time query string false "结束时间，默认当前时间"
 // @Success      200  {object} DynamicStatResult
-// @Failure      400  {object} httputil.HttpError
-// @Failure      500  {object} httputil.HttpError
+// @Failure      400  {object} httpx.HttpError
+// @Failure      500  {object} httpx.HttpError
 // @Router       /monitor/dynamic-stat [get]
-func (s *MonitorServer) ListDynamicStat(ctx context.Context, req *http.Request, w http.ResponseWriter, vars map[string]string) {
+func (s *MonitorServer) ListDynamicStat(w http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
 	var param ListDynamicStatRequest
 
-	if err := httputil.ReadQuery(ctx, req, &param); err != nil {
-		httputil.Error(ctx, w, err)
+	if err := httpx.ReadQuery(req, &param); err != nil {
+		httpx.Error(w, err)
 		return
 	}
 
-	if err := httputil.Validate(ctx, &param); err != nil {
-		httputil.Error(ctx, w, err)
+	if err := httpx.Validate(&param); err != nil {
+		httpx.Error(w, err)
 		return
 	}
 
 	rst, err := s.s.ListDynamicStat(ctx, &param)
 	if err != nil {
-		httputil.Error(ctx, w, err)
+		httpx.Error(w, err)
 		return
 	}
 
-	httputil.Result(ctx, w, http.StatusOK, rst)
+	httpx.Result(w, http.StatusOK, rst)
 }
 
 func (s *MonitorServer) Routes() []router.Route {

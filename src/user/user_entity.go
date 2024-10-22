@@ -3,7 +3,7 @@ package user
 import (
 	"time"
 
-	"dxkite.cn/nebula/pkg/httputil"
+	"dxkite.cn/nebula/pkg/httpx"
 )
 
 type User struct {
@@ -13,7 +13,7 @@ type User struct {
 	// 密码
 	Password string
 	// 权限
-	Scopes []httputil.ScopeName `gorm:"serializer:json"`
+	Scopes []httpx.ScopeName `gorm:"serializer:json"`
 	// 用户状态
 	Status UserStatus
 

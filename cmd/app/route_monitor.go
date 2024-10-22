@@ -7,7 +7,7 @@ import (
 	"dxkite.cn/meow-web/src/monitor"
 	"dxkite.cn/nebula/pkg/database"
 	"dxkite.cn/nebula/pkg/depends"
-	"dxkite.cn/nebula/pkg/httputil/router"
+	"dxkite.cn/nebula/pkg/httpx/router"
 )
 
 func init() {
