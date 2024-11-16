@@ -22,7 +22,7 @@ type UserService interface {
 	Delete(ctx context.Context, param *DeleteUserRequest) error
 	List(ctx context.Context, param *ListUserRequest) (*ListUserResponse, error)
 	CreateSession(ctx context.Context, param *CreateUserSessionRequest) (*CreateSessionResponse, error)
-	DeleteSession(ctx context.Context, userId uint64) error
+	DeleteSession(ctx context.Context, req *DeleteSessionRequest) error
 	GetSession(ctx context.Context, tokStr string) (httpx.ScopeContext, error)
 }
 
@@ -242,8 +242,12 @@ func (s *userService) GetSession(ctx context.Context, tokStr string) (httpx.Scop
 	return httpx.NewScope(user.Id, user.Scopes...), nil
 }
 
-func (s *userService) DeleteSession(ctx context.Context, userId uint64) error {
-	err := s.rs.SetDeletedByUser(ctx, userId)
+type DeleteSessionRequest struct {
+	UserId uint64 `context:"identity" json:"-"`
+}
+
+func (s *userService) DeleteSession(ctx context.Context, req *DeleteSessionRequest) error {
+	err := s.rs.SetDeletedByUser(ctx, req.UserId)
 	if err != nil {
 		return err
 	}
