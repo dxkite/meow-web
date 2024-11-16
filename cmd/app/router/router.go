@@ -8,13 +8,15 @@ import (
 	"dxkite.cn/nebula/pkg/httpx"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+
+	_ "dxkite.cn/meow-web/cmd/app/depends"
 )
 
-var Engine = gin.Default()
+var engine = gin.Default()
 
 func init() {
-	Engine.ContextWithFallback = true
-	Engine.Use(cors.New(cors.Config{
+	engine.ContextWithFallback = true
+	engine.Use(cors.New(cors.Config{
 		AllowMethods:     []string{"GET", "POST", "DELETE"},
 		AllowHeaders:     []string{"Origin"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -25,8 +27,8 @@ func init() {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	Engine.Use(middleware.DataSource())
-	Engine.Use(middleware.Auth())
+	engine.Use(middleware.DataSource())
+	engine.Use(middleware.Auth())
 }
 
 func Wrap(handle http.HandlerFunc) gin.HandlerFunc {
@@ -38,4 +40,8 @@ func Wrap(handle http.HandlerFunc) gin.HandlerFunc {
 		httpx.SetPathVars(c.Request, vars)
 		handle(c.Writer, c.Request)
 	}
+}
+
+func Run(addr string) error {
+	return engine.Run(addr)
 }

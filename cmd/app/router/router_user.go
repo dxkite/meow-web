@@ -13,6 +13,6 @@ func init() {
 		panic(err)
 	}
 
-	Engine.POST("/api/v1/users/session", Wrap(httpx.HandleRet(service.CreateSession)))
-	Engine.DELETE("/api/v1/users/session", Wrap(httpx.WrapMiddleware(httpx.Handle(service.DeleteSession), httpx.ScopeRequired())))
+	engine.POST("/api/v1/users/session", Wrap(httpx.HandleRet(service.CreateSession)))
+	engine.DELETE("/api/v1/users/session", Wrap(httpx.WrapMiddleware(httpx.Handle(service.DeleteSession), httpx.ScopeRequired())))
 }
