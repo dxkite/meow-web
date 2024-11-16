@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
@@ -30,9 +29,9 @@ func getAccessToken(req *http.Request, sessionName string) string {
 	return ""
 }
 
-func Auth(scopeCtx context.Context) gin.HandlerFunc {
-	userService, _ := depends.Resolve[user.UserService](scopeCtx)
-	cfg, _ := depends.Resolve[*config.Config](scopeCtx)
+func Auth() gin.HandlerFunc {
+	userService, _ := depends.Resolve[user.UserService]()
+	cfg, _ := depends.Resolve[*config.Config]()
 
 	return func(ctx *gin.Context) {
 		token := getAccessToken(ctx.Request, cfg.SessionName)

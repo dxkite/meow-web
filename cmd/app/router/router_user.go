@@ -1,8 +1,8 @@
 package router
 
 import (
-	"dxkite.cn/meow-web/cmd/app/depends"
 	"dxkite.cn/meow-web/src/user"
+	"dxkite.cn/nebula/pkg/depends"
 	"dxkite.cn/nebula/pkg/httpx"
 )
 

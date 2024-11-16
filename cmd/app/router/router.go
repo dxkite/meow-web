@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"dxkite.cn/meow-web/cmd/app/depends"
 	"dxkite.cn/meow-web/pkg/middleware"
 	"dxkite.cn/nebula/pkg/httpx"
 	"github.com/gin-contrib/cors"
@@ -26,8 +25,8 @@ func init() {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	Engine.Use(middleware.DataSource(depends.Scope))
-	Engine.Use(middleware.Auth(depends.Scope))
+	Engine.Use(middleware.DataSource())
+	Engine.Use(middleware.Auth())
 }
 
 func Wrap(handle http.HandlerFunc) gin.HandlerFunc {

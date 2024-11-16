@@ -5,8 +5,10 @@ import (
 
 	"dxkite.cn/meow-web/pkg/config"
 	"dxkite.cn/nebula/pkg/crypto/identity"
+	"dxkite.cn/nebula/pkg/depends"
 
-	"dxkite.cn/meow-web/cmd/app/depends"
+	_ "dxkite.cn/meow-web/cmd/app/depends"
+
 	"dxkite.cn/meow-web/cmd/app/router"
 )
 
