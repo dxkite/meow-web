@@ -243,7 +243,7 @@ func (s *userService) GetSession(ctx context.Context, tokStr string) (httpx.Scop
 }
 
 type DeleteSessionRequest struct {
-	UserId uint64 `context:"identity" json:"-"`
+	UserId uint64 `scope-context:"identity" json:"-"`
 }
 
 func (s *userService) DeleteSession(ctx context.Context, req *DeleteSessionRequest) error {
