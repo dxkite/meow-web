@@ -1,4 +1,4 @@
-package router
+package http
 
 import (
 	"net/http"
@@ -31,7 +31,8 @@ func init() {
 	engine.Use(middleware.Auth())
 }
 
-func Wrap(handle http.HandlerFunc) gin.HandlerFunc {
+func Handle(handler http.HandlerFunc, middleware ...httpx.Middleware) gin.HandlerFunc {
+	handle := httpx.WrapMiddleware(handler, middleware...)
 	return func(c *gin.Context) {
 		vars := map[string]string{}
 		for _, v := range c.Params {
