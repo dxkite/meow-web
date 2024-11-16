@@ -18,8 +18,15 @@ func TestPath(pattern, path string) (bool, url.Values, error) {
 	phN := len(path)
 	for i < phN {
 		switch {
-		case j >= pnN:
+		case j >= pnN: // 匹配到末尾
 			if pattern != "/" && pnN > 0 && pattern[pnN-1] == '/' {
+				extPath := path[i:]
+				value, err := url.QueryUnescape(extPath)
+				if err != nil {
+					p.Add("$", extPath)
+					return true, p, nil
+				}
+				p.Add("$", value)
 				return true, p, nil
 			}
 			return false, nil, nil

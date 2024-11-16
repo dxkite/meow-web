@@ -12,6 +12,7 @@ import (
 
 //go:generate swag init -o ./docs -g main.go
 func main() {
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

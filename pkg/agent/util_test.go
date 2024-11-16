@@ -18,7 +18,7 @@ func TestMatchPath(t *testing.T) {
 		{"/{name}/foo", "/foo/foo", true, url.Values{"name": []string{"foo"}}, nil},
 		{"/{name}/foo/", "/foo/foo", false, nil, nil},
 		{"/{name}/foo/", "/foo/foo/", true, url.Values{"name": []string{"foo"}}, nil},
-		{"/{name}/foo/", "/foo/foo/abc", true, url.Values{"name": []string{"foo"}}, nil},
+		{"/{name}/foo/", "/foo/foo/abc", true, url.Values{"name": []string{"foo"}, "$": []string{"abc"}}, nil},
 		{"/{name}.txt", "/foo.txt", true, url.Values{"name": []string{"foo"}}, nil},
 		{"/{name}.{ext}", "/foo.txt", true, url.Values{"name": []string{"foo"}, "ext": []string{"txt"}}, nil},
 		{"/{name}/{value}/{test}/test", "/foo1/foo2/foo3/test", true, url.Values{"name": []string{"foo1"}, "value": []string{"foo2"}, "test": []string{"foo3"}}, nil},

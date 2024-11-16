@@ -72,7 +72,7 @@ func (s *userService) Create(ctx context.Context, param *CreateUserRequest) (*Us
 }
 
 type GetUserRequest struct {
-	Id     string   `json:"id" uri:"id" binding:"required"`
+	Id     string   `json:"id" path:"id" binding:"required"`
 	Expand []string `json:"expand" form:"expand"`
 }
 

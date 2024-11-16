@@ -12,9 +12,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Auth(scopeCtx context.Context, cfg *config.Config) gin.HandlerFunc {
+func Auth(scopeCtx context.Context) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userService, _ := depends.Resolve[user.UserService](scopeCtx)
+		cfg, _ := depends.Resolve[*config.Config](scopeCtx)
 
 		cookie, _ := ctx.Cookie(cfg.SessionName)
 		if cookie == "" {

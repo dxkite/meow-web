@@ -69,7 +69,7 @@ func (s *UserHttpServer) Create(w http.ResponseWriter, req *http.Request) {
 func (s *UserHttpServer) Get(w http.ResponseWriter, req *http.Request) {
 	var param GetUserRequest
 	ctx := req.Context()
-	vars := httpx.Vars(req)
+	vars := httpx.PathVars(req)
 
 	param.Id = vars["id"]
 
@@ -146,7 +146,7 @@ func (s *UserHttpServer) List(w http.ResponseWriter, req *http.Request) {
 func (s *UserHttpServer) Update(w http.ResponseWriter, req *http.Request) {
 	var param UpdateUserRequest
 	ctx := req.Context()
-	vars := httpx.Vars(req)
+	vars := httpx.PathVars(req)
 
 	param.Id = vars["id"]
 
@@ -184,7 +184,7 @@ func (s *UserHttpServer) Update(w http.ResponseWriter, req *http.Request) {
 func (s *UserHttpServer) Delete(w http.ResponseWriter, req *http.Request) {
 	var param DeleteUserRequest
 	ctx := req.Context()
-	vars := httpx.Vars(req)
+	vars := httpx.PathVars(req)
 
 	param.Id = vars["id"]
 
@@ -265,12 +265,12 @@ func (s *UserHttpServer) DeleteSession(w http.ResponseWriter, req *http.Request)
 
 func (s *UserHttpServer) Routes() []router.Route {
 	return []router.Route{
-		router.POST("/api/v1/users/session", s.CreateSession),
-		router.DELETE("/api/v1/users/session", s.DeleteSession, httpx.ScopeRequired()),
+		router.POST("/api/v1/users/session", httpx.HandleRet(s.s.CreateSession)),
+		router.DELETE("/api/v1/users/session", httpx.Handle(s.s.DeleteSession), httpx.ScopeRequired()),
 
 		router.POST("/api/v1/users", s.Create, httpx.ScopeRequired(ScopeUserWrite)),
 		router.GET("/api/v1/users", s.List, httpx.ScopeRequired(ScopeUserRead)),
-		router.GET("/api/v1/users/:id", s.Get, httpx.ScopeRequired(ScopeUserRead)),
+		router.GET("/api/v1/users/:id", httpx.HandleRet(s.s.Get), httpx.ScopeRequired(ScopeUserRead)),
 		router.POST("/api/v1/users/:id", s.Update, httpx.ScopeRequired(ScopeUserWrite)),
 		router.DELETE("/api/v1/users/:id", s.Delete, httpx.ScopeRequired(ScopeUserWrite)),
 	}
