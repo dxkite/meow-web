@@ -9,8 +9,8 @@ import (
 )
 
 func DataSource(scopeCtx context.Context) gin.HandlerFunc {
+	ds, _ := depends.Resolve[database.DataSource](scopeCtx)
 	return func(ctx *gin.Context) {
-		ds, _ := depends.Resolve[database.DataSource](scopeCtx)
 		ctx.Request = ctx.Request.WithContext(database.With(ctx.Request.Context(), ds))
 	}
 }
