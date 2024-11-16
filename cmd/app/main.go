@@ -7,7 +7,7 @@ import (
 	"dxkite.cn/nebula/pkg/crypto/identity"
 
 	"dxkite.cn/meow-web/cmd/app/depends"
-	engine "dxkite.cn/meow-web/cmd/app/router"
+	"dxkite.cn/meow-web/cmd/app/router"
 )
 
 func init() {
@@ -21,5 +21,5 @@ func ExecuteContext(ctx context.Context) {
 		panic(err)
 	}
 
-	engine.Engine.Run(cfg.Listen)
+	router.Engine.Run(cfg.Listen)
 }
