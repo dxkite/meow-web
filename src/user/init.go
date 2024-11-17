@@ -6,4 +6,5 @@ func init() {
 	depends.Register(NewUserRepository)
 	depends.Register(NewSessionRepository)
 	depends.Register(NewUserService)
+	depends.Register(NewUserExpander)
 }

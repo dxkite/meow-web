@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"dxkite.cn/meow-web/pkg/utils"
+	"dxkite.cn/nebula/pkg/database"
 	"gorm.io/gorm"
 )
 
@@ -20,11 +21,14 @@ type UserRepository interface {
 	GetBy(ctx context.Context, param GetUserByParam) (*User, error)
 }
 
-func NewUserRepository() UserRepository {
-	return new(userRepository)
+func NewUserRepository(db database.DataSource) UserRepository {
+	repo := new(userRepository)
+	repo.db = db
+	return repo
 }
 
 type userRepository struct {
+	db database.DataSource
 }
 
 func (r *userRepository) Get(ctx context.Context, id uint64) (*User, error) {

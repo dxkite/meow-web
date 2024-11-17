@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"dxkite.cn/meow-web/pkg/config"
+	"dxkite.cn/meow-web/pkg/value"
 	"dxkite.cn/nebula/pkg/crypto/identity"
 	"dxkite.cn/nebula/pkg/crypto/passwd"
 	"dxkite.cn/nebula/pkg/crypto/token"
@@ -45,11 +46,11 @@ type CreateUserRequest struct {
 func (s *userService) Create(ctx context.Context, param *CreateUserRequest) (*UserDto, error) {
 	user, err := s.r.GetBy(ctx, GetUserByParam{Name: param.Name})
 	if err != nil && !errorx.Is(err, ErrUserNotExist) {
-		return nil, err
+		return nil, errorx.System(err)
 	}
 
 	if user != nil {
-		return nil, ErrUserExist
+		return nil, errorx.UnprocessableEntity(ErrUserExist)
 	}
 
 	ent := NewUser()
@@ -57,7 +58,7 @@ func (s *userService) Create(ctx context.Context, param *CreateUserRequest) (*Us
 
 	passwdHash, err := passwd.NewHash(param.Password)
 	if err != nil {
-		return nil, err
+		return nil, errorx.System(err)
 	}
 
 	ent.Password = passwdHash
@@ -65,7 +66,7 @@ func (s *userService) Create(ctx context.Context, param *CreateUserRequest) (*Us
 
 	resp, err := s.r.Create(ctx, ent)
 	if err != nil {
-		return nil, err
+		return nil, errorx.System(err)
 	}
 
 	return NewUserDto(resp), nil
@@ -79,7 +80,7 @@ type GetUserRequest struct {
 func (s *userService) Get(ctx context.Context, param *GetUserRequest) (*UserDto, error) {
 	ent, err := s.r.Get(ctx, identity.Parse(UserPrefix, param.Id))
 	if err != nil {
-		return nil, err
+		return nil, errorx.System(err)
 	}
 	obj := NewUserDto(ent)
 	return obj, nil
@@ -170,22 +171,23 @@ type CreateUserSessionRequest struct {
 }
 
 type CreateSessionResponse struct {
-	Type     string            `json:"type"`
-	UserId   string            `json:"user_id"`
-	Name     string            `json:"name"`
-	Token    string            `json:"token"`
-	Scopes   []httpx.ScopeName `json:"scopes"`
-	ExpireAt time.Time         `json:"expire_at"`
+	Type     string                                       `json:"type"`
+	UserId   value.Identity                               `json:"user_id"`
+	User     value.Expand[uint64, *UserDto, UserExpander] `json:"user"`
+	Name     string                                       `json:"name"`
+	Token    string                                       `json:"token"`
+	Scopes   []httpx.ScopeName                            `json:"scopes"`
+	ExpireAt time.Time                                    `json:"expire_at"`
 }
 
 func (s *userService) CreateSession(ctx context.Context, param *CreateUserSessionRequest) (*CreateSessionResponse, error) {
 	user, err := s.r.GetBy(ctx, GetUserByParam{Name: param.Name})
 	if err != nil {
-		return nil, ErrNamePasswordError
+		return nil, errorx.UnprocessableEntity(ErrNamePasswordError)
 	}
 
 	if ok, _ := passwd.VerifyHash(param.Password, user.Password); !ok {
-		return nil, ErrNamePasswordError
+		return nil, errorx.UnprocessableEntity(ErrNamePasswordError)
 	}
 
 	// 一小时过期
@@ -194,7 +196,7 @@ func (s *userService) CreateSession(ctx context.Context, param *CreateUserSessio
 	// 创建会话
 	ent, err := s.rs.Create(ctx, &Session{UserId: user.Id, Address: param.Address, Agent: param.Agent, ExpireAt: expireAt})
 	if err != nil {
-		return nil, err
+		return nil, errorx.System(err)
 	}
 
 	// 创建 token
@@ -206,13 +208,14 @@ func (s *userService) CreateSession(ctx context.Context, param *CreateUserSessio
 	rst := &CreateSessionResponse{}
 	rst.Type = "Bearer"
 	rst.Name = user.Name
-	rst.UserId = identity.Format(UserPrefix, user.Id)
+	rst.User.Set(ctx, user.Id)
+	rst.UserId.Set(ctx, UserPrefix, user.Id)
 	rst.ExpireAt = expireAt
 	rst.Scopes = user.Scopes
 	rst.Token, err = tok.Encrypt(token.NewAesCrypto(s.aseKey))
 
 	if err != nil {
-		return nil, err
+		return nil, errorx.System(err)
 	}
 
 	return rst, nil
